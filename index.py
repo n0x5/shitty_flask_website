@@ -41,7 +41,6 @@ def create_thumbs(galid=None):
                         im.save(os.path.join(os.getcwd(), 'static', 'gallery', galid, 'thumbs', image) + ".thumbnail", "JPEG")
                     else:
                         pass
-    print('thumbnail creation for', galid,' complete!')           
 
 @app.route("/blog")
 def get_blog():
