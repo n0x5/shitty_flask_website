@@ -25,7 +25,6 @@ def get_gallery(galid=None):
 @app.route('/gallery/<galid>/create')
 def create_thumbs(galid=None):
     sizes = [(250,250)]
-    
     for subdir, dirs, files in os.walk(os.path.join(os.getcwd(), 'static', 'gallery', '%s' % galid)):
         for image in files:
             if image.endswith(".py"):
@@ -34,12 +33,12 @@ def create_thumbs(galid=None):
                 pass
             else:
                 for size in sizes:
-                    if not os.path.exists(os.path.join(os.getcwd(), 'static', 'gallery', galid, 'thumbs')): os.makedirs(os.path.join(os.getcwd(), 'static', 'gallery', galid, 'thumbs'))
+                    if not os.path.exists(os.path.join(os.getcwd(), 'static', 'gallery', galid, 'thumbs')): 
+                        os.makedirs(os.path.join(os.getcwd(), 'static', 'gallery', galid, 'thumbs'))
                     im = Image.open(os.path.join(os.getcwd(), 'static', 'gallery', galid, image)).convert('RGB')
                     im.thumbnail(size, Image.ANTIALIAS)
                     if not os.path.exists(os.path.join(os.getcwd(), 'static', 'gallery', galid, 'thumbs', image) + ".thumbnail"):
                         im.save(os.path.join(os.getcwd(), 'static', 'gallery', galid, 'thumbs', image) + ".thumbnail", "JPEG")
-                        
                     else:
                         pass
     print('thumbnail creation for', galid,' complete!')           
