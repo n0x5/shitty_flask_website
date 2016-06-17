@@ -1,0 +1,8 @@
+<!doctype html>
+<title>Gallery</title>
+
+  <h1>Hello</h1>
+
+{% for item in dirs %}
+  <a class="link" href="/gallery/{{ item }}">{{item}}</a>
+{% endfor %}

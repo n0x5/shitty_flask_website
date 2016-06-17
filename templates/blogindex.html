@@ -1,0 +1,8 @@
+<!doctype html>
+<title>Blog Archive</title>
+
+  <h1>Blog Archive</h1>
+
+{% for item in outpt %}
+  <a class="link" href="/blog/{{ item }}">{{item}}</a>
+{% endfor %}
