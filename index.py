@@ -7,6 +7,7 @@ from PIL import Image
 
 app = Flask(__name__)
 
+
 @app.route("/")
 def hello():
     return render_template('index.html')
@@ -17,16 +18,16 @@ def gallery():
         for name in dirs:
             return render_template('galleryindex.html', dirs=dirs)
 
-@app.route('/gallery/<galid>')
-def get_gallery(galid=None):
-    dirgl = os.path.join(os.getcwd(), 'static', 'gallery', '%s' % galid)
+@app.route('/gallery/<gal>')
+def get_gallery(gal=None):
+    dirgl = os.path.join(os.getcwd(), 'static', 'gallery', '%s' % gal)
     for subdir, dirs, files in os.walk(dirgl):
         for image in files:
-            return render_template('gallerylist.html', galid=galid, files=files)
+            return render_template('gallerylist.html', gal=gal, files=files)
 
-@app.route('/gallery/<galid>/create')
-def create_thumbs(galid=None):
-    dirgl = os.path.join(os.getcwd(), 'static', 'gallery', '%s' % galid)
+@app.route('/gallery/<gal>/create')
+def create_thumbs(gal=None):
+    dirgl = os.path.join(os.getcwd(), 'static', 'gallery', '%s' % gal)
     for subdir, dirs, files in os.walk(dirgl):
         for image in files:
             if image.endswith(".py"):
@@ -34,18 +35,19 @@ def create_thumbs(galid=None):
             if image.endswith(".thumbnail"):
                 pass
             else:
-                thumbc(galid, image)
-    print('thumbnail creation for', galid, 'complete!')
+                thumbc(gal, image)
+    print('thumbnail creation for', gal, 'complete!')
 
-def thumbc(galid, image):
+def thumbc(gal, image):
     sizes = [(250, 250)]
-    dirsm = os.path.join(os.getcwd(), 'static', 'gallery', galid)
+    dirsm = os.path.join(os.getcwd(), 'static', 'gallery', gal)
     for size in sizes:
         os.makedirs(os.path.join(dirsm, 'thumbs'), exist_ok=True)
         im = Image.open(os.path.join(dirsm, image)).convert('RGB')
         im.thumbnail(size, Image.ANTIALIAS)
-        if not os.path.exists(os.path.join(dirsm, 'thumbs', image) + ".thumbnail"):
-            im.save(os.path.join(dirsm, 'thumbs', image) + ".thumbnail", "JPEG")
+        thmbs = os.path.join(dirsm, 'thumbs', image)
+        if not os.path.exists(thmbs):
+            im.save(thmbs + '.thumbnail', "JPEG")
         else:
             pass
 
@@ -63,5 +65,7 @@ def get_blogid(blogid):
         content2 = ''.join(content)
         return render_template('blog.html', content2=content2, blogid=blogid)
 
+
 if __name__ == "__main__":
     app.run()
+
