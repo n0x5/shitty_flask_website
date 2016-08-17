@@ -12,7 +12,6 @@ app = Flask(__name__)
 
 @app.route("/")
 def hello(tpath=None):
-    image = 'hey there guy'
     tpath = os.path.join(os.path.dirname(__file__), 'static', 'gallery')
     return render_template('index.html', tpath=tpath)
 
@@ -80,5 +79,3 @@ def get_blogid(blogid):
 
 if __name__ == "__main__":
     app.run()
-
-
