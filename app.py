@@ -38,6 +38,7 @@ def movieindex(genres=None):
 def movielist(groups=None):
     with connection.cursor() as cursor:
         sql = 'select distinct grp from movies'
+        connection.escape_string(sql)
         cursor.execute(sql)
         groups = [''.join(item) for item in cursor]
         return render_template('moviegroups.html', groups=groups)
@@ -46,6 +47,7 @@ def movielist(groups=None):
 def searchgenre(results=None, search=None):
     with connection.cursor() as cursor:
         sql = "select title, imdb, genre from movies where genre like '%{}%'" .format(search)
+        connection.escape_string(sql)
         cursor.execute(sql)
         results = ['        '.join(item) for item in cursor]
         return render_template('moviesearch.html', results=results)
@@ -54,6 +56,7 @@ def searchgenre(results=None, search=None):
 def searchmovies(results=None, search=None):
     with connection.cursor() as cursor:
         sql = "select title, imdb, genre from movies where title like '%-{}%'" .format(search)
+        connection.escape_string(sql)
         cursor.execute(sql)
         results = ['        '.join(item) for item in cursor]
         return render_template('moviesearch.html', results=results)
