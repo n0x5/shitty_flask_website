@@ -2,24 +2,61 @@
 
 import os
 import time
+import re
+import pymysql
 from flask import Flask
 from flask import render_template
 from PIL import Image
 
 
 app = Flask(__name__)
-#app.debug = True # enable debug mode if needed
+#app.debug = True
+
+connection = pymysql.connect(host='127.0.0.1',
+                             user='',
+                             password='',
+                             db='movies',
+                             charset='utf8',
+                             cursorclass=pymysql.cursors.SSCursor)
+
 
 @app.route("/")
 def hello(tpath=None):
+    image = 'hey there guy'
     tpath = os.path.join(os.path.dirname(__file__), 'static', 'gallery')
     return render_template('index.html', tpath=tpath)
 
 
-@app.route("/testing")
-def testing():
-    return render_template('testing.html')
+@app.route("/movies")
+def movieindex(genres=None):
+    genrelist = (["romance", "comedy", "animation", "mystery", "documentary", "crime", "family", "sport", 
+                "biography", "history", "western", "sci-fi", "horror", "adventure", "drama", "fantasy", "thriller", "action"])
+    genres = [item.title() for item in genrelist]
+    return render_template('movieindex.html', genres=genres)
 
+@app.route("/movies/groups")
+def movielist(groups=None):
+    with connection.cursor() as cursor:
+        sql = 'select distinct grp from movies'
+        cursor.execute(sql)
+        groups = [''.join(item) for item in cursor]
+        return render_template('moviegroups.html', groups=groups)
+
+@app.route("/movies/search/genre/<search>")
+def searchgenre(results=None, search=None):
+    with connection.cursor() as cursor:
+        sql = "select title, imdb, genre from movies where genre like '%{}%'" .format(search)
+        cursor.execute(sql)
+        results = ['        '.join(item) for item in cursor]
+        return render_template('moviesearch.html', results=results)
+
+@app.route("/movies/search/title/<search>")
+def searchmovies(results=None, search=None):
+    with connection.cursor() as cursor:
+        sql = "select title, imdb, genre from movies where title like '%-{}%'" .format(search)
+        cursor.execute(sql)
+        results = ['        '.join(item) for item in cursor]
+        return render_template('moviesearch.html', results=results)
 
 @app.route("/gallery")
 def gallery():
@@ -64,9 +101,9 @@ def thumbc(gal, image):
 @app.route("/blog")
 def get_blog():
     for subdir, dirs, files in os.walk(os.path.join(os.path.dirname(__file__), 'blog')):
-        for fn in files:
-            outpt = [fn.replace(".txt", "") for fn in files]
-            return render_template('blogindex.html', outpt=outpt)
+        #for fn in files:
+        outpt = [fn.replace(".txt", "") for fn in files]
+        return render_template('blogindex.html', outpt=outpt)
 
 @app.route('/blog/<blogid>')
 def get_blogid(blogid):
@@ -79,3 +116,4 @@ def get_blogid(blogid):
 
 if __name__ == "__main__":
     app.run()
+
