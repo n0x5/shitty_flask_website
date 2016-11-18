@@ -1,9 +1,11 @@
 <!doctype html>
-<title>Gallery</title>
+<title>>> {{ gal }} - Gallery</title>
 
-  <h1>Hello {{ gal }}!</h1>
+  <h1>{{ gal }} images</h1>
+
+<h2><a href="../gallery">Back</a></h2>
 
 
 {% for img in files %}
-  <a class="imglink" href="/static/gallery/{{ gal }}/{{img}}"><img width="250" src="/static/gallery/{{ gal }}/thumbs/{{ img|e }}.thumbnail"/></a>
+  <a class="imglink" href="/static/gallery/{{ gal }}/{{img}}"><img width="250" src="/static/gallery/{{ gal }}/{{ img|e }}"/></a>
 {% endfor %}
