@@ -55,7 +55,6 @@ def searchgenre(results=None, search=None):
 def searchmovies(results=None, search=None):
     with connection.cursor() as cursor:
         sql = "select title, imdb, genre from movies where title like '%-{}%'" .format(search)
-        sql2 = "select imdb from movies where title like '%-{}%'" .format(search)
         connection.escape_string(sql)
         cursor.execute(sql)
         results = [(item[0], item[1], item[2]) for item in cursor.fetchall()]
