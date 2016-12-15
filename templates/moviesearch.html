@@ -1,10 +1,10 @@
 <!doctype html>
-<title>My website</title>
+<title>- {{ search }} search results</title>
 
 <h2><a href="/movies">Home</a></h2>
 <h1>Movie stuff</h1>
 
-<p>Search results</p>
+<p>Search results for {{ search }}</p>
 
 {% for item in results %}
   <p><a class="imdb" href="{{item[1]}}">{{item[0]}}</a> <class="genre">{{item[2]}}</class></p>
