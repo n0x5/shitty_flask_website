@@ -5,7 +5,6 @@
 
 <h2><a href="../gallery">Back</a></h2>
 
-
 {% for img in files %}
-  <a class="imglink" href="/static/gallery/{{ gal }}/{{img}}"><img width="250" src="/static/gallery/{{ gal }}/{{ img|e }}"/></a>
+  <a class="imglink" href="/static/gallery/{{ gal }}/{{img}}"><img width="250" src="/static/gallery/{{ gal }}/thumbs/thumb_{{ img|e }}"/></a>
 {% endfor %}
