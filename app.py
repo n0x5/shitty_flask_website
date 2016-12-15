@@ -42,23 +42,32 @@ def movielist(groups=None):
         groups = [''.join(item) for item in cursor]
         return render_template('moviegroups.html', groups=groups)
 
-@app.route("/movies/search/genre/<search>")
-def searchgenre(results=None, search=None):
+@app.route("/movies/genre/<search>")
+def searchgenre(search=None):
     with connection.cursor() as cursor:
         sql = "select title, imdb, genre from movies where genre like '%{}%'" .format(search)
         connection.escape_string(sql)
         cursor.execute(sql)
         results = [(item[0], item[1], item[2]) for item in cursor.fetchall()]
-        return render_template('moviesearch.html', results=results)
+        return render_template('moviesearch.html', results=results, search=search)
 
-@app.route("/movies/search/title/<search>")
-def searchmovies(results=None, search=None):
+@app.route("/movies/group/<search>")
+def searchmovies(search=None):
     with connection.cursor() as cursor:
-        sql = "select title, imdb, genre from movies where title like '%-{}%'" .format(search)
+        sql = "select title, imdb, genre from movies where grp like '%{}%'" .format(search)
         connection.escape_string(sql)
         cursor.execute(sql)
         results = [(item[0], item[1], item[2]) for item in cursor.fetchall()]
-        return render_template('moviesearch.html', results=results)
+        return render_template('moviesearch.html', results=results, search=search)
+
+@app.route("/movies/title/<search>")
+def searchtitle(search=None):
+    with connection.cursor() as cursor:
+        sql = "select title, imdb, genre from movies where title like '%{}%'" .format(search)
+        connection.escape_string(sql)
+        cursor.execute(sql)
+        results = [(item[0], item[1], item[2]) for item in cursor.fetchall()]
+        return render_template('moviesearch.html', results=results, search=search)
 
 @app.route("/gallery")
 def gallery():
@@ -111,7 +120,14 @@ def get_blogid(blogid):
         content2 = ''.join(content)
         return render_template('blog.html', content2=content2, blogid=blogid)
 
+@app.after_request
+def add_header(response):
+    response.headers['X-UA-Compatible'] = 'IE=Edge,chrome=1'
+    response.headers['Cache-Control'] = 'public, max-age=0'
+    return response
+
 
 
 if __name__ == "__main__":
     app.run()
+
