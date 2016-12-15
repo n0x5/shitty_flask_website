@@ -1,0 +1,12 @@
+<!doctype html>
+<title>My website</title>
+
+<h1>Welcome!</h1>
+
+<a href="/movies/groups">List of groups</a>
+
+<p>List of genres:</p>
+
+{% for item in genres %}
+   <a href="/movies/search/genre/{{item}}">{{item}}</a><br>
+{% endfor %}
