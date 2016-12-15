@@ -19,7 +19,6 @@ connection = pymysql.connect(host='127.0.0.1',
                              charset='utf8',
                              cursorclass=pymysql.cursors.SSCursor)
 
-
 @app.route("/")
 def hello(tpath=None):
     image = 'hey there guy'
@@ -49,16 +48,17 @@ def searchgenre(results=None, search=None):
         sql = "select title, imdb, genre from movies where genre like '%{}%'" .format(search)
         connection.escape_string(sql)
         cursor.execute(sql)
-        results = ['        '.join(item) for item in cursor]
+        results = [(item[0], item[1], item[2]) for item in cursor.fetchall()]
         return render_template('moviesearch.html', results=results)
 
 @app.route("/movies/search/title/<search>")
 def searchmovies(results=None, search=None):
     with connection.cursor() as cursor:
         sql = "select title, imdb, genre from movies where title like '%-{}%'" .format(search)
+        sql2 = "select imdb from movies where title like '%-{}%'" .format(search)
         connection.escape_string(sql)
         cursor.execute(sql)
-        results = ['        '.join(item) for item in cursor]
+        results = [(item[0], item[1], item[2]) for item in cursor.fetchall()]
         return render_template('moviesearch.html', results=results)
 
 @app.route("/gallery")
@@ -77,34 +77,31 @@ def get_gallery(gal=None):
 @app.route('/gallery/<gal>/create')
 def create_thumbs(gal=None):
     dirgl = os.path.join(os.path.dirname(__file__), 'static', 'gallery', '%s' % gal)
+    dirth = os.path.join(dirgl, 'thumbs')
+    if not os.path.exists(dirth):
+        os.makedirs(dirth)
+    os.chmod(dirth, 0o777)
     for subdir, dirs, files in os.walk(dirgl):
         for image in files:
-            if image.endswith(".py"):
-                pass
-                return 'what'
-            if image.endswith(".thumbnail"):
-                pass
-                return 'wat'
-            else:
                 thumbc(gal, image)
 
 def thumbc(gal, image):
     sizes = [(250, 250)]
     dirsm = os.path.join(os.path.dirname(__file__), 'static', 'gallery', '%s' % gal)
+    dirth = os.path.join(dirsm, 'thumbs')
+
     for size in sizes:
-        os.makedirs(os.path.join(dirsm, 'thumbs'), exist_ok=True)
         im = Image.open(os.path.join(dirsm, image)).convert('RGB')
         im.thumbnail(size, Image.ANTIALIAS)
-        thmbs = os.path.join(dirsm, 'thumbs', image)
-        if not os.path.exists(thmbs):
-            im.save(thmbs + '.thumbnail', "JPEG")
-        else:
-            pass
+        thmbs = os.path.join(dirsm, 'thumb_'+image)
+        quality_val = 100
+        thumbs2 = os.path.join(dirsm, 'thumbs', 'thumb_'+image)
+        im.save(thumbs2, "JPEG", quality=quality_val)
+        os.chmod(thumbs2, 0o777)
 
 @app.route("/blog")
 def get_blog():
     for subdir, dirs, files in os.walk(os.path.join(os.path.dirname(__file__), 'blog')):
-        #for fn in files:
         outpt = [fn.replace(".txt", "") for fn in files]
         return render_template('blogindex.html', outpt=outpt)
 
@@ -119,4 +116,3 @@ def get_blogid(blogid):
 
 if __name__ == "__main__":
     app.run()
-
