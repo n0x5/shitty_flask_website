@@ -91,7 +91,10 @@ def create_thumbs(gal=None):
     os.chmod(dirth, 0o777)
     for subdir, dirs, files in os.walk(dirgl):
         for image in files:
+            if not image.startswith("thumb_"):
                 thumbc(gal, image)
+    return redirect('/gallery/{}' .format(gal), code=302)
+
 
 def thumbc(gal, image):
     sizes = [(250, 250)]
