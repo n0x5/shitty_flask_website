@@ -135,13 +135,6 @@ def get_blogid(blogid):
         content2 = ''.join(content)
         return render_template('blog.html', content2=content2, blogid=blogid)
 
-@app.after_request
-def add_header(response):
-    response.headers['X-UA-Compatible'] = 'IE=Edge,chrome=1'
-    response.headers['Cache-Control'] = 'public, max-age=0'
-    return response
-
-
 
 if __name__ == "__main__":
     app.run()
