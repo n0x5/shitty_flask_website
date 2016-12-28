@@ -75,10 +75,10 @@ def searchtitle(search=None):
 
 @app.route("/gallery")
 def gallery():
-    for root, dirs, files in os.walk(os.path.join(os.path.dirname(__file__), 'static', 'gallery')):
-        for name in dirs:
-            return render_template('galleryindex.html', dirs=dirs)
-
+    for root, dirs, files in os.walk(str(os.path.join(os.path.dirname(__file__), 'static', 'gallery'))):
+        results2 = [image for image in dirs]
+        results2.sort()
+        return render_template('galleryindex.html', results2=results2)
 
 @app.route('/gallery/<gal>')
 def get_gallery(gal=None):
@@ -88,7 +88,6 @@ def get_gallery(gal=None):
         results2.sort(key=os.path.getmtime, reverse=True)
         results = [basename(image).decode('utf-8') for image in results2]
         return render_template('gallerylist.html', gal=gal, results=results)
-
 
 @app.route('/gallery/<gal>/create')
 def create_thumbs(gal=None):
