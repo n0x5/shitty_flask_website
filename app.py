@@ -4,8 +4,12 @@ import os
 import time
 import re
 import pymysql
+from os.path import basename
 from flask import Flask
-from flask import render_template
+from flask import render_template, redirect, url_for
+from flask import request
+from flask import send_from_directory
+from werkzeug.utils import secure_filename
 from PIL import Image
 
 
