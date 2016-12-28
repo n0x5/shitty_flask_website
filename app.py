@@ -75,34 +75,39 @@ def gallery():
         for name in dirs:
             return render_template('galleryindex.html', dirs=dirs)
 
+
 @app.route('/gallery/<gal>')
 def get_gallery(gal=None):
-    dirgl = os.path.join(os.path.dirname(__file__), 'static', 'gallery', '%s' % gal)
-    for subdir, dirs, files in os.walk(dirgl):
-        for image in files:
-            return render_template('gallerylist.html', gal=gal, files=files)
+    dirgl = os.path.join(os.path.dirname(__file__), 'static', 'gallery', '{}' .format(gal))
+    for subdir, dirs, files in os.walk(str(dirgl)):
+        results = [image.decode('utf-8') for image in files]
+        return render_template('gallerylist.html', gal=gal, results=results)
+
 
 @app.route('/gallery/<gal>/create')
 def create_thumbs(gal=None):
-    dirgl = os.path.join(os.path.dirname(__file__), 'static', 'gallery', '%s' % gal)
+    dirgl = os.path.join(os.path.dirname(__file__), 'static', 'gallery', '{}' .format(gal))
     dirth = os.path.join(dirgl, 'thumbs')
     if not os.path.exists(dirth):
         os.makedirs(dirth)
     os.chmod(dirth, 0o777)
-    for subdir, dirs, files in os.walk(dirgl):
+    for subdir, dirs, files in os.walk(str(dirgl)):
         for image in files:
-            if not image.startswith("thumb_"):
-                thumbc(gal, image)
-    return redirect('/gallery/{}' .format(gal), code=302)
+                if not image.startswith("thumb_"):
+                    try:
+                        thumbc(gal, image)
+                    except IOError:
+                        pass
 
+    return redirect('/gallery/{}' .format(gal), code=302)
 
 def thumbc(gal, image):
     sizes = [(250, 250)]
-    dirsm = os.path.join(os.path.dirname(__file__), 'static', 'gallery', '%s' % gal)
+    dirsm = os.path.join(os.path.dirname(__file__), 'static', 'gallery', '{}' .format(gal))
     dirth = os.path.join(dirsm, 'thumbs')
 
     for size in sizes:
-        im = Image.open(os.path.join(dirsm, image)).convert('RGB')
+        im = Image.open(str(os.path.join(dirsm, image))).convert('RGB')
         im.thumbnail(size, Image.ANTIALIAS)
         thmbs = os.path.join(dirsm, 'thumb_'+image)
         quality_val = 100
