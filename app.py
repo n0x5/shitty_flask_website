@@ -80,7 +80,9 @@ def gallery():
 def get_gallery(gal=None):
     dirgl = os.path.join(os.path.dirname(__file__), 'static', 'gallery', '{}' .format(gal))
     for subdir, dirs, files in os.walk(str(dirgl)):
-        results = [image.decode('utf-8') for image in files]
+        results2 = [os.path.join(dirgl, image) for image in files]
+        results2.sort(key=os.path.getmtime)
+        results = [basename(image).decode('utf-8') for image in results2]
         return render_template('gallerylist.html', gal=gal, results=results)
 
 
@@ -114,6 +116,7 @@ def thumbc(gal, image):
         thumbs2 = os.path.join(dirsm, 'thumbs', 'thumb_'+image)
         im.save(thumbs2, "JPEG", quality=quality_val)
         os.chmod(thumbs2, 0o777)
+
 
 @app.route("/blog")
 def get_blog():
