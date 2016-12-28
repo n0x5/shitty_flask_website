@@ -85,7 +85,7 @@ def get_gallery(gal=None):
     dirgl = os.path.join(os.path.dirname(__file__), 'static', 'gallery', '{}' .format(gal))
     for subdir, dirs, files in os.walk(str(dirgl)):
         results2 = [os.path.join(dirgl, image) for image in files]
-        results2.sort(key=os.path.getmtime)
+        results2.sort(key=os.path.getmtime, reverse=True)
         results = [basename(image).decode('utf-8') for image in results2]
         return render_template('gallerylist.html', gal=gal, results=results)
 
