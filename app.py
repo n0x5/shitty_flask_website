@@ -28,6 +28,25 @@ def hello(tpath=None):
     image = 'hey there guy'
     tpath = os.path.join(os.path.dirname(__file__), 'static', 'gallery')
     return render_template('index.html', tpath=tpath)
+  
+@app.route("/games")
+def lgames(search=None):
+    with connection.cursor() as cursor:
+        sql = "select title, systems, rlsdate, url from games order by right(rlsdate, 4), systems, title" .format(search)
+        connection.escape_string(sql)
+        cursor.execute(sql)
+        results = [(item[0], item[1], item[2], item[3]) for item in cursor.fetchall()]
+        return render_template('games.html', results=results, search=search)
+
+@app.route("/games/<search>")
+def sgames(search=None):
+    with connection.cursor() as cursor:
+        sql = "select title, systems, rlsdate, url from games where systems like '%{}%' order by right(rlsdate, 4), title" .format(search)
+        connection.escape_string(sql)
+        cursor.execute(sql)
+        results = [(item[0], item[1], item[2], item[3]) for item in cursor.fetchall()]
+        return render_template('games.html', results=results, search=search)
+
 
 
 @app.route("/movies")
