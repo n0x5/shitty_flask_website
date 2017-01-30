@@ -6,6 +6,5 @@
 <h2><a href="../gallery">Back</a></h2>
 
 {% for img, imh in results3 %}
-  <a class="imglink" href="/static/gallery/{{ gal }}/{{img}}"><img alt="{{img}}" title="{{img}}" height="100%" src="/static/gallery/{{ gal }}/thumbs/thumb_{{ img|e }}"/></a> 
-    <div class="size">{{ imh }}</div>  
+  <div class="imglink" style="margin:5px;float:left;"><a href="/static/gallery/{{ gal }}/{{img}}"><img alt="{{img}}" title="{{img}}" height="100%" src="/static/gallery/{{ gal }}/thumbs/thumb_{{ img|e }}"/></a> <div class="size">{{ imh }}</div></div>
 {% endfor %}
