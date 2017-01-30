@@ -103,11 +103,17 @@ def gallery():
 def get_gallery(gal=None):
     dirgl = os.path.join(os.path.dirname(__file__), 'static', 'gallery', '{}' .format(gal))
     for subdir, dirs, files in os.walk(str(dirgl)):
-        results2 = [os.path.join(dirgl, image) for image in files]
-        results2.sort(key=os.path.getmtime, reverse=True)
-        results = [basename(image).decode('utf-8') for image in results2]
-        return render_template('gallerylist.html', gal=gal, results=results)
+        if 'thumbs' not in subdir:
+            results2 = [os.path.join(dirgl, image) for image in files]
+            results2.sort(key=os.path.getmtime)
 
+        imh = [Image.open(image).size for image in results2]
+        results = [basename(image) for image in results2]
+        gcount = len(results)
+        results3 = zip(results, imh)
+    return render_template('gallerylist.html', gal=gal, results3=results3, gcount=gcount)
+  
+ 
 @app.route('/gallery/<gal>/create')
 def create_thumbs(gal=None):
     dirgl = os.path.join(os.path.dirname(__file__), 'static', 'gallery', '{}' .format(gal))
