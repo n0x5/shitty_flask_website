@@ -105,7 +105,7 @@ def get_gallery(gal=None):
     for subdir, dirs, files in os.walk(str(dirgl)):
         if 'thumbs' not in subdir:
             results2 = [os.path.join(dirgl, image) for image in files]
-            results2.sort(key=os.path.getmtime)
+            results2.sort(key=os.path.getmtime, reverse=True)
 
         imh = [Image.open(image).size for image in results2]
         results = [basename(image) for image in results2]
