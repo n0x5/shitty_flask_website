@@ -11,7 +11,7 @@ from flask import request
 from flask import send_from_directory
 from werkzeug.utils import secure_filename
 from PIL import Image
-
+import sqlite3
 
 app = Flask(__name__)
 #app.debug = True
@@ -158,7 +158,21 @@ def get_blogid(blogid):
     with open(os.path.join(os.path.dirname(__file__), 'blog', blogid2), "r") as content:
         content2 = ''.join(content)
         return render_template('blog.html', content2=content2, blogid=blogid)
+      
+    
+@app.route("/images")
+def iisgames(search=None):
+    return render_template('imagesindex.html')
 
+@app.route("/images/<search>")
+def iigames(search=None):
+    connection = sqlite3.connect('images.db')
+    cursor = connection.cursor()
+    cursor.execute("select file, fullpath, subfolder from images where file like ?", ('%'+search+'%',))
+    results = [(item[0], item[1], item[2]) for item in cursor.fetchall()]
+    gcounts = len(results)
+    cursor.close()
+    return render_template('images.html', results=results, search=search, gcounts=gcounts)
 
 if __name__ == "__main__":
     app.run()
