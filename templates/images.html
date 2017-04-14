@@ -1,0 +1,12 @@
+<title>- {{ search }} search results</title>
+
+<h2><a href="/">Home</a></h2>
+<h1>Gallery search</h1>
+
+
+<p><b>{{ gcounts }}</b> search results for<b> {{ search }}</b></p>
+
+{% for item in results %}
+  <div class="imglink" style="margin: 5px; float: left;"><a href="/static/gallery/{{item[2]}}/{{item[0]}}"><img src="/static/gallery/{{item[2]}}/thumbs/thumb_{{item[0]}}"/></a></div>
+{% endfor %}
+
