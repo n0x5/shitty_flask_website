@@ -142,8 +142,9 @@ def thumbc(gal, image):
         thmbs = os.path.join(dirsm, 'thumb_'+image)
         quality_val = 100
         thumbs2 = os.path.join(dirsm, 'thumbs', 'thumb_'+image)
-        im.save(thumbs2, "JPEG", quality=quality_val)
-        os.chmod(thumbs2, 0o777)
+        if not os.path.exists(thumbs2): 
+            im.save(thumbs2, "JPEG", quality=quality_val)
+            os.chmod(thumbs2, 0o777)
 
 
 @app.route("/blog")
