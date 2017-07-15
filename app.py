@@ -169,8 +169,19 @@ def iisgames(search=None):
 def iigames(search=None):
     connection = sqlite3.connect('images.db')
     cursor = connection.cursor()
-    cursor.execute("select file, fullpath, subfolder from images where file like ?", ('%'+search+'%',))
-    results = [(item[0], item[1], item[2], item[3].split(' ')[0].replace('.jpg', '')) for item in cursor.fetchall()]
+    cursor.execute("select file, fullpath, subfolder, file, sizewidth, sizeheight from images where file like ?", ('%'+search+'%',))
+    results = [(item[0], item[1], item[2], str(item[3]).split(' ')[0].replace('.jpg', ''), str(item[4]).replace(', ', 'x')) for item in cursor.fetchall()]
+    gcounts = len(results)
+    cursor.close()
+    return render_template('images.html', results=results, search=search, gcounts=gcounts)
+
+  
+@app.route("/images/<search>/<sizew>")
+def i2games(search=None, sizew=None):
+    connection = sqlite3.connect('images.db')
+    cursor = connection.cursor()
+    cursor.execute("select file, fullpath, subfolder, file, sizewidth, sizeheight from images where file like ? and sizewidth > ?", ('%'+search+'%', int(sizew)))
+    results = [(item[0], item[1], item[2], item[3], item[4]) for item in cursor.fetchall()]
     gcounts = len(results)
     cursor.close()
     return render_template('images.html', results=results, search=search, gcounts=gcounts)
