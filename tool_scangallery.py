@@ -1,4 +1,6 @@
+import re
 import os
+from PIL import Image
 import sqlite3
 
 cwd = r'/folder/image/gallery'
