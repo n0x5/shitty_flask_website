@@ -8,7 +8,7 @@ cwd = r'/folder/image/gallery'
 conn = sqlite3.connect('images.db')
 cur = conn.cursor()
 cur.execute('''CREATE TABLE images
-             (file text, fullpath text, subfolder text, size text, dated datetime DEFAULT CURRENT_TIMESTAMP)''')
+             (file text, fullpath text, subfolder text, sizewidth int, sizeheight int, dated datetime DEFAULT CURRENT_TIMESTAMP)''')
 
 for subdir, dirs, files in os.walk(cwd):
     for fn in files:
@@ -17,6 +17,7 @@ for subdir, dirs, files in os.walk(cwd):
         if 'thumbs' not in subfolder:
             imh = Image.open(fullpath).size
             imh2 = re.sub('[(/:)"]', '', str(imh).replace(', ', 'x'))
-            print(fullpath, imh2)
-            cur.execute('INSERT INTO images (file, fullpath, subfolder, size) VALUES (?,?,?,?)', (fn, fullpath, subfolder, imh2))
+            swidth = imh2.split('x')
+            print(fullpath, swidth)
+            cur.execute('INSERT INTO images (file, fullpath, subfolder, sizewidth, sizeheight) VALUES (?,?,?,?,?)', (fn, fullpath, subfolder, int(swidth[0]), int(swidth[1])))
             cur.connection.commit()
