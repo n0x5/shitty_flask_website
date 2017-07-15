@@ -170,7 +170,7 @@ def iigames(search=None):
     connection = sqlite3.connect('images.db')
     cursor = connection.cursor()
     cursor.execute("select file, fullpath, subfolder, file, sizewidth, sizeheight from images where file like ?", ('%'+search+'%',))
-    results = [(item[0], item[1], item[2], str(item[3]).split(' ')[0].replace('.jpg', ''), str(item[4]).replace(', ', 'x')) for item in cursor.fetchall()]
+    results = [(item[0], item[1], item[2], unicode(item[3]).split(' ')[0].replace('.jpg', ''), str(item[4]).replace(', ', 'x'), item[5]) for item in cursor.fetchall()]
     gcounts = len(results)
     cursor.close()
     return render_template('images.html', results=results, search=search, gcounts=gcounts)
