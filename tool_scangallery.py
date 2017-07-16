@@ -1,8 +1,5 @@
 import re
-import time
 import os
-from datetime import datetime
-import calendar
 import sqlite3
 from PIL import Image
 import pyexiv2
