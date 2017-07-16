@@ -21,7 +21,7 @@ for subdir, dirs, files in os.walk(cwd):
         subfolder = os.path.basename(os.path.join(subdir))
         if 'thumbs' not in subfolder:
             imh = Image.open(fullpath).size
-            ims = str(os.path.getmtime(fullpath)).replace('.0', '')
+            ims = str(os.path.getmtime(fullpath)).replace('.', '')
             ex2 = pyexiv2.ImageMetadata(fullpath)
             ex2.read()
             try:
