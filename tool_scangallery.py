@@ -31,5 +31,6 @@ for subdir, dirs, files in os.walk(cwd):
             imh2 = re.sub('[()]', '', str(imh).replace(', ', 'x'))
             swidth = imh2.split('x')
             print(fullpath, swidth, ims, str(ex6))
-            cur.execute('INSERT INTO images (file, fullpath, subfolder, sizewidth, sizeheight, ftime, exifd) VALUES (?,?,?,?,?,?,?)', (fn, fullpath, subfolder, int(swidth[0]), int(swidth[1]), int(ims), str(ex6)))
+            cur.execute('INSERT INTO images (file, fullpath, subfolder, sizewidth, sizeheight, ftime, exifd) VALUES (?,?,?,?,?,?,?)', \
+                        (fn, fullpath, subfolder, int(swidth[0]), int(swidth[1]), int(ims), str(ex6)))
             cur.connection.commit()
