@@ -162,31 +162,24 @@ def get_blogid(blogid):
       
     
 @app.route("/images")
-def iisgames(search=None):
-    return render_template('imagesindex.html')
+def gallery2():
+    for root, dirs, files in os.walk(str(os.path.join(os.path.dirname(__file__), 'static', 'gallery'))):
+        results2 = [image for image in dirs]
+        results2.sort()
 
-@app.route("/images/<search>")
-def iigames(search=None):
+        return render_template('gallery2index.html', results2=results2)
+
+@app.route("/images/<search>/<sizew>")
+def i7games(search=None, sizew=None):
     connection = sqlite3.connect('images.db')
     cursor = connection.cursor()
-    cursor.execute("select file, fullpath, subfolder, file, sizewidth, sizeheight from images where file like ?", ('%'+search+'%',))
+    cursor.execute("select file, fullpath, subfolder, file, sizewidth, sizeheight, ftime, exifd from images where (fullpath like ? or exifd like ?) and sizewidth > ? order by ftime desc", ('%'+search+'%', '%'+search+'%', int(sizew)))
     results = [(item[0], item[1], item[2], unicode(item[3]).split(' ')[0].replace('.jpg', ''), str(item[4]).replace(', ', 'x'), item[5]) for item in cursor.fetchall()]
     gcounts = len(results)
     cursor.close()
     return render_template('images.html', results=results, search=search, gcounts=gcounts)
 
-  
-@app.route("/images/<search>/<sizew>")
-def i2games(search=None, sizew=None):
-    connection = sqlite3.connect('images.db')
-    cursor = connection.cursor()
-    cursor.execute("select file, fullpath, subfolder, file, sizewidth, sizeheight from images where file like ? and sizewidth > ?", ('%'+search+'%', int(sizew)))
-    results = [(item[0], item[1], item[2], item[3], item[4]) for item in cursor.fetchall()]
-    gcounts = len(results)
-    cursor.close()
-    return render_template('images.html', results=results, search=search, gcounts=gcounts)
-  
-@app.route("/imagexif/<search>")
+@app.route("/images/<search>")
 def i62games(search=None):
     connection = sqlite3.connect('images.db')
     cursor = connection.cursor()
