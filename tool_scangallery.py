@@ -1,9 +1,6 @@
 import re
-from bs4 import BeautifulSoup
 import time
 import os
-from datetime import datetime
-import calendar
 import sqlite3
 from PIL import Image
 import pyexiv2
@@ -27,6 +24,7 @@ for subdir, dirs, files in os.walk(cwd):
             ex2 = pyexiv2.ImageMetadata(fullpath)
             ex2.read()
             try:
+                #ex4 = [str(ex2[item].value) for item in ex2.iptc_keys] # for only the value and not key
                 ex4 = [str(ex2[item]) for item in ex2.iptc_keys]
                 ex5 = [str(ex2[item]) for item in ex2.exif_keys]
                 ex6 = ex4, ex5
