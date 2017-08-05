@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+{% block title %}>{{ search }} search results{% endblock %}
+
+{% block b2 %}<h2><a href="/games">Back</a></h2>{% endblock %}
+
+{% block content %}
+<p><b>{{ gcounts }}</b> search results for<b> {{ search }}</b></p>
+
+<table class="sortable" style="width:100%"><script src="sorttable.js"></script><tr><th style="text-align:left">Title</th><th style="text-align:left">Systems</th><th style="text-align:left">Date</th></tr>
+{% for item in results %}
+  <tr><td class="title"><a href="{{item[3]}}">{{item[0]}}</a></td> <td class="systems">{{item[1]}}</td> <td class="rlsdate">{{item[2]}}</td></tr>
+{% endfor %}
+</table>
+
+{% endblock %}

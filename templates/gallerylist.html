@@ -1,10 +1,17 @@
-<!doctype html>
-<title>>> {{ gal }} - Gallery</title>
+{% extends "layout.html" %}
 
+{% block title %}> {{ gal }} {% endblock %}
+
+{% block b2 %}<h2><a href="../gallery">Back</a></h2>{% endblock %}
+{% block content %}
   <h1>{{ gal }} images</h1>
 
-<h2><a href="../gallery">Back</a></h2>
+
+
+<div id="count">Items in gallery: {{ gcount }}</div>
+
 
 {% for img, imh in results3 %}
-  <div class="imglink" style="margin:5px;float:left;"><a href="/static/gallery/{{ gal }}/{{img}}"><img alt="{{img}}" title="{{img}}" height="100%" src="/static/gallery/{{ gal }}/thumbs/thumb_{{ img|e }}"/></a> <div class="size">{{ imh }}</div></div>
+  <div class="imglink" style="margin:5px;float:left;"><a href="/static/gallery/{{ gal }}/{{img}}"><img alt="{{img}}" title="{{img}}" height="100%" src="/static/gallery/{{ gal }}/thumbs/thumb_{{ img|e }}"/></a> <div class="size" style="position:relative;bottom:30px;color:white;background-color:black;">{{ imh }}</div></div>
 {% endfor %}
+{% endblock %}

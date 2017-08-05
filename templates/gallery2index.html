@@ -1,0 +1,10 @@
+{% extends "layout.html" %}
+{% block title %}>Gallery{% endblock %}
+
+
+
+{% block content %}
+{% for item in results2 %}
+  <li><a class="link" href="/images/{{ item }}">{{item}}</a> <a class="link2" style="font-size:13px;color:red;" href="/images/{{ item }}/2000">(HiRez)</a></li>
+{% endfor %}
+{% endblock %}

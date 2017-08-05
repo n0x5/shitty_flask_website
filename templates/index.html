@@ -1,8 +1,7 @@
-<!doctype html>
-<title>My website</title>
+{% extends "layout.html" %}
 
-<h1>Welcome!</h1>
-<p>Hello there</p>
-<p><a href="/blog">Blog</a>
-<p><a href="/gallery">Gallery</a>
-<p><a href="/movies">Movies</a>
+{% block title %}> Index page{% endblock %}
+{% block content %}
+Welcome to my site.
+please browse and take a look at the different sections.
+{% endblock %}

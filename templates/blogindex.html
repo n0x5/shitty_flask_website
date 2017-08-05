@@ -1,8 +1,13 @@
-<!doctype html>
-<title>Blog Archive</title>
+{% extends "layout.html" %}
 
-  <h1>Blog Archive</h1>
+{% block title %}> {{ gal }} {% endblock %}
 
-{% for item in outpt %}
-  <a class="link" href="/blog/{{ item }}">{{item}}</a>
+{% block b2 %}<h2><a href="/">Back</a></h2>{% endblock %}
+{% block content %}
+<p>here's my blog index</p>
+{% for post in results2 %}
+<ul>
+<li><a href="/blog/{{ post }}">{{ post }}</a></li>
+</ul>
 {% endfor %}
+{% endblock %}

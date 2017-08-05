@@ -1,0 +1,26 @@
+<!doctype html>
+<html>
+  <head>
+    <div class="header"><img src="/static/hidden2.jpg"/></div>
+    {% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>{% block title %}{% endblock %} - My Webpage</title>
+    {% endblock %}
+  </head>
+  <div class="sidebar">
+    <p>{% block b2 %}{% endblock %}</p>
+    <p><a href="/">Home</a></p>
+    <p><a href="/blog">Blog</a></p>
+    <p><a href="/images">Gallery</a></p>
+    <p><a href="/movies">Movies</a></p>
+    <p><a href="/games">Games</a></p>
+  </div>
+  <body>
+    <div class="content">{% block content %}{% endblock %}</div>
+    <div id="footer">
+      {% block footer %}
+      &copy; Copyright 2010 by <a href="http://domain.invalid/">you</a>.
+      {% endblock %}
+    </div>
+  </body>
+</html>

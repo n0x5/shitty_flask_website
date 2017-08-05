@@ -1,8 +1,9 @@
-<!doctype html>
-<title>My website</title>
+{% extends "layout.html" %}
 
-<h1>Welcome!</h1>
+{% block title %}>Movies{% endblock %}
 
+{% block b2 %}<h2><a href="/">Back</a></h2>{% endblock %}
+{% block content %}
 <a href="/movies/groups">List of groups</a>
 
 <p>List of genres:</p>
@@ -10,3 +11,5 @@
 {% for item in genres %}
    <a href="/movies/genre/{{item}}">{{item}}</a><br>
 {% endfor %}
+<a href="/movies/genre/None">None</a>
+{% endblock %}

@@ -1,8 +1,12 @@
-<!doctype html>
-<title>My website</title>
+{% extends "layout.html" %}
+{% block title %}>Movie groups{% endblock %}
 
+{% block b2 %}<h2><a href="/movies">Back</a></h2>{% endblock %}
+
+{% block content %}
 <h1>list of groups</h1>
 
 {% for item in groups %}
-  <a href="/movies/title/{{item}}">{{item}}</a><br>
+  <a href="/movies/group/{{item}}">{{item}}</a><br>
 {% endfor %}
+{% endblock %}
