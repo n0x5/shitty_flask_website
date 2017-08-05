@@ -4,15 +4,17 @@
 import os
 import time
 import re
-import pymysql
 from os.path import basename
+import markdown
 from flask import Flask
 from flask import render_template, redirect, url_for
 from flask import request
 from flask import send_from_directory
+from flask import Markup
 from werkzeug.utils import secure_filename
 from PIL import Image
 import sqlite3
+import yaml
 
 
 app = Flask(__name__)
@@ -25,6 +27,25 @@ def hello(tpath=None):
     tpath = os.path.join(os.path.dirname(__file__), 'static', 'gallery')
     return render_template('index.html', tpath=tpath)
 
+@app.route('/blog')
+def blogit():
+    for root, dirs, files in os.walk(str(os.path.join(os.path.dirname(__file__), 'posts'))):
+        results3 = [os.path.join(root, post1) for post1 in files]
+        results3.sort(key=os.path.getmtime, reverse=True)
+        results2 = [basename(post1).split('.')[0] for post1 in results3]
+    return render_template('blogindex.html', results2=results2)
+
+@app.route('/blog/<post>')
+def blogit2(post=None):
+    filename = os.path.join(os.path.dirname(__file__), 'posts', post+'.yaml')
+    with open(filename, 'r') as f:
+        doc = yaml.load(f)
+        title1 = doc['postroot']['title']
+        body = Markup(markdown.markdown(doc['postroot']['body']))
+        date = doc['postroot']['date']
+        image = doc['postroot']['images']
+
+    return render_template('blogit.html', doc=doc, title1=title1, body=body, date=date, image=image)
 
 @app.route("/images")
 def gallery2():
