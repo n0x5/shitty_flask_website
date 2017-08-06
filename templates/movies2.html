@@ -7,6 +7,6 @@
 <p><b>{{ gcounts }}</b> search results for<b> {{ search }}</b></p>
 
 {% for item in results %}
-  <p> <l class="title" style="font-weight:bold;">{{item[0]}}</l> <a class="imdb" href="{{item[2]}}">{{item[2]}}</a> <class="genre">{{item[3]}}</class></p>
+  <p> <l class="title" style="font-weight:bold;"><a href="/movies/release/{{item[0]}}">{{item[0]}}</a> {{item[4]}}</l> <class="genre">{{item[3]}}</class><class="director"> <a href="/movies/director/{{item[1]}}">{{item[1]}}</a></class></p>
 {% endfor %}
 {% endblock %}
