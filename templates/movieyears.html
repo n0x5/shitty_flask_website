@@ -1,0 +1,12 @@
+{% extends "layout.html" %}
+{% block title %}>List of years{% endblock %}
+
+{% block b2 %}<h2><a href="/movies">Back</a></h2>{% endblock %}
+
+{% block content %}
+<h1>list of years</h1>
+
+{% for item in years %}
+  <a href="/movies/years/{{item[0]}}">{{item[0]}}</a>     <strong>{{item[1]}}</strong> movies<br>
+{% endfor %}
+{% endblock %}
