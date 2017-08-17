@@ -59,8 +59,10 @@ def gallery2():
 def i7games(search=None, sizew=None):
     connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'imagesnew3.db'))
     cursor = connection.cursor()
-    cursor.execute("select file, fullpath, subfolder, file, sizewidth, sizeheight, ftime, exifd from images where (fullpath like ? or exifd like ?) and sizewidth > ? order by ftime desc", ('%'+search+'%', '%'+search+'%', int(sizew)))
-    results = [(item[0], item[1], item[2], unicode(item[3]).split(' ')[0].replace('.jpg', ''), str(item[4]).replace(', ', 'x'), item[5]) for item in cursor.fetchall()]
+    cursor.execute("select file, fullpath, subfolder, file, sizewidth, sizeheight, ftime, exifd from images \
+        where (fullpath like ? or exifd like ?) and sizewidth > ? order by ftime desc", ('%'+search+'%', '%'+search+'%', int(sizew)))
+    results = [(item[0], item[1], item[2], unicode(item[3]).split(' ')[0].replace('.jpg', ''),
+                 str(item[4]).replace(', ', 'x'), item[5]) for item in cursor.fetchall()]
     gcounts = len(results)
     cursor.close()
     return render_template('images.html', results=results, search=search, gcounts=gcounts)
@@ -69,8 +71,10 @@ def i7games(search=None, sizew=None):
 def i62games(search=None):
     connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'imagesnew3.db'))
     cursor = connection.cursor()
-    cursor.execute("select file, fullpath, subfolder, file, sizewidth, sizeheight, ftime, exifd from images where fullpath like ? or exifd like ? order by ftime desc", ('%'+search+'%', '%'+search+'%'))
-    results = [(item[0], item[1], item[2], unicode(item[3]).split(' ')[0].replace('.jpg', ''), str(item[4]).replace(', ', 'x'), item[5]) for item in cursor.fetchall()]
+    cursor.execute("select file, fullpath, subfolder, file, sizewidth, sizeheight, ftime, exifd \
+        from images where fullpath like ? or exifd like ? order by ftime desc", ('%'+search+'%', '%'+search+'%'))
+    results = [(item[0], item[1], item[2], unicode(item[3]).split(' ')[0].replace('.jpg', ''), 
+                str(item[4]).replace(', ', 'x'), item[5]) for item in cursor.fetchall()]
     gcounts = len(results)
     cursor.close()
     return render_template('images.html', results=results, search=search, gcounts=gcounts)
@@ -83,7 +87,8 @@ def igames(search=None):
 def sgames(search=None):
     connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'games.db'))
     cursor = connection.cursor()
-    cursor.execute("select title, systems, rlsdate from games where systems like ? order by substr(rlsdate, -4), title", ('%'+search+'%',))
+    cursor.execute("select title, systems, rlsdate from games where systems like ? \
+        order by substr(rlsdate, -4), title", ('%'+search+'%',))
     results = [(item[0], item[1], item[2]) for item in cursor.fetchall()]
     gcounts = len(results)
     cursor.close()
@@ -100,8 +105,12 @@ def movieindex(genres=None):
 def mmgames(search=None):
     connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'moviesim2.db'))
     cursor = connection.cursor()
-    cursor.execute("select release, director, imdb, infogenres, substr(title, -1, -4), dated from movies where (genre like ? or infogenres like ? or release like ? or director like ? or mainactors like ? or inforest like ?) order by substr(title, -1, -4) desc, dated desc", ('%'+search+'%', '%'+search+'%', '%'+search+'%', '%'+search+'%', '%'+search+'%', '%'+search+'%'))
-    results = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), item[2], item[3].replace('[', '').replace(']', '').replace('\'', ''), item[4]) for item in cursor.fetchall()]
+    cursor.execute("select release, director, imdb, infogenres, substr(title, -1, -4), dated from \
+        movies where (genre like ? or infogenres like ? or release like ? or director like ? \
+        or mainactors like ? or inforest like ?) order by substr(title, -1, -4) desc, dated desc", 
+        ('%'+search+'%', '%'+search+'%', '%'+search+'%', '%'+search+'%', '%'+search+'%', '%'+search+'%'))
+    results = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), item[2], 
+                item[3].replace('[', '').replace(']', '').replace('\'', ''), item[4]) for item in cursor.fetchall()]
     gcounts = len(results)
     cursor.close()
     return render_template('movies2.html', results=results, search=search, gcounts=gcounts)
@@ -110,8 +119,11 @@ def mmgames(search=None):
 def mmgames2(search=None):
     connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'moviesim2.db'))
     cursor = connection.cursor()
-    cursor.execute("select release, director, imdb, infogenres, substr(title, -1, -4), dated from movies where (genre like ? or infogenres like ?) order by substr(title, -1, -4) desc, dated desc", ('%'+search+'%', '%'+search+'%'))
-    results = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), item[2], item[3].replace('[', '').replace(']', '').replace('\'', ''), item[4]) for item in cursor.fetchall()]
+    cursor.execute("select release, director, imdb, infogenres, substr(title, -1, -4), dated from movies \
+        where (genre like ? or infogenres like ?) order by substr(title, -1, -4) desc, dated desc", 
+            ('%'+search+'%', '%'+search+'%'))
+    results = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), item[2], 
+            item[3].replace('[', '').replace(']', '').replace('\'', ''), item[4]) for item in cursor.fetchall()]
     gcounts = len(results)
     cursor.close()
     return render_template('movies2.html', results=results, search=search, gcounts=gcounts)
@@ -129,8 +141,10 @@ def movielist(groups=None):
 def mmgames3(search=None):
     connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'moviesim2.db'))
     cursor = connection.cursor()
-    cursor.execute("select release, director, imdb, infogenres, substr(title, -1, -4), dated from movies where grp like ? order by substr(title, -1, -4) desc, dated desc", ('%'+search+'%',))
-    results = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), item[2], item[3].replace('[', '').replace(']', '').replace('\'', ''), item[4]) for item in cursor.fetchall()]
+    cursor.execute("select release, director, imdb, infogenres, substr(title, -1, -4), dated \
+        from movies where grp like ? order by substr(title, -1, -4) desc, dated desc", ('%'+search+'%',))
+    results = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), item[2], 
+        item[3].replace('[', '').replace(']', '').replace('\'', ''), item[4]) for item in cursor.fetchall()]
     gcounts = len(results)
     cursor.close()
     return render_template('movies2.html', results=results, search=search, gcounts=gcounts)
@@ -148,7 +162,6 @@ def moviedirect(groups=None):
 def movieyears(groups=None):
     connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'moviesim2new2.db'))
     cursor = connection.cursor()
-    #sql = 'select distinct(year) from movies order by year desc'
     sql = 'select distinct(year), count(distinct(imdb)) c from movies group by year having c > 0 order by c desc'
     cursor.execute(sql)
     years = [(item[0], item[1]) for item in cursor.fetchall()]
@@ -158,8 +171,10 @@ def movieyears(groups=None):
 def mmgames4114(search=None):
     connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'moviesim2new2.db'))
     cursor = connection.cursor()
-    cursor.execute("select release, director, imdb, infogenres, year, title from movies where year like ? order by year, release asc", ('%'+search+'%',))
-    results = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), item[2], item[3].replace('[', '').replace(']', '').replace('\'', ''), item[4]) for item in cursor.fetchall()]
+    cursor.execute("select release, director, imdb, infogenres, year, title from movies where year like ? \
+        order by year, release asc", ('%'+search+'%',))
+    results = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), item[2], 
+        item[3].replace('[', '').replace(']', '').replace('\'', ''), item[4]) for item in cursor.fetchall()]
     gcounts = len(results)
     cursor.close()
     return render_template('movies2.html', results=results, search=search, gcounts=gcounts)
@@ -168,8 +183,10 @@ def mmgames4114(search=None):
 def mmgames44(search=None):
     connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'moviesim2.db'))
     cursor = connection.cursor()
-    cursor.execute("select release, director, imdb, infogenres, substr(title, -1, -4), title, dated from movies where director like ? order by substr(title, -1, -4) desc, dated desc", ('%'+search+'%',))
-    results = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), item[2], item[3].replace('[', '').replace(']', '').replace('\'', ''), item[4]) for item in cursor.fetchall()]
+    cursor.execute("select release, director, imdb, infogenres, substr(title, -1, -4), title, dated from movies \
+        where director like ? order by substr(title, -1, -4) desc, dated desc", ('%'+search+'%',))
+    results = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), item[2], 
+            item[3].replace('[', '').replace(']', '').replace('\'', ''), item[4]) for item in cursor.fetchall()]
     gcounts = len(results)
     cursor.close()
     return render_template('movies2.html', results=results, search=search, gcounts=gcounts)
@@ -178,8 +195,12 @@ def mmgames44(search=None):
 def movierelease(release=None):
     connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'moviesim2.db'))
     cursor = connection.cursor()
-    cursor.execute('select release, grp, genre, format, imdb, title, director, mainactors, infogenres, inforest, infosummary, substr(title, -1, -4) from movies where release like ?', ('%'+release+'%',))
-    results = [(item[0], item[1], item[2], item[3], item[4], item[5], item[6].strip(' ').replace('\\n', '').replace(',', ''), item[7].replace('[', '').replace(']', '').replace('\'', '').split(','), item[8].replace('[', '').replace(']', '').replace('\'', ''), item[9].replace('[', '').replace(']', '').replace('\'', ''), item[10], item[11].replace(')', '').replace('(', '')) for item in cursor.fetchall()]
+    cursor.execute('select release, grp, genre, format, imdb, title, director, mainactors, infogenres, inforest, \
+        infosummary, substr(title, -1, -4) from movies where release like ?', ('%'+release+'%',))
+    results = [(item[0], item[1], item[2], item[3], item[4], item[5], item[6].strip(' ').replace('\\n', '').replace(',', ''), 
+            item[7].replace('[', '').replace(']', '').replace('\'', '').split(','), 
+            item[8].replace('[', '').replace(']', '').replace('\'', ''), item[9].replace('[', '').replace(']', '').replace('\'', ''), 
+            item[10], item[11].replace(')', '').replace('(', '')) for item in cursor.fetchall()]
     return render_template('releasedetails.html', results=results)
 
 @app.route("/gallery")
