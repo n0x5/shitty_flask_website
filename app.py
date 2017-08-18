@@ -280,7 +280,7 @@ def apisearch(self, search):
     list2 = []
     connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'moviesim2.db'))
     cursor = connection.cursor()
-    cursor.execute("select release, director, imdb, infogenres, substr(title, -1, -4), mainactors, infosummary dated from \
+    cursor.execute("select release, director, imdb, infogenres, substr(title, -1, -4), mainactors, infosummary, dated from \
         movies where (genre like ? or infogenres like ? or release like ? or director like ? \
         or mainactors like ? or inforest like ?) order by substr(title, -1, -4) desc, dated desc", 
         ('%'+search+'%', '%'+search+'%', '%'+search+'%', '%'+search+'%', '%'+search+'%', '%'+search+'%'))
@@ -290,9 +290,9 @@ def apisearch(self, search):
     for i in range(len(results)): 
         list1.append(results[i])
     for item3 in list1:
-        results3 = {"release": '{}' .format(item3[0]), "director": '{}' .format(item3[1]), "imdb": '{}' .format(item3[2]), 
+        results3 = {"data":{"release": '{}' .format(item3[0]), "director": '{}' .format(item3[1]), "imdb": '{}' .format(item3[2]), 
                     "genres": '{}' .format(item3[3]), "year": '{}' .format(item3[4]), "main_actors": '{}' .format(item3[5]),
-                    "plot_summary": '{}' .format(item3[6])}
+                    "plot_summary": '{}' .format(item3[6])}}
         list2.append(results3)
 
     cursor.close()
@@ -301,7 +301,7 @@ def apisearch(self, search):
 class moviesearchtitle(Resource):
     def get(self, search):
         rls = apisearch(self, search)
-        return {"movie": rls}
+        return {"data":{"children": rls}}
 
 api.add_resource(moviesearchtitle, '/api/moviesearch/<string:search>')
 
