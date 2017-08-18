@@ -11,13 +11,18 @@ from flask import render_template, redirect, url_for
 from flask import request
 from flask import send_from_directory
 from flask import Markup
+from flask import Flask
+from flask_restful import Resource, Api
 from werkzeug.utils import secure_filename
+from collections import OrderedDict
+from flask_restful import fields, marshal_with
 from PIL import Image
 import sqlite3
 import yaml
 
 
 app = Flask(__name__)
+api = Api(app)
 app.debug = True
 
 
@@ -257,6 +262,49 @@ def thumbc(gal, image):
         if not os.path.exists(thumbs2): 
             im.save(thumbs2, "JPEG", quality=quality_val)
             os.chmod(thumbs2, 0o777)
+
+
+######################## REST API ################
+
+class movieindexa(Resource):
+    def get(self):
+        genrelist = (["romance", "comedy", "animation", "mystery", "documentary", "crime", "family", "sport",
+                "biography", "history", "western", "sci-fi", "horror", "adventure", "drama", "fantasy", "thriller", "action"])
+        genres = [item.title() for item in genrelist]
+        return {'genre': '{}' .format(genres)}
+
+api.add_resource(movieindexa, '/api/moviegenres')
+
+def apisearch(self, search):
+    list1 = []
+    list2 = []
+    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'moviesim2.db'))
+    cursor = connection.cursor()
+    cursor.execute("select release, director, imdb, infogenres, substr(title, -1, -4), mainactors, infosummary dated from \
+        movies where (genre like ? or infogenres like ? or release like ? or director like ? \
+        or mainactors like ? or inforest like ?) order by substr(title, -1, -4) desc, dated desc", 
+        ('%'+search+'%', '%'+search+'%', '%'+search+'%', '%'+search+'%', '%'+search+'%', '%'+search+'%'))
+    results = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), item[2], 
+                item[3].replace('[', '').replace(']', '').replace('\'', ''), item[4], 
+                item[5], item[6]) for item in cursor.fetchall()]
+    for i in range(len(results)): 
+        list1.append(results[i])
+    for item3 in list1:
+        results3 = {"release": '{}' .format(item3[0]), "director": '{}' .format(item3[1]), "imdb": '{}' .format(item3[2]), 
+                    "genres": '{}' .format(item3[3]), "year": '{}' .format(item3[4]), "main_actors": '{}' .format(item3[5]),
+                    "plot_summary": '{}' .format(item3[6])}
+        list2.append(results3)
+
+    cursor.close()
+    return list2
+
+class moviesearchtitle(Resource):
+    def get(self, search):
+        rls = apisearch(self, search)
+        return {"movie": rls}
+
+api.add_resource(moviesearchtitle, '/api/moviesearch/<string:search>')
+
 
 
 if __name__ == "__main__":
