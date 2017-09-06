@@ -12,6 +12,7 @@ from flask import request
 from flask import send_from_directory
 from flask import Markup
 from flask import Flask
+import datetime
 from flask_restful import Resource, Api
 from werkzeug.utils import secure_filename
 from collections import OrderedDict
@@ -60,6 +61,18 @@ def gallery2():
 
         return render_template('gallery2index.html', results2=results2)
 
+@app.route("/images4/<search>")
+def i612games(search=None):
+    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'imagesnew3.db'))
+    cursor = connection.cursor()
+    cursor.execute("select file, fullpath, subfolder, file, sizewidth, sizeheight, ftime, exifd \
+        from images where exifd like ? order by ftime desc", ('%'+search+'%',))
+    results = [(item[0], item[1], item[2], unicode(item[3]).split(' ')[0].replace('.jpg', '')) for item in cursor.fetchall()]
+    gcounts = len(results)
+    cursor.close()
+    return render_template('images.html', results=results, search=search, gcounts=gcounts)
+
+
 @app.route("/images/<search>/<sizew>")
 def i7games(search=None, sizew=None):
     connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'imagesnew3.db'))
@@ -79,7 +92,7 @@ def i62games(search=None):
     cursor.execute("select file, fullpath, subfolder, file, sizewidth, sizeheight, ftime, exifd \
         from images where fullpath like ? or exifd like ? order by ftime desc", ('%'+search+'%', '%'+search+'%'))
     results = [(item[0], item[1], item[2], unicode(item[3]).split(' ')[0].replace('.jpg', ''), 
-                str(item[4]).replace(', ', 'x'), item[5]) for item in cursor.fetchall()]
+                unicode(item[4]).replace(', ', 'x'), item[5]) for item in cursor.fetchall()]
     gcounts = len(results)
     cursor.close()
     return render_template('images.html', results=results, search=search, gcounts=gcounts)
@@ -119,6 +132,28 @@ def mmgames(search=None):
     gcounts = len(results)
     cursor.close()
     return render_template('movies2.html', results=results, search=search, gcounts=gcounts)
+
+@app.route("/movies/cast/<search>")
+def mmgames333(search=None):
+    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'moviesim2.db'))
+    cursor1 = connection.cursor()
+    cursor1.execute("select release, director, imdb, infogenres, substr(title, -1, -4), dated from \
+        movies where mainactors like ? order by substr(title, -1, -4) desc, dated desc", 
+        ('%'+search+'%',))
+    results1 = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), item[2], 
+                item[3].replace('[', '').replace(']', '').replace('\'', ''), item[4]) for item in cursor1.fetchall()]
+    gcounts = len(results1)
+    cursor1.close()
+    cursor2 = connection.cursor()
+    cursor2.execute("select release, director, imdb, infogenres, substr(title, -1, -4), dated from \
+        movies where (inforest like ? and mainactors not like ?) order by substr(title, -1, -4) desc, dated desc", 
+        ('%'+search+'%', '%'+search+'%'))
+    results2 = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), item[2], 
+                item[3].replace('[', '').replace(']', '').replace('\'', ''), item[4]) for item in cursor2.fetchall()]
+    gcounts2 = len(results2)
+    cursor2.close()
+    return render_template('moviecast.html', results=results1, search=search, gcounts=gcounts2, results2=results2)
+
 
 @app.route("/movies/genre/<search>")
 def mmgames2(search=None):
@@ -290,9 +325,9 @@ def apisearch(self, search):
     for i in range(len(results)): 
         list1.append(results[i])
     for item3 in list1:
-        results3 = {"data":{"release": '{}' .format(item3[0]), "director": '{}' .format(item3[1]), "imdb": '{}' .format(item3[2]), 
-                    "genres": '{}' .format(item3[3]), "year": '{}' .format(item3[4]), "main_actors": '{}' .format(item3[5]),
-                    "plot_summary": '{}' .format(item3[6])}}
+        results3 = {"data":{"release": '{}' .format(item3[0].encode('utf-8')), "director": '{}' .format(item3[1].encode('utf-8')), "imdb": '{}' .format(item3[2].encode('utf-8')), 
+                    "genres": '{}' .format(item3[3].encode('utf-8')), "year": '{}' .format(item3[4].encode('utf-8')), "main_actors": '{}' .format(item3[5].encode('utf-8')),
+                    "plot_summary": '{}' .format(item3[6].encode('utf-8'))}}
         list2.append(results3)
 
     cursor.close()
