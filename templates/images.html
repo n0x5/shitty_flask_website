@@ -1,12 +1,12 @@
 {% extends "layout.html" %}
 {% block title %}>{{ search }} search results{% endblock %}
 
-{% block b2 %}<h2><a href="./">Back</a></h2>{% endblock %}
+{% block b2 %}<h2><a href="/images">Back</a></h2>{% endblock %}
 
 {% block content %}
 <p><b>{{ gcounts }}</b> search results for<b> {{ search }}</b></p>
 
 {% for item in results %}
-  <div class="imglink" style="margin: 5px; float: left;"><a href="/static/gallery/{{item[2]}}/{{item[0]}}"><img src="/static/gallery/{{item[2]}}/thumbs/thumb_{{item[0]}}"/></a><div class="imh"><a href="/images/{{item[3]}}">{{item[3]}}</a><div class="sizes">{{item[4]}}x{{item[5]}}</div></div></div>
+  <div class="imglink" style="margin: 5px; float: left;"><a href="/static/gallery/{{item[2]}}/{{item[0]}}"><img src="/static/gallery/{{item[2]}}/thumbs/thumb_{{item[0]}}" alt="{{item[0]}}" title="{{item[0]}}"/></a><div class="imh"><a href="/images/{{item[3]}}">{{item[3]}}</a><div class="sizes">{{item[4]}}x{{item[5]}}</div></div></div>
 {% endfor %}
 {% endblock %}

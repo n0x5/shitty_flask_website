@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+{% block title %}>{{ search }} search results{% endblock %}
+
+{% block b2 %}<h2><a href="/movies">Back</a></h2>{% endblock %}
+
+{% block content %}
+<p><b>{{ gcounts }}</b> search results for<b> {{ search }}</b></p>
+
+<h2>Main actor in:</h2>
+{% for item in results %}
+  <p> <l class="title" style="font-weight:bold;"><a href="/movies/release/{{item[0]}}">{{item[0]}}</a> {{item[4]}}</l> <class="genre">{{item[3]}}</class><class="director"> <a href="/movies/director/{{item[1]}}">{{item[1]}}</a></class></p>
+{% endfor %}
+
+<h2>Supporting actor in:</h2>
+{% for item in results2 %}
+  <p> <l class="title" style="font-weight:bold;"><a href="/movies/release/{{item[0]}}">{{item[0]}}</a> {{item[4]}}</l> <class="genre">{{item[3]}}</class><class="director"> <a href="/movies/director/{{item[1]}}">{{item[1]}}</a></class></p>
+{% endfor %}
+{% endblock %}

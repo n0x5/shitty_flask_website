@@ -13,7 +13,7 @@
       <b>genre</b>: <class="genre">{{item[8]}}</class><br>
       <b>director</b>: <a href="/movies/director/{{item[6]}}"> {{item[6]}}</a><br>
       <b>title</b>: {{item[5]}}<br>
-      <b>main cast</b>: {{item[7]}}<br>
+      <b>main cast</b>: <a href="/movies/cast/{{item[7][0]}}">{{item[7][0].strip()}}</a>, <a href="/movies/cast/{{item[7][1].strip()}}">{{item[7][1]}}</a>, <a href="/movies/cast/{{item[7][2].strip()}}">{{item[7][2]}}</a><br>
       <b>remaining cast</b>: {{item[9]}}<br>
       <b>Plot summary</b>: {{item[10]}}<br>
 {% endfor %}
