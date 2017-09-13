@@ -61,6 +61,15 @@ def gallery2():
 
         return render_template('gallery2index.html', results2=results2)
 
+@app.route("/images3/celebs")
+def celblist(groups=None):
+    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'imagename5.db'))
+    cursor = connection.cursor()
+    sql = 'select cname, count(fn) c, cname, subfolder from celebs group by cname having c > 0 order by c desc'
+    cursor.execute(sql)
+    years = [(item[0], item[1], item[2].replace(' ', '%25')) for item in cursor.fetchall()]
+    return render_template('celeblist.html', years=years)
+    
 @app.route("/images4/<search>")
 def i612games(search=None):
     connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'imagesnew3.db'))
