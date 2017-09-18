@@ -95,16 +95,17 @@ def i7games(search=None, sizew=None):
     return render_template('images.html', results=results, search=search, gcounts=gcounts)
 
 @app.route("/images/<search>")
-def i62games(search=None):
-    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'imagesnew3.db'))
+def i613games(search=None):
+    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'imagesnew3111.db'))
     cursor = connection.cursor()
-    cursor.execute("select file, fullpath, subfolder, file, sizewidth, sizeheight, ftime, exifd \
-        from images where fullpath like ? or exifd like ? order by ftime desc", ('%'+search+'%', '%'+search+'%'))
-    results = [(item[0], item[1], item[2], unicode(item[3]).split(' ')[0].replace('.jpg', ''), 
-                unicode(item[4]).replace(', ', 'x'), item[5]) for item in cursor.fetchall()]
+    cursor.execute("select file, fullpath, subfolder, file, sizewidth, sizeheight, ftime, exifd, celebname \
+        from images where (fullpath like ? or exifd like ?) order by ftime desc", ('%'+search+'%', '%'+search+'%'))
+    results = [(item[0], item[1], item[2], unicode(item[3]).split(' ')[0].replace('.jpg', ''),
+                str(item[4]).replace(', ', 'x'), item[5], item[6], item[7], item[8].replace('[', '').replace("'", "").replace(']', '')) for item in cursor.fetchall()]
     gcounts = len(results)
     cursor.close()
-    return render_template('images.html', results=results, search=search, gcounts=gcounts)
+    return render_template('imagesname.html', results=results, search=search, gcounts=gcounts)
+
 
 @app.route("/games")
 def igames(search=None):
