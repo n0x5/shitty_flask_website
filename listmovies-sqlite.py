@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 
-# Create a list of movies in a folder
-# It uses currently active directory so cd into the folder
-# then run ./list-html-movies.py and it will make a html file
-# in the same folder
+# Create a list of movies in a folder and put in sqlite3 db
 
 import os
 import requests
