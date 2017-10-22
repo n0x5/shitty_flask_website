@@ -12,6 +12,9 @@ from flask import request
 from flask import send_from_directory
 from flask import Markup
 from flask import Flask
+from flask import session
+from flask import current_app
+from flask import flash
 import datetime
 from flask_restful import Resource, Api
 from werkzeug.utils import secure_filename
@@ -25,13 +28,93 @@ import yaml
 app = Flask(__name__)
 api = Api(app)
 app.debug = True
-
+app.config.update(dict(
+        DEBUG=True,
+        SECRET_KEY=b'YOUR_SECRET_KEY',
+        USERNAME='YOUR_USERNAME',
+        PASSWORD='YOUR_PASSWORD'
+    ))
 
 @app.route("/")
 def hello(tpath=None):
     image = 'hey there guy'
     tpath = os.path.join(os.path.dirname(__file__), 'static', 'gallery')
     return render_template('index.html', tpath=tpath)
+
+@app.route('/rinfo')
+def inde22x():
+    if session.get('logged_in'):
+        username = current_app.config['USERNAME']
+        return 'Logged in as ' + username + '<br>' + \
+        "<b><a href = '/logout'>click here to log out</a></b>"
+    return "You are not logged in <br><a href = '/login'></b>" + \
+        "click here to log in</b></a>"
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    error = None
+    if request.method == 'POST':
+        if request.form['username'] != current_app.config['USERNAME']:
+            error = 'Invalid username'
+        elif request.form['password'] != current_app.config['PASSWORD']:
+            error = 'Invalid password'
+        else:
+            session['logged_in'] = True
+            flash('You were logged in')
+            return redirect(url_for('inde22x'))
+    return render_template('login.html', error=error)    
+
+@app.route('/logout')
+def logout():
+    session.pop('logged_in', None)
+    flash('You were logged out')
+    return redirect(url_for('inde22x'))
+
+@app.route('/add', methods=['GET', 'POST'])
+def add_entry():
+    if not session.get('logged_in'):
+        return 'access denied'
+
+    if request.method == 'POST':
+        filename = os.path.join(os.path.dirname(__file__), 'posts', request.form['title']+'.yaml')
+        with open(filename, 'w+') as f:
+            datafile = '''
+postroot:
+    title: {}
+    body: {}
+    date: {}
+''' .format(request.form['title'], request.form['body'], time.strftime("%m/%d/%Y"))
+            f.write(datafile)
+
+        flash('New entry was successfully posted')
+        
+    return render_template('addyaml.html')
+
+
+@app.route('/dashboard', methods=['GET', 'POST'])
+def dash1(results=None):
+    if not session.get('logged_in'):
+        return 'access denied'
+
+    if request.method == 'GET' or request.method == 'POST':
+        sql = 'select file, subfolder, ftime from (select file, subfolder, ftime from images order by ftime DESC limit 10) order by ftime DESC'
+        connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'imagesnew3111.db'))
+        cursor = connection.cursor()
+        cursor.execute(sql)
+        results = [(item[0], item[1]) for item in cursor.fetchall()]
+        cursor.close()
+
+        connection2 = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'moviesim2.db'))
+        cursor2 = connection2.cursor()
+        sql2 = 'select * from (select * from movies order by dated desc limit 10) order by dated desc'
+        cursor2.execute(sql2)
+        results2 = [(item[0], item[1], item[2], item[3]) for item in cursor2.fetchall()]
+        cursor2.close()
+
+    return render_template('dashboard.html', results=results, results2=results2)
+
+
 
 @app.route('/blog')
 def blogit():
@@ -49,9 +132,8 @@ def blogit2(post=None):
         title1 = doc['postroot']['title']
         body = Markup(markdown.markdown(doc['postroot']['body']))
         date = doc['postroot']['date']
-        image = doc['postroot']['images']
 
-    return render_template('blogit.html', doc=doc, title1=title1, body=body, date=date, image=image)
+    return render_template('blogit.html', doc=doc, title1=title1, body=body, date=date)
 
 @app.route("/images")
 def gallery2():
@@ -72,6 +154,15 @@ def i612games(search=None):
     gcounts = len(results)
     cursor.close()
     return render_template('images.html', results=results, search=search, gcounts=gcounts)
+
+@app.route("/images3/celebs")
+def celblist(groups=None):
+    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'imagename5.db'))
+    cursor = connection.cursor()
+    sql = 'select cname, count(fn) c, cname, subfolder from celebs group by cname having c > 0 order by c desc'
+    cursor.execute(sql)
+    years = [(item[0], item[1], item[2].replace(' ', '%25')) for item in cursor.fetchall()]
+    return render_template('celeblist.html', years=years)
 
 @app.route("/images3/celebs1")
 def celblist1(groups=None):
@@ -106,16 +197,6 @@ def celblist1(groups=None):
     years5 = [(item[0], item[1], item[2].replace(' ', '%25')) for item in cursor5.fetchall()]
     cursor5.close()
     return render_template('celeblist_ordered.html', years1=years1, years2=years2, years3=years3, years4=years4, years5=years5)
-
-
-@app.route("/images3/celebs")
-def celblist(groups=None):
-    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'imagename5.db'))
-    cursor = connection.cursor()
-    sql = 'select cname, count(fn) c, cname, subfolder from celebs group by cname having c > 0 order by c desc'
-    cursor.execute(sql)
-    years = [(item[0], item[1], item[2].replace(' ', '%25')) for item in cursor.fetchall()]
-    return render_template('celeblist.html', years=years)
 
 
 @app.route("/images/<search>/<sizew>")
@@ -319,7 +400,7 @@ def get_gallery(gal=None):
             results2.sort(key=os.path.getmtime, reverse=True)
 
         imh = [Image.open(image).size for image in results2]
-        results = [basename(image).decode('utf-8').replace('#', '%23') for image in results2]
+        results = [basename(image).decode('utf-8', errors='replace').replace('#', '%23') for image in results2]
         gcount = len(results)
         results3 = zip(results, imh)
 

@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+  {% block content %}
+  <h2>Add entry</h2>
+  <form action="/add" method="post">
+    <dl>
+      <dt>title:
+      <dd><input type="text" name="title">
+      <dt>body:
+      <textarea name="body" cols="40" rows="5"></textarea>
+      <dd><input type="submit" value="Login">
+    </dl>
+  </form>
+  {% endblock %}

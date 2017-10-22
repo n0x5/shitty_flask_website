@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+{% block title %}>Dashboard{% endblock %}
+{% block content %}
+  <h2>Dashboard</h2>
+  <h1>Add a post</h1>
+  <form action="/add" method="post">
+    <dl>
+      <dt>title:
+      <dd><input type="text" name="title">
+      <dt>body:
+      <textarea name="body" cols="40" rows="5"></textarea>
+      <dd><input type="submit" value="Login">
+    </dl>
+  </form>
+
+  <h1>Latest 10 images</h1>
+    <p>
+      {% for item in results %}
+      <a href="/static/gallery/{{item[1]}}/{{item[0]}}"><img src="/static/gallery/{{item[1]}}/{{item[0]}}" height="200" /><a/>
+      {% endfor %}
+    </p>
+  <h1>Latest 10 movies</h1>
+    <p>
+      {% for item in results2 %}
+      <p><a href="/movies/release/{{item[0]}}">{{item[0]}}<a/></p>
+      {% endfor %}
+    </p>
+
+{% endblock %}

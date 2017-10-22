@@ -1,9 +1,12 @@
 {% extends "layout.html" %}
 {% block title %}>Gallery{% endblock %}
 
-
+{% block b2 %}<h2><a href="./">Back</a></h2>{% endblock %}
 
 {% block content %}
+<h2><a href="/images3/celebs">List of celebs<a/></h2>
+
+
 {% for item in results2 %}
   <li><a class="link" href="/images/{{ item }}">{{item}}</a> <a class="link2" style="font-size:13px;color:red;" href="/images/{{ item }}/2000">(HiRez)</a></li>
 {% endfor %}

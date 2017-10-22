@@ -7,6 +7,6 @@
 <p><b>{{ gcounts }}</b> search results for<b> {{ search }}</b></p>
 
 {% for item in results %}
-  <div class="imglink" style="margin: 5px; float: left;"><a href="/static/gallery/{{item[2]}}/{{item[0]}}"><img src="/static/gallery/{{item[2]}}/thumbs/thumb_{{item[0]}}"/></a><div class="imh"><a href="/images/{{item[3]}}">{{item[3]}}</a><div class="sizes">{{item[4]}}x{{item[5]}} {{item[8]}}</div></div></div>
+  <div class="imglink" style="margin: 5px; float: left;"><a href="/static/gallery/{{item[2]}}/{{item[0]}}"><img src="https://hidden.machinecode.org/static/gallery/{{item[2]}}/thumbs/thumb_{{item[0]}}"/></a><div class="imh"><a href="/images/{{item[3]}}">{{item[3]}}</a><div class="sizes">{{item[4]}}x{{item[5]}} {{item[8]}}</div></div></div>
 {% endfor %}
 {% endblock %}
