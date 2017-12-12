@@ -6,8 +6,11 @@
 {% block content %}
 <p><b>{{ gcounts }}</b> search results for<b> {{ search }}</b></p>
 
+
+
 {% for item in results %}
   <p>  <l class="title" style="font-weight:bold;font-size:22px;">{{item[0]}}</l><br><br>
+      
       <b>year</b>:{{item[11]}}<br>
       <b>imdb</b>: <a class="imdb" href="{{item[4]}}">{{item[4]}}</a><br>
       <b>genre</b>: <class="genre">{{item[8]}}</class><br>
@@ -15,6 +18,9 @@
       <b>title</b>: {{item[5]}}<br>
       <b>main cast</b>: <a href="/movies/cast/{{item[7][0]}}">{{item[7][0].strip()}}</a>, <a href="/movies/cast/{{item[7][1].strip()}}">{{item[7][1]}}</a>, <a href="/movies/cast/{{item[7][2].strip()}}">{{item[7][2]}}</a><br>
       <b>remaining cast</b>: {{item[9]}}<br>
-      <b>Plot summary</b>: {{item[10]}}<br>
+      <b>plot summary</b>: {{item[10]}}<br>
+{% endfor %}
+{% for item2 in results3 %}
+       <b>company</b>: {{item2[0]}}<br>
 {% endfor %}
 {% endblock %}
