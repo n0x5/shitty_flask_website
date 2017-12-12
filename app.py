@@ -320,11 +320,24 @@ def movierelease(release=None):
     cursor = connection.cursor()
     cursor.execute('select release, grp, genre, format, imdb, title, director, mainactors, infogenres, inforest, \
         infosummary, substr(title, -1, -4) from movies where release like ?', ('%'+release+'%',))
+
     results = [(item[0], item[1], item[2], item[3], item[4], item[5], item[6].strip(' ').replace('\\n', '').replace(',', ''), 
             item[7].replace('[', '').replace(']', '').replace('\'', '').split(','), 
             item[8].replace('[', '').replace(']', '').replace('\'', ''), item[9].replace('[', '').replace(']', '').replace('\'', ''), 
             item[10], item[11].replace(')', '').replace('(', '')) for item in cursor.fetchall()]
-    return render_template('releasedetails.html', results=results)
+    imdborig = re.search(r'\d{7}', str(results[0][4]))
+    imdbidor = imdborig.group(0)
+    connection2 = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'imdb_scrape_database2.db'))
+    cursor2 = connection2.cursor()
+    try:
+        cursor2.execute('select company, imdbid from companies where imdbid like ?', ('%'+imdbidor+'%',))
+        results3 = [item2 for item2 in cursor2.fetchall()]
+    except:
+        results3 = ('None',)
+    cursor.close()
+    cursor2.close()
+
+    return render_template('releasedetails.html', results=results, results3=results3, compane=imdbidor)
 
 @app.route("/gallery")
 def gallery():
