@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+{% block title %}>List of films by studio{% endblock %}
+
+{% block b2 %}<h2><a href="/movies">Back</a></h2>{% endblock %}
+
+{% block content %}
+<h1>List of films by {{studio}} in the collection</h1>
+<p>{{count}} movies</p>
+
+{% for item in results %}
+  <a href="https://www.imdb.com/title/tt{{item[1]}}">{{item[2]}}</a>     <strong>{{item[3]}}</strong> - {{item[0]}} - {{item[4]}}<br>
+{% endfor %}
+{% endblock %}

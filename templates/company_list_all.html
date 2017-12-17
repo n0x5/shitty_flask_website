@@ -1,0 +1,12 @@
+{% extends "layout.html" %}
+{% block title %}>List of studios{% endblock %}
+
+{% block b2 %}<h2><a href="/movies">Back</a></h2>{% endblock %}
+
+{% block content %}
+<h1>List of studios</h1>
+
+{% for item in companies %}
+  <a href="/movies/company/all/{{item[0]}}">{{item[0]}}</a>     <strong>{{item[2]}}</strong> movies <a href="/movies/company/{{item[0]}}">(in collection)</a><br>
+{% endfor %}
+{% endblock %}
