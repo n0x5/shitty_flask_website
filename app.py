@@ -314,6 +314,43 @@ def mmgames44(search=None):
     cursor.close()
     return render_template('movies2.html', results=results, search=search, gcounts=gcounts)
 
+@app.route("/movies/company")
+def companylist():
+    connection2 = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'imdb_scrape_database2.db'))
+    cursor2 = connection2.cursor()
+    sql = 'select company, title, count(distinct(imdbid)) c from companies group by company having c > 0 order by c desc'
+    cursor2.execute(sql)
+    companies = [(item[0], item[1], item[2]) for item in cursor2.fetchall()]
+    cursor2.close()
+    return render_template('company_list_all.html', companies=companies)
+
+@app.route("/movies/company/all/<studio>")
+def companylist2(studio=None):
+    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'imdb_scrape_database2.db'))
+    cursor = connection.cursor()
+    cursor.execute('select company, imdbid, title, year, role from companies where company like ? order by year desc, title desc', ('%'+studio+'%',))
+    companies = [(item[0], item[1], item[2], item[3], item[4]) for item in cursor.fetchall()]
+    count = len(companies)
+    cursor.close()
+    return render_template('company_list.html', companies=companies, count=count, studio=studio)
+
+@app.route("/movies/company/<studio>")
+def companylist4(studio=None):
+    film_list = []
+    connection2 = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'imdb_scrape_database2.db'))
+    cursor2 = connection2.cursor()
+    cursor2.execute('select company, imdbid, title, year, role from companies where company like ? group by title order by year desc, title desc', ('%'+studio+'%',))
+    companies = [(item2[0], item2[1], item2[2], item2[3], item2[4]) for item2 in cursor2.fetchall()]
+    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'moviesim2.db'))
+    cursor = connection.cursor()
+    for item3 in companies:
+        cursor.execute('select distinct imdb from movies where imdb like ?', ('%'+item3[1]+'%',))
+        [film_list.append(item3) for item in cursor.fetchall()]
+    count = len(film_list)
+    cursor2.close()
+    cursor.close()
+    return render_template('company_list2.html', companies=companies, results=film_list, count=count, studio=studio)
+
 @app.route("/movies/release/<release>")
 def movierelease(release=None):
     connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'moviesim2.db'))
