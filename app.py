@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+import sys
+reload(sys)
+sys.setdefaultencoding('utf8')
 import os
 import time
 import re
@@ -178,6 +180,21 @@ def i613games(search=None):
     gcounts = len(results)
     cursor.close()
     return render_template('imagesname.html', results=results, search=search, gcounts=gcounts)
+
+@app.route("/images/<search>/zip")
+def i613games222(search=None):
+    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'imagesnew3111.db'))
+    cursor = connection.cursor()
+    cursor.execute("select file, fullpath, subfolder, file, sizewidth, sizeheight, ftime, exifd, celebname \
+        from images where (fullpath like ? or exifd like ? or celebname like ?) order by ftime desc", ('%'+search+'%', '%'+search+'%', '%'+search+'%'))
+    results = [(item[0], item[1], item[2], unicode(item[3]).split(' ')[0].replace('.jpg', ''),
+                unicode(item[4]).replace(', ', 'x'), item[5], item[6], item[7], item[8].replace('[', '').replace("'", "").replace(']', '')) for item in cursor.fetchall()]
+    zipr = os.path.join(os.path.dirname(__file__), 'static', '{}.zip' .format(search.replace('%', '_')))
+    with zipfile.ZipFile(zipr, 'w' ) as myzip:
+        for fi2 in results:
+            path1 = os.path.join(os.path.dirname(__file__), 'static', 'gallery', fi2[2].encode('utf8'), fi2[0].encode('utf8'))
+            myzip.write(path1.encode('utf8'), fi2[2].encode('utf8')+'_'+fi2[0].encode('utf8'))
+    return 'zip complete <a href="/static/{}.zip">{}</a>' .format(search.replace('%', '_'), search.replace('%', '_'))
 
 
 @app.route("/games")
