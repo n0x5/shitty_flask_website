@@ -2,7 +2,6 @@
 
 # Create a list of movies in a folder
 
-
 import os
 import requests
 import re
@@ -62,35 +61,10 @@ def genrs(fn):
             return(", ".join(repr(e).replace("'", "") for e in output))
 
 def get_info(url):
+    grab1 = GrabIt()
     info_genres = []
     info_main = []
     info_rest = []
-    headers = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:47.0) Gecko/20100101 Firefox/47.0'
-    }
-
-    response = requests.get(url, headers=headers)
-    soup = BeautifulSoup(response.text, "html.parser")
-
-    title = soup.find('h1', attrs={'itemprop': 'name'})
-    genre = [genre1.get_text() for genre1 in soup.find_all('span', attrs={'itemprop': 'genre'})]
-    director = soup.find('span', attrs={'itemprop': 'director'})
-    main_actors2 = [main_actors.get_text() for main_actors in soup.find_all('span', attrs={'itemprop': 'actors'})]
-    summary = soup.find('div', attrs={'class': 'summary_text'})
-    actor_table = soup.find('table', attrs={'class': 'cast_list'})
-    rest_actors = [rest_actors1.get_text() for rest_actors1 in actor_table.find_all('span', attrs={'itemprop': 'name'})]
-
-    
-    for line2 in genre:
-        info_genres.append(line2)
-    for line in main_actors2:
-        info_main.append(line.replace(',', ''))
-    for line3 in rest_actors:
-        info_rest.append(line3)
-    return title.get_text(), director.get_text(), info_main, info_genres, info_rest, summary.get_text().strip()
-
-def get_cover(url):
-    grab1 = GrabIt()
     headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:47.0) Gecko/20100101 Firefox/47.0'
     }
@@ -110,6 +84,24 @@ def get_cover(url):
     grab1.download_file(coverurl, endpoint)
     print(id2)
 
+    title = soup.find('h1', attrs={'itemprop': 'name'})
+    genre = [genre1.get_text() for genre1 in soup.find_all('span', attrs={'itemprop': 'genre'})]
+    director = soup.find('span', attrs={'itemprop': 'director'})
+    main_actors2 = [main_actors.get_text() for main_actors in soup.find_all('span', attrs={'itemprop': 'actors'})]
+    summary = soup.find('div', attrs={'class': 'summary_text'})
+    actor_table = soup.find('table', attrs={'class': 'cast_list'})
+    rest_actors = [rest_actors1.get_text() for rest_actors1 in actor_table.find_all('span', attrs={'itemprop': 'name'})]
+
+    
+    for line2 in genre:
+        info_genres.append(line2)
+    for line in main_actors2:
+        info_main.append(line.replace(',', ''))
+    for line3 in rest_actors:
+        info_rest.append(line3)
+    return title.get_text(), director.get_text(), info_main, info_genres, info_rest, summary.get_text().strip()
+
+
 
 for subdir, dirs, files in os.walk(cwd):
     for fn in files:
@@ -124,7 +116,6 @@ for subdir, dirs, files in os.walk(cwd):
                 print(url)
                 if url is not None: 
                     imdb_info = get_info(url)
-                    get_cover(url)
                 if basenm2.lower().split('.')[0] not in banned:
                     store(basenm2, file6, genrs(file2), imdb_info[0], imdb_info[1], imdb_info[2], imdb_info[3], imdb_info[4], imdb_info[5])
                     number += 1
