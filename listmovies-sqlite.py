@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-# Create a list of movies in a folder and put in sqlite3 db
+# Create a list of movies in a folder
+
 
 import os
 import requests
@@ -9,10 +10,12 @@ from bs4 import BeautifulSoup
 import time
 import sqlite3
 from random import randint
+import urllib.request
+from urllib.request import FancyURLopener
 
 today = time.strftime("__%m_%Y_%H_%M_%S")
 
-cwd = r'/path/movies'
+cwd = r'/path/to/movies'
 number = 0
 
 conn = sqlite3.connect('moviesim2.db')
@@ -21,6 +24,15 @@ cur = conn.cursor()
 #            (release text unique, grp text, genre text, format text, imdb text, title text, director text, 
 #            mainactors text, infogenres text, inforest text, infosummary text, dated datetime DEFAULT CURRENT_TIMESTAMP)''')
 
+class GrabIt(urllib.request.FancyURLopener):
+        version = ('Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36'
+                ' (KHTML, like Gecko) Chrome/47.0.2526.111 Safari/537.36')
+        def download_file(self, url, path):
+                try:
+                    self.urlretrieve = GrabIt().retrieve
+                    self.urlretrieve(url, path)
+                except Exception as e:
+                    print(str(e))
 
 def imdburl(fn):
     filn2 = open(fn, "r")
@@ -77,6 +89,27 @@ def get_info(url):
         info_rest.append(line3)
     return title.get_text(), director.get_text(), info_main, info_genres, info_rest, summary.get_text().strip()
 
+def get_cover(url):
+    grab1 = GrabIt()
+    headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:47.0) Gecko/20100101 Firefox/47.0'
+    }
+
+    response = requests.get(url, headers=headers)
+    soup = BeautifulSoup(response.text, "html.parser")
+
+    cover = soup.find('div', attrs={'class': 'poster'})
+    cover2 = cover.find('img', src=re.compile('.'))
+    coverurl = cover2['src']
+    id2 = os.path.basename(url)
+    endpoint = os.path.join(os.path.dirname(__file__), 'covers', id2+'.jpg')
+    if not os.path.exists('covers'):
+        os.makedirs('covers')
+    if os.path.isfile(endpoint):
+        print('file exists - skipping')
+    grab1.download_file(coverurl, endpoint)
+    print(id2)
+
 
 for subdir, dirs, files in os.walk(cwd):
     for fn in files:
@@ -91,6 +124,7 @@ for subdir, dirs, files in os.walk(cwd):
                 print(url)
                 if url is not None: 
                     imdb_info = get_info(url)
+                    get_cover(url)
                 if basenm2.lower().split('.')[0] not in banned:
                     store(basenm2, file6, genrs(file2), imdb_info[0], imdb_info[1], imdb_info[2], imdb_info[3], imdb_info[4], imdb_info[5])
                     number += 1
