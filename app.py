@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 import sys
-reload(sys)
+reload(sys)  
 sys.setdefaultencoding('utf8')
 import os
 import time
@@ -25,7 +26,7 @@ from flask_restful import fields, marshal_with
 from PIL import Image
 import sqlite3
 import yaml
-
+import zipfile
 
 app = Flask(__name__)
 api = Api(app)
@@ -107,7 +108,7 @@ def dash1(results=None):
         results = [(item[0], item[1]) for item in cursor.fetchall()]
         cursor.close()
 
-        connection2 = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'moviesim2.db'))
+        connection2 = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'movies.db'))
         cursor2 = connection2.cursor()
         sql2 = 'select * from (select * from movies order by dated desc limit 10) order by dated desc'
         cursor2.execute(sql2)
@@ -181,21 +182,21 @@ def i613games(search=None):
     cursor.close()
     return render_template('imagesname.html', results=results, search=search, gcounts=gcounts)
 
+
 @app.route("/images/<search>/zip")
 def i613games222(search=None):
     connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'imagesnew3111.db'))
     cursor = connection.cursor()
     cursor.execute("select file, fullpath, subfolder, file, sizewidth, sizeheight, ftime, exifd, celebname \
         from images where (fullpath like ? or exifd like ? or celebname like ?) order by ftime desc", ('%'+search+'%', '%'+search+'%', '%'+search+'%'))
-    results = [(item[0], item[1], item[2], unicode(item[3]).split(' ')[0].replace('.jpg', ''),
+    results = [(item[0], item[1], item[2], unicode(item[3]).split(' ')[0].replace('.jpg', ''), 
                 unicode(item[4]).replace(', ', 'x'), item[5], item[6], item[7], item[8].replace('[', '').replace("'", "").replace(']', '')) for item in cursor.fetchall()]
     zipr = os.path.join(os.path.dirname(__file__), 'static', '{}.zip' .format(search.replace('%', '_')))
     with zipfile.ZipFile(zipr, 'w' ) as myzip:
         for fi2 in results:
             path1 = os.path.join(os.path.dirname(__file__), 'static', 'gallery', fi2[2].encode('utf8'), fi2[0].encode('utf8'))
-            myzip.write(path1.encode('utf8'), fi2[2].encode('utf8')+'_'+fi2[0].encode('utf8'))
+            myzip.write(path1.encode('utf8'), fi2[2].encode('utf8')+'_'+fi2[0].encode('utf8').replace('(', '_').replace(')', '').replace(' ', '_').replace('__', '_'))
     return 'zip complete <a href="/static/{}.zip">{}</a>' .format(search.replace('%', '_'), search.replace('%', '_'))
-
 
 @app.route("/games")
 def igames(search=None):
@@ -221,21 +222,22 @@ def movieindex(genres=None):
 
 @app.route("/movies/<search>")
 def mmgames(search=None):
-    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'moviesim2.db'))
+    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'movies.db'))
     cursor = connection.cursor()
     cursor.execute("select release, director, imdb, infogenres, substr(title, -1, -4), dated from \
         movies where (genre like ? or infogenres like ? or release like ? or director like ? \
         or mainactors like ? or inforest like ?) order by substr(title, -1, -4) desc, dated desc", 
         ('%'+search+'%', '%'+search+'%', '%'+search+'%', '%'+search+'%', '%'+search+'%', '%'+search+'%'))
     results = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), item[2], 
-                item[3].replace('[', '').replace(']', '').replace('\'', ''), item[4]) for item in cursor.fetchall()]
+                item[3].replace('[', '').replace(']', '').replace("\'", ""), item[4]) for item in cursor.fetchall()]
+    #names = cursor.keys()
     gcounts = len(results)
     cursor.close()
     return render_template('movies2.html', results=results, search=search, gcounts=gcounts)
 
 @app.route("/movies/cast/<search>")
 def mmgames333(search=None):
-    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'moviesim2.db'))
+    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'movies.db'))
     cursor1 = connection.cursor()
     cursor1.execute("select release, director, imdb, infogenres, substr(title, -1, -4), dated from \
         movies where mainactors like ? order by substr(title, -1, -4) desc, dated desc", 
@@ -249,15 +251,15 @@ def mmgames333(search=None):
         movies where (inforest like ? and mainactors not like ?) order by substr(title, -1, -4) desc, dated desc", 
         ('%'+search+'%', '%'+search+'%'))
     results2 = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), item[2], 
-                item[3].replace('[', '').replace(']', '').replace('\'', ''), item[4]) for item in cursor2.fetchall()]
-    gcounts2 = len(results2)
+                item[3].replace('[', '').replace(']', '').replace("\'", ""), item[4]) for item in cursor2.fetchall()]
+    gcounts2 = len(results2)+len(results1)
     cursor2.close()
     return render_template('moviecast.html', results=results1, search=search, gcounts=gcounts2, results2=results2)
 
 
 @app.route("/movies/genre/<search>")
 def mmgames2(search=None):
-    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'moviesim2.db'))
+    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'movies.db'))
     cursor = connection.cursor()
     cursor.execute("select release, director, imdb, infogenres, substr(title, -1, -4), dated from movies \
         where (genre like ? or infogenres like ?) order by substr(title, -1, -4) desc, dated desc", 
@@ -270,7 +272,7 @@ def mmgames2(search=None):
 
 @app.route("/movies/groups")
 def movielist(groups=None):
-    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'moviesim2.db'))
+    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'movies.db'))
     cursor = connection.cursor()
     sql = 'select grp, count(*) c from movies group by grp having c > 0 order by c desc'
     cursor.execute(sql)
@@ -279,7 +281,7 @@ def movielist(groups=None):
 
 @app.route("/movies/group/<search>")
 def mmgames3(search=None):
-    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'moviesim2.db'))
+    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'movies.db'))
     cursor = connection.cursor()
     cursor.execute("select release, director, imdb, infogenres, substr(title, -1, -4), dated \
         from movies where grp like ? order by substr(title, -1, -4) desc, dated desc", ('%'+search+'%',))
@@ -291,7 +293,7 @@ def mmgames3(search=None):
 
 @app.route("/movies/director")
 def moviedirect(groups=None):
-    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'moviesim2.db'))
+    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'movies.db'))
     cursor = connection.cursor()
     sql = 'select director, count(distinct(imdb)) c from movies group by director having c > 0 order by c desc'
     cursor.execute(sql)
@@ -300,7 +302,7 @@ def moviedirect(groups=None):
 
 @app.route("/movies/years")
 def movieyears(groups=None):
-    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'moviesim2new2.db'))
+    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'movies.db'))
     cursor = connection.cursor()
     sql = 'select distinct(year), count(distinct(imdb)) c from movies group by year having c > 0 order by c desc'
     cursor.execute(sql)
@@ -309,7 +311,7 @@ def movieyears(groups=None):
 
 @app.route("/movies/years/<search>")
 def mmgames4114(search=None):
-    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'moviesim2new2.db'))
+    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'movies.db'))
     cursor = connection.cursor()
     cursor.execute("select release, director, imdb, infogenres, year, title from movies where year like ? \
         order by year, release asc", ('%'+search+'%',))
@@ -321,7 +323,7 @@ def mmgames4114(search=None):
 
 @app.route("/movies/director/<search>")
 def mmgames44(search=None):
-    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'moviesim2.db'))
+    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'movies.db'))
     cursor = connection.cursor()
     cursor.execute("select release, director, imdb, infogenres, substr(title, -1, -4), title, dated from movies \
         where director like ? order by substr(title, -1, -4) desc, dated desc", ('%'+search+'%',))
@@ -352,13 +354,13 @@ def companylist2(studio=None):
     return render_template('company_list.html', companies=companies, count=count, studio=studio)
 
 @app.route("/movies/company/<studio>")
-def companylist4(studio=None):
+def companylist3(studio=None):
     film_list = []
     connection2 = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'imdb_scrape_database2.db'))
     cursor2 = connection2.cursor()
     cursor2.execute('select company, imdbid, title, year, role from companies where company like ? group by title order by year desc, title desc', ('%'+studio+'%',))
     companies = [(item2[0], item2[1], item2[2], item2[3], item2[4]) for item2 in cursor2.fetchall()]
-    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'moviesim2.db'))
+    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'movies.db'))
     cursor = connection.cursor()
     for item3 in companies:
         cursor.execute('select distinct imdb from movies where imdb like ?', ('%'+item3[1]+'%',))
@@ -370,7 +372,7 @@ def companylist4(studio=None):
 
 @app.route("/movies/release/<release>")
 def movierelease(release=None):
-    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'moviesim2.db'))
+    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'movies.db'))
     cursor = connection.cursor()
     cursor.execute('select release, grp, genre, format, imdb, title, director, mainactors, infogenres, inforest, \
         infosummary, substr(title, -1, -4) from movies where release like ?', ('%'+release+'%',))
@@ -463,7 +465,7 @@ api.add_resource(movieindexa, '/api/moviegenres')
 def apisearch(self, search):
     list1 = []
     list2 = []
-    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'moviesim2.db'))
+    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'movies.db'))
     cursor = connection.cursor()
     cursor.execute("select release, director, imdb, infogenres, substr(title, -1, -4), mainactors, infosummary, dated from \
         movies where (genre like ? or infogenres like ? or release like ? or director like ? \
