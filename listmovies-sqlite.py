@@ -85,7 +85,7 @@ def get_info(url):
     print(id2)
 
     title = soup.find('h1', attrs={'itemprop': 'name'})
-    year2 = re.search(r'\((\d{4}\))', title.get_text())
+    year2 = re.search(r'\((\d{4})\)', title.get_text())
     year = year2.group(1)
     genre = [genre1.get_text() for genre1 in soup.find_all('span', attrs={'itemprop': 'genre'})]
     director = soup.find('span', attrs={'itemprop': 'director'})
