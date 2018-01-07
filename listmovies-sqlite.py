@@ -17,11 +17,11 @@ today = time.strftime("__%m_%Y_%H_%M_%S")
 cwd = r'/path/to/movies'
 number = 0
 
-conn = sqlite3.connect('moviesim2.db')
+conn = sqlite3.connect('moviesim2new5.db')
 cur = conn.cursor()
 #cur.execute('''CREATE TABLE movies 
 #            (release text unique, grp text, genre text, format text, imdb text, title text, director text, 
-#            mainactors text, infogenres text, inforest text, infosummary text, dated datetime DEFAULT CURRENT_TIMESTAMP)''')
+#            mainactors text, infogenres text, inforest text, infosummary text, year text, dated datetime DEFAULT CURRENT_TIMESTAMP)''')
 
 class GrabIt(urllib.request.FancyURLopener):
         version = ('Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36'
@@ -42,13 +42,13 @@ def imdburl(fn):
     return 'https://www.imdb.com/title/tt'+urls23
 
 
-def store(release, grp, genre, title, director, mainactors, infogenres, inforest, infosummary):
-    print('{} - {} - {} - {} - {} - {} - {} - {} - {} - {} - {}' .format(basenm2, file6, genrs(file2), file7, imdburl(file2), 
+def store(release, grp, genre, title, director, mainactors, infogenres, inforest, infosummary, year):
+    print('{} - {} - {} - {} - {} - {} - {} - {} - {} - {} - {} - {}' .format(basenm2, file6, genrs(file2), file7, imdburl(file2), 
         str(imdb_info[0]).strip(), str(imdb_info[1]).strip(), str(imdb_info[2]).replace('\\n', ''), str(imdb_info[3]), 
-        str(imdb_info[4]), str(imdb_info[5]).strip()))
-    cur.execute('INSERT INTO movies (release, grp, genre, format, imdb, title, director, mainactors, infogenres, inforest, infosummary) VALUES (?,?,?,?,?,?,?,?,?,?,?)', 
+        str(imdb_info[4]), str(imdb_info[5]).strip(), str(imdb_info[6])))
+    cur.execute('INSERT INTO movies (release, grp, genre, format, imdb, title, director, mainactors, infogenres, inforest, infosummary, year) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)', 
                 (basenm2, file6, genrs(file2), file7, imdburl(file2), str(imdb_info[0]).strip(), str(imdb_info[1]).strip().replace(',', ''), str(imdb_info[2]).replace('\\n', '').strip(), 
-                str(imdb_info[3]).strip(), str(imdb_info[4]).strip(), str(imdb_info[5]).strip()))
+                str(imdb_info[3]).strip(), str(imdb_info[4]).strip(), str(imdb_info[5]).strip(), str(imdb_info[6])))
     cur.connection.commit()
 
 def genrs(fn):
@@ -85,6 +85,8 @@ def get_info(url):
     print(id2)
 
     title = soup.find('h1', attrs={'itemprop': 'name'})
+    year2 = re.search(r'\((\d{4}\))', title.get_text())
+    year = year2.group(1)
     genre = [genre1.get_text() for genre1 in soup.find_all('span', attrs={'itemprop': 'genre'})]
     director = soup.find('span', attrs={'itemprop': 'director'})
     main_actors2 = [main_actors.get_text() for main_actors in soup.find_all('span', attrs={'itemprop': 'actors'})]
@@ -99,7 +101,7 @@ def get_info(url):
         info_main.append(line.replace(',', ''))
     for line3 in rest_actors:
         info_rest.append(line3)
-    return title.get_text(), director.get_text(), info_main, info_genres, info_rest, summary.get_text().strip()
+    return title.get_text(), director.get_text(), info_main, info_genres, info_rest, summary.get_text().strip(), year
 
 
 
@@ -117,7 +119,7 @@ for subdir, dirs, files in os.walk(cwd):
                 if url is not None: 
                     imdb_info = get_info(url)
                 if basenm2.lower().split('.')[0] not in banned:
-                    store(basenm2, file6, genrs(file2), imdb_info[0], imdb_info[1], imdb_info[2], imdb_info[3], imdb_info[4], imdb_info[5])
+                    store(basenm2, file6, genrs(file2), imdb_info[0], imdb_info[1], imdb_info[2], imdb_info[3], imdb_info[4], imdb_info[5], str(imdb_info[6]))
                     number += 1
                     r_int = randint(60, 130)
                     time.sleep(r_int)
