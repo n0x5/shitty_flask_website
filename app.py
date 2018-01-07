@@ -242,7 +242,7 @@ def mmgames333(search=None):
     cursor1.execute("select release, director, imdb, infogenres, substr(title, -1, -4), dated from \
         movies where mainactors like ? order by substr(title, -1, -4) desc, dated desc", 
         ('%'+search+'%',))
-    results1 = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), item[2], 
+    results1 = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), os.path.basename(item[2]+'.jpg'), 
                 item[3].replace('[', '').replace(']', '').replace('\'', ''), item[4]) for item in cursor1.fetchall()]
     gcounts = len(results1)
     cursor1.close()
@@ -250,7 +250,7 @@ def mmgames333(search=None):
     cursor2.execute("select release, director, imdb, infogenres, substr(title, -1, -4), dated from \
         movies where (inforest like ? and mainactors not like ?) order by substr(title, -1, -4) desc, dated desc", 
         ('%'+search+'%', '%'+search+'%'))
-    results2 = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), item[2], 
+    results2 = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), os.path.basename(item[2]+'.jpg'), 
                 item[3].replace('[', '').replace(']', '').replace("\'", ""), item[4]) for item in cursor2.fetchall()]
     gcounts2 = len(results2)+len(results1)
     cursor2.close()
@@ -264,7 +264,7 @@ def mmgames2(search=None):
     cursor.execute("select release, director, imdb, infogenres, substr(title, -1, -4), dated from movies \
         where (genre like ? or infogenres like ?) order by substr(title, -1, -4) desc, dated desc", 
             ('%'+search+'%', '%'+search+'%'))
-    results = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), item[2], 
+    results = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), os.path.basename(item[2]+'.jpg'), 
             item[3].replace('[', '').replace(']', '').replace('\'', ''), item[4]) for item in cursor.fetchall()]
     gcounts = len(results)
     cursor.close()
@@ -285,7 +285,7 @@ def mmgames3(search=None):
     cursor = connection.cursor()
     cursor.execute("select release, director, imdb, infogenres, substr(title, -1, -4), dated \
         from movies where grp like ? order by substr(title, -1, -4) desc, dated desc", ('%'+search+'%',))
-    results = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), item[2], 
+    results = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), os.path.basename(item[2]+'.jpg'), 
         item[3].replace('[', '').replace(']', '').replace('\'', ''), item[4]) for item in cursor.fetchall()]
     gcounts = len(results)
     cursor.close()
@@ -315,7 +315,7 @@ def mmgames4114(search=None):
     cursor = connection.cursor()
     cursor.execute("select release, director, imdb, infogenres, year, title from movies where year like ? \
         order by year, release asc", ('%'+search+'%',))
-    results = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), item[2], 
+    results = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), os.path.basename(item[2]+'.jpg'), 
         item[3].replace('[', '').replace(']', '').replace('\'', ''), item[4]) for item in cursor.fetchall()]
     gcounts = len(results)
     cursor.close()
@@ -327,7 +327,7 @@ def mmgames44(search=None):
     cursor = connection.cursor()
     cursor.execute("select release, director, imdb, infogenres, substr(title, -1, -4), title, dated from movies \
         where director like ? order by substr(title, -1, -4) desc, dated desc", ('%'+search+'%',))
-    results = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), item[2], 
+    results = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), os.path.basename(item[2]+'.jpg'), 
             item[3].replace('[', '').replace(']', '').replace('\'', ''), item[4]) for item in cursor.fetchall()]
     gcounts = len(results)
     cursor.close()
@@ -362,7 +362,9 @@ def companylist3(studio=None):
     companies = [(item2[0], item2[1], item2[2], item2[3], item2[4]) for item2 in cursor2.fetchall()]
     connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'movies.db'))
     cursor = connection.cursor()
+
     for item3 in companies:
+
         cursor.execute('select distinct imdb from movies where imdb like ?', ('%'+item3[1]+'%',))
         [film_list.append(item3) for item in cursor.fetchall()]
     count = len(film_list)
@@ -375,12 +377,12 @@ def movierelease(release=None):
     connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'movies.db'))
     cursor = connection.cursor()
     cursor.execute('select release, grp, genre, format, imdb, title, director, mainactors, infogenres, inforest, \
-        infosummary, substr(title, -1, -4) from movies where release like ?', ('%'+release+'%',))
+        infosummary, substr(title, -1, -4), imdb from movies where release like ?', ('%'+release+'%',))
 
-    results = [(item[0], item[1], item[2], item[3], item[4], item[5], item[6].strip(' ').replace('\\n', '').replace(',', ''), 
+    results = [(item[0], item[1], item[2], item[3], os.path.basename(item[4]+'.jpg'), item[5], item[6].strip(' ').replace('\\n', '').replace(',', ''), 
             item[7].replace('[', '').replace(']', '').replace('\'', '').split(','), 
             item[8].replace('[', '').replace(']', '').replace('\'', ''), item[9].replace('[', '').replace(']', '').replace('\'', ''), 
-            item[10], item[11].replace(')', '').replace('(', '')) for item in cursor.fetchall()]
+            item[10], item[11].replace(')', '').replace('(', ''), item[12]) for item in cursor.fetchall()]
     imdborig = re.search(r'\d{7}', str(results[0][4]))
     imdbidor = imdborig.group(0)
     connection2 = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'imdb_scrape_database2.db'))
