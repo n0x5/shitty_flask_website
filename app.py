@@ -228,7 +228,7 @@ def mmgames(search=None):
         movies where (genre like ? or infogenres like ? or release like ? or director like ? \
         or mainactors like ? or inforest like ?) order by substr(title, -1, -4) desc, dated desc", 
         ('%'+search+'%', '%'+search+'%', '%'+search+'%', '%'+search+'%', '%'+search+'%', '%'+search+'%'))
-    results = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), item[2], 
+    results = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), os.path.basename(item[2]+'.jpg'), 
                 item[3].replace('[', '').replace(']', '').replace("\'", ""), item[4]) for item in cursor.fetchall()]
     #names = cursor.keys()
     gcounts = len(results)
