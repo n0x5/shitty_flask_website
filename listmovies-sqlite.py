@@ -17,7 +17,7 @@ today = time.strftime("__%m_%Y_%H_%M_%S")
 cwd = r'/path/to/movies'
 number = 0
 
-conn = sqlite3.connect('moviesim2new5.db')
+conn = sqlite3.connect('movies.db')
 cur = conn.cursor()
 #cur.execute('''CREATE TABLE movies 
 #            (release text unique, grp text, genre text, format text, imdb text, title text, director text, 
