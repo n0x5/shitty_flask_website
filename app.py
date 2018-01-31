@@ -33,7 +33,7 @@ api = Api(app)
 app.debug = True
 app.config.update(dict(
         DEBUG=True,
-        SECRET_KEY=b'YOUR_SECRET_KEY',
+        SECRET_KEY=b'YOUR_KEY',
         USERNAME='YOUR_USERNAME',
         PASSWORD='YOUR_PASSWORD'
     ))
@@ -112,7 +112,7 @@ def dash1(results=None):
         cursor2 = connection2.cursor()
         sql2 = 'select * from (select * from movies order by dated desc limit 10) order by dated desc'
         cursor2.execute(sql2)
-        results2 = [(item[0], item[1], item[2], item[3]) for item in cursor2.fetchall()]
+        results2 = [(item[0], item[1], item[2], item[3], item[4], item[5], item[6], item[7], item[8]) for item in cursor2.fetchall()]
         cursor2.close()
 
     return render_template('dashboard.html', results=results, results2=results2)
@@ -191,12 +191,12 @@ def i613games222(search=None):
         from images where (fullpath like ? or exifd like ? or celebname like ?) order by ftime desc", ('%'+search+'%', '%'+search+'%', '%'+search+'%'))
     results = [(item[0], item[1], item[2], unicode(item[3]).split(' ')[0].replace('.jpg', ''), 
                 unicode(item[4]).replace(', ', 'x'), item[5], item[6], item[7], item[8].replace('[', '').replace("'", "").replace(']', '')) for item in cursor.fetchall()]
-    zipr = os.path.join(os.path.dirname(__file__), 'static', '{}.zip' .format(search.replace('%', '_')))
+    zipr = os.path.join(os.path.dirname(__file__), 'static', '{}_{}.zip' .format(search.replace('%', '_'), time.strftime("%m_%d_%Y")))
     with zipfile.ZipFile(zipr, 'w' ) as myzip:
         for fi2 in results:
             path1 = os.path.join(os.path.dirname(__file__), 'static', 'gallery', fi2[2].encode('utf8'), fi2[0].encode('utf8'))
             myzip.write(path1.encode('utf8'), fi2[2].encode('utf8')+'_'+fi2[0].encode('utf8').replace('(', '_').replace(')', '').replace(' ', '_').replace('__', '_'))
-    return 'zip complete <a href="/static/{}.zip">{}</a>' .format(search.replace('%', '_'), search.replace('%', '_'))
+    return 'zip complete <a href="/static/{}_{}.zip">{}</a>' .format(search.replace('%', '_'), time.strftime("%m_%d_%Y"), search.replace('%', '_'))
 
 @app.route("/games")
 def igames(search=None):
@@ -226,11 +226,10 @@ def mmgames(search=None):
     cursor = connection.cursor()
     cursor.execute("select release, director, imdb, infogenres, substr(title, -1, -4), dated from \
         movies where (genre like ? or infogenres like ? or release like ? or director like ? \
-        or mainactors like ? or inforest like ?) order by substr(title, -1, -4) desc, dated desc", 
-        ('%'+search+'%', '%'+search+'%', '%'+search+'%', '%'+search+'%', '%'+search+'%', '%'+search+'%'))
+        or mainactors like ? or inforest like ? or imdb like ?) order by substr(title, -1, -4) desc, dated desc", 
+        ('%'+search+'%', '%'+search+'%', '%'+search+'%', '%'+search+'%', '%'+search+'%', '%'+search+'%', '%'+search+'%'))
     results = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), os.path.basename(item[2]+'.jpg'), 
                 item[3].replace('[', '').replace(']', '').replace("\'", ""), item[4]) for item in cursor.fetchall()]
-    #names = cursor.keys()
     gcounts = len(results)
     cursor.close()
     return render_template('movies2.html', results=results, search=search, gcounts=gcounts)
@@ -498,5 +497,4 @@ api.add_resource(moviesearchtitle, '/api/moviesearch/<string:search>')
 
 if __name__ == "__main__":
     app.run()
-
 
