@@ -10,13 +10,11 @@
   <div class="sidebar">
     <p>{% block b2 %}{% endblock %}</p>
     <p><a href="/">Home</a></p>
-    <p><a href="/blog">Blog</a></p>
     <p><a href="/movies">Movies</a></p>
     <p><a href="/games">Games</a></p>
     {% if session.logged_in %}
     <p><a href="/dashboard">Dashboard</a></p>
     {% endif %}
-
   </div>
   <body>
     <div class="content">{% block content %}{% endblock %}</div>

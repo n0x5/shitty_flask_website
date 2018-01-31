@@ -6,12 +6,12 @@
 {% block content %}
 <p><b>{{ gcounts }}</b> search results for<b> {{ search }}</b></p>
 
-<h2>Main actor in:</h2>
+<h2 style="clear:both">Main actor in:</h2>
 {% for item in results %}
   <div class="film" style="clear:both;padding-top:9px;"> <img height="98" src="/static/covers/{{item[2]}}" style="float:left;margin-right:6px;" /><div class="info"><l class="title" style="font-weight:bold;"><a href="/movies/release/{{item[0]}}">{{item[0]}}</a> {{item[4]}}</l><br> <class="genre">{{item[3]}}</class><br><class="director"> <a href="/movies/director/{{item[1]}}">{{item[1]}}</a></class></div></div>
 {% endfor %}
 
-<h2>Supporting actor in:</h2>
+<h2 style="clear:both">Supporting actor in:</h2>
 {% for item in results2 %}
   <div class="film" style="clear:both;padding-top:9px;"> <img height="98" src="/static/covers/{{item[2]}}" style="float:left;margin-right:6px;" /><div class="info"><l class="title" style="font-weight:bold;"><a href="/movies/release/{{item[0]}}">{{item[0]}}</a> {{item[4]}}</l><br> <class="genre">{{item[3]}}</class><br><class="director"> <a href="/movies/director/{{item[1]}}">{{item[1]}}</a></class></div></div>
 {% endfor %}

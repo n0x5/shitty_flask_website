@@ -22,7 +22,7 @@
   <h1>Latest 10 movies</h1>
     <p>
       {% for item in results2 %}
-      <p><a href="/movies/release/{{item[0]}}">{{item[0]}}<a/></p>
+      <p><a href="/movies/release/{{item[0]}}">{{item[0]}}<a/> {{item[8]}} - {{item[5]}}</p>
       {% endfor %}
     </p>
 
