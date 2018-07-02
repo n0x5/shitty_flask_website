@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 
 # Create a list of movies in a folder
+# It uses currently active directory so cd into the folder
+# then run ./list-html-movies.py and it will make a html file
+# in the same folder
 
 import os
 import requests
@@ -14,14 +17,14 @@ from urllib.request import FancyURLopener
 
 today = time.strftime("__%m_%Y_%H_%M_%S")
 
-cwd = r'/path/to/movies'
+cwd = r'/folder/path'
 number = 0
 
 conn = sqlite3.connect('movies.db')
 cur = conn.cursor()
-#cur.execute('''CREATE TABLE movies 
-#            (release text unique, grp text, genre text, format text, imdb text, title text, director text, 
-#            mainactors text, infogenres text, inforest text, infosummary text, year text, dated datetime DEFAULT CURRENT_TIMESTAMP)''')
+cur.execute('''CREATE TABLE movies 
+            (release text unique, grp text, genre text, format text, imdb text, title text, director text, 
+            mainactors text, infogenres text, inforest text, infosummary text, year text, dated datetime DEFAULT CURRENT_TIMESTAMP)''')
 
 class GrabIt(urllib.request.FancyURLopener):
         version = ('Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36'

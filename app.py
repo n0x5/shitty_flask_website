@@ -33,9 +33,9 @@ api = Api(app)
 app.debug = True
 app.config.update(dict(
         DEBUG=True,
-        SECRET_KEY=b'YOUR_KEY',
-        USERNAME='YOUR_USERNAME',
-        PASSWORD='YOUR_PASSWORD'
+        SECRET_KEY=b'SECRET_KEY',
+        USERNAME='ADMIN_USERNAME',
+        PASSWORD='ADMIN_PASSWORD'
     ))
 
 @app.route("/")
@@ -116,7 +116,6 @@ def dash1(results=None):
         cursor2.close()
 
     return render_template('dashboard.html', results=results, results2=results2)
-
 
 
 @app.route('/blog')
@@ -215,10 +214,17 @@ def sgames(search=None):
 
 @app.route("/movies")
 def movieindex(genres=None):
+    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'movies.db'))
+    cursor = connection.cursor()
+    cursor.execute('select release from movies')
+    results = [item for item in cursor.fetchall()]
+    count = len(results)
     genrelist = (["romance", "comedy", "animation", "mystery", "documentary", "crime", "family", "sport",
                 "biography", "history", "western", "sci-fi", "horror", "adventure", "drama", "fantasy", "thriller", "action"])
     genres = [item.title() for item in genrelist]
-    return render_template('movieindex.html', genres=genres)
+    cursor.close()
+    return render_template('movieindex.html', genres=genres, count=count)
+
 
 @app.route("/movies/<search>")
 def mmgames(search=None):
@@ -230,6 +236,7 @@ def mmgames(search=None):
         ('%'+search+'%', '%'+search+'%', '%'+search+'%', '%'+search+'%', '%'+search+'%', '%'+search+'%', '%'+search+'%'))
     results = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), os.path.basename(item[2]+'.jpg'), 
                 item[3].replace('[', '').replace(']', '').replace("\'", ""), item[4]) for item in cursor.fetchall()]
+    #names = cursor.keys()
     gcounts = len(results)
     cursor.close()
     return render_template('movies2.html', results=results, search=search, gcounts=gcounts)
@@ -268,6 +275,20 @@ def mmgames2(search=None):
     gcounts = len(results)
     cursor.close()
     return render_template('movies2.html', results=results, search=search, gcounts=gcounts)
+
+@app.route("/movies/genre/<search>/<search2>")
+def mmgames112(search=None, search2=None):
+    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'movies.db'))
+    cursor = connection.cursor()
+    cursor.execute("select release, director, imdb, infogenres, substr(title, -1, -4), dated from movies \
+        where (genre like ? or infogenres like ?) and (genre like ? or infogenres like ?) order by substr(title, -1, -4) desc, dated desc", 
+            ('%'+search+'%', '%'+search+'%', '%'+search2+'%', '%'+search2+'%'))
+    results = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), os.path.basename(item[2]+'.jpg'), 
+            item[3].replace('[', '').replace(']', '').replace('\'', ''), item[4]) for item in cursor.fetchall()]
+    gcounts = len(results)
+    cursor.close()
+    return render_template('movies2.html', results=results, search=search, gcounts=gcounts)
+
 
 @app.route("/movies/groups")
 def movielist(groups=None):
@@ -370,6 +391,17 @@ def companylist3(studio=None):
     cursor2.close()
     cursor.close()
     return render_template('company_list2.html', companies=companies, results=film_list, count=count, studio=studio)
+
+
+@app.route("/movies/seven2")
+def sevent2wen(results=None):
+    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'movies.db'))
+    cursor = connection.cursor()
+    cursor.execute('select release, imdb, year from movies where imdb not in (select imdb from movies720) order by year desc')
+    results = [(item) for item in cursor.fetchall()]
+    cursor.close()
+    return render_template('movies2.html', results=results)
+
 
 @app.route("/movies/release/<release>")
 def movierelease(release=None):
@@ -497,4 +529,5 @@ api.add_resource(moviesearchtitle, '/api/moviesearch/<string:search>')
 
 if __name__ == "__main__":
     app.run()
+
 
