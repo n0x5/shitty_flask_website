@@ -6,21 +6,21 @@
 {% block content %}
 <p><b>{{ gcounts }}</b> search results for<b> {{ search }}</b></p>
 
-
-
+{% set comma = joiner(",") %}
 {% for item in results %}
   <p>  <l class="title" style="font-weight:bold;font-size:22px;">{{item[0]}} ({{item[11]}})</l><br><br>
-      
+
       <img src="/static/covers/{{item[4]}}" /><br>
       <b>imdb</b>: <a class="imdb" href="{{item[12]}}">{{item[12]}}</a><br>
-      <b>genre</b>: <class="genre">{{item[8]}}</class><br>
+      <b>genre</b>: <class="genre">{% for item3 in genres_list %}{{comma()}} <a href="/movies/genre/{{item3}}">{{item3}}</a>{% endfor %}</class><br>
       <b>director</b>: <a href="/movies/director/{{item[6]}}"> {{item[6]}}</a><br>
       <b>title</b>: {{item[5]}}<br>
-      <b>main cast</b>: <a href="/movies/cast/{{item[7][0]}}">{{item[7][0].strip()}}</a>, <a href="/movies/cast/{{item[7][1].strip()}}">{{item[7][1]}}</a>, <a href="/movies/cast/{{item[7][2].strip()}}">{{item[7][2]}}</a><br>
-      <b>remaining cast</b>: {{item[9]}}<br>
+      <b>main cast</b>: {% set comma = joiner(",") %} {% for item3 in main_cast %}{{comma()}} <a href="/movies/cast/{{item3}}">{{item3}}</a>{% endfor %}<br>
+      <b>remaining cast</b>: {% set comma = joiner(",") %} {% for item4 in remaining_cast %}{{comma()}} <a href="/movies/cast/{{item4}}">{{item4}}</a>{% endfor %}<br>
       <b>plot summary</b>: {{item[10]}}<br>
 {% endfor %}
 {% for item2 in results3 %}
        <b>company</b>: {{item2[0]}}<br>
 {% endfor %}
 {% endblock %}
+
