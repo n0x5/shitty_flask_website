@@ -405,6 +405,7 @@ def sevent2wen(results=None):
 
 @app.route("/movies/release/<release>")
 def movierelease(release=None):
+    colist = []
     connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'movies.db'))
     cursor = connection.cursor()
     cursor.execute('select release, grp, genre, format, imdb, title, director, mainactors, infogenres, inforest, \
@@ -421,16 +422,17 @@ def movierelease(release=None):
     imdbidor = imdborig.group(0)
     connection2 = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'imdb_scrape_database2.db'))
     cursor2 = connection2.cursor()
+    cursor2.execute('select company, imdbid from companies where imdbid like ?', ('%'+imdbidor+'%',))
+    cursor.execute('select company, imdbid from companyinfo where imdbid like ? group by company', ('%'+imdbidor+'%',))
     try:
-        cursor2.execute('select company, imdbid from companies where imdbid like ?', ('%'+imdbidor+'%',))
         results3 = [item2 for item2 in cursor2.fetchall()]
+        results4 = [item3 for item3 in cursor.fetchall()]
     except:
         results3 = ('None',)
     cursor.close()
     cursor2.close()
 
-    return render_template('releasedetails.html', results=results, results3=results3, compane=imdbidor, main_cast=main_cast, remaining_cast=remaining_cast, genres_list=genres_list)
-
+    return render_template('releasedetails.html', results=results, results3=results3, results4=results4, compane=imdbidor, main_cast=main_cast, remaining_cast=remaining_cast, genres_list=genres_list)
 
 @app.route("/gallery")
 def gallery():
