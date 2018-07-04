@@ -412,8 +412,11 @@ def movierelease(release=None):
 
     results = [(item[0], item[1], item[2], item[3], os.path.basename(item[4]+'.jpg'), item[5], item[6].strip(' ').replace('\\n', '').replace(',', ''), 
             item[7].replace('[', '').replace(']', '').replace('\'', '').split(','), 
-            item[8].replace('[', '').replace(']', '').replace('\'', ''), item[9].replace('[', '').replace(']', '').replace('\'', ''), 
+            item[8].replace('[', '').replace(']', '').replace('\'', '').split(','), item[9].replace('[', '').replace(']', '').replace('\'', '').split(','), 
             item[10], item[11].replace(')', '').replace('(', ''), item[12]) for item in cursor.fetchall()]
+    remaining_cast = (item.strip() for item in results[0][9])
+    main_cast = (item.strip() for item in results[0][7])
+    genres_list = (item.strip() for item in results[0][8])
     imdborig = re.search(r'\d{7}', str(results[0][4]))
     imdbidor = imdborig.group(0)
     connection2 = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'imdb_scrape_database2.db'))
@@ -426,7 +429,8 @@ def movierelease(release=None):
     cursor.close()
     cursor2.close()
 
-    return render_template('releasedetails.html', results=results, results3=results3, compane=imdbidor)
+    return render_template('releasedetails.html', results=results, results3=results3, compane=imdbidor, main_cast=main_cast, remaining_cast=remaining_cast, genres_list=genres_list)
+
 
 @app.route("/gallery")
 def gallery():
