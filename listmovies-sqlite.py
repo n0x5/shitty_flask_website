@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 
-# Create a list of movies in a folder
-# It uses currently active directory so cd into the folder
-# then run ./list-html-movies.py and it will make a html file
-# in the same folder
+# Scan a folder for movie folders with .nfo files
+# grab info from imdb and add to an sqlite database
 
 import os
 import requests
@@ -17,7 +15,7 @@ from urllib.request import FancyURLopener
 
 today = time.strftime("__%m_%Y_%H_%M_%S")
 
-cwd = r'/folder/path'
+cwd = r'/path/to/movies'
 number = 0
 
 conn = sqlite3.connect('movies.db')
@@ -87,22 +85,29 @@ def get_info(url):
     grab1.download_file(coverurl, endpoint)
     print(id2)
 
-    title = soup.find('h1', attrs={'itemprop': 'name'})
+    title2 = soup.find('div', attrs={'class': 'title_wrapper'})
+    title = title2.find('h1')
+    year = title2.find('span', attrs={'id': 'titleYear'})
     year2 = re.search(r'\((\d{4})\)', title.get_text())
     year = year2.group(1)
-    genre = [genre1.get_text() for genre1 in soup.find_all('span', attrs={'itemprop': 'genre'})]
-    director = soup.find('span', attrs={'itemprop': 'director'})
-    main_actors2 = [main_actors.get_text() for main_actors in soup.find_all('span', attrs={'itemprop': 'actors'})]
+    soup2 = soup.find('div', attrs={'class': 'subtext'})
+    genre = [genre1.get_text() for genre1 in soup2.findAll('a', href=re.compile('\/genre'))]
+    director2 = soup.find('div', attrs={'class': 'credit_summary_item'})
+    director = director2.find('a')
+    sumactors2 = soup.find('div', attrs={'class': 'plot_summary'})
+    sumactors = sumactors2.find_all('div', attrs={'class': 'credit_summary_item'})
+    main_actors2 = sumactors[-1].get_text().replace('See full cast & crew »', '').replace('Stars:', '').replace(' |', '').replace('\n', '').split(',')
     summary = soup.find('div', attrs={'class': 'summary_text'})
     actor_table = soup.find('table', attrs={'class': 'cast_list'})
-    rest_actors = [rest_actors1.get_text() for rest_actors1 in actor_table.find_all('span', attrs={'itemprop': 'name'})]
+    rest_actors = actor_table.find_all('img', alt=re.compile('.'))
+
 
     for line2 in genre:
         info_genres.append(line2)
     for line in main_actors2:
         info_main.append(line.replace(',', ''))
     for line3 in rest_actors:
-        info_rest.append(line3)
+        info_rest.append(line3['alt'])
     return title.get_text(), director.get_text(), info_main, info_genres, info_rest, summary.get_text().strip(), year
 
 
