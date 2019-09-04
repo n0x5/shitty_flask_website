@@ -97,7 +97,7 @@ def get_gallery_pics(gal=None, results3=None, gcount=None):
             results2.sort(key=os.path.getmtime, reverse=True)
 
         imh = [str(Image.open(image).size).replace('(', '').replace(')', '').replace(', ', 'x') for image in results2]
-        results4 = [time.strftime('%Y_%m_%d__%H_%M_%S', time.gmtime(os.path.getmtime(image))) for image in results2]
+        results4 = [time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(os.path.getmtime(image))) for image in results2]
         results = [basename(image).replace('#', '%23') for image in results2]
         gcount = len(results)
         results3 = zip(results, imh, results4)
