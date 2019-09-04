@@ -33,9 +33,9 @@ api = Api(app)
 app.debug = True
 app.config.update(dict(
         DEBUG=True,
-        SECRET_KEY=b'SECRET_KEY',
-        USERNAME='ADMIN_USERNAME',
-        PASSWORD='ADMIN_PASSWORD'
+        SECRET_KEY=b'',
+        USERNAME='',
+        PASSWORD=''
     ))
 
 @app.route("/")
@@ -43,6 +43,79 @@ def hello(tpath=None):
     image = 'hey there guy'
     tpath = os.path.join(os.path.dirname(__file__), 'static', 'gallery')
     return render_template('index.html', tpath=tpath)
+
+
+
+####### FILE UPLOAD DRAG N DROP ######
+
+ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'webp'])
+UPLOAD_FOLDER = r'/home/flask/static/hosted'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    
+@app.route('/uploadf/<gal>', methods=['GET', 'POST'])
+def upload_form(gal=None):
+    if not session.get('logged_in'):
+        return 'access denied'
+
+    return render_template('upload.html', gal=gal)
+
+@app.route('/file-upload/<gal>', methods=['GET', 'POST'])
+def upload_file(gal=None):
+    if not session.get('logged_in'):
+        return 'access denied'
+
+    if request.method == 'POST':
+        if 'file' not in request.files:
+            flash('No file part')
+            return redirect('/uploadf')
+        file = request.files['file']
+        if file.filename == '':
+            flash('No file selected for uploading')
+            return redirect(request.url)
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            if not os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'], gal)): 
+                os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], gal))
+            os.chmod(os.path.join(app.config['UPLOAD_FOLDER'], gal), 0o777)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], gal, filename))
+            flash('File successfully uploaded')
+            return redirect('/uploadf')
+        else:
+            flash('Allowed file types are txt, pdf, png, jpg, jpeg, gif')
+            return redirect('/uploadf')
+
+
+@app.route('/pics/<gal>')
+def get_gallery_pics(gal=None, results3=None, gcount=None):
+    dirgl = os.path.join(os.path.dirname(__file__), 'static', 'hosted', '{}' .format(gal))
+    for subdir, dirs, files in os.walk(str(dirgl)):
+        if 'thumbs' not in subdir:
+            results2 = [os.path.join(dirgl, image) for image in files]
+            results2.sort(key=os.path.getmtime, reverse=True)
+
+        imh = [str(Image.open(image).size).replace('(', '').replace(')', '').replace(', ', 'x') for image in results2]
+        results4 = [time.strftime('%Y_%m_%d__%H_%M_%S', time.gmtime(os.path.getmtime(image))) for image in results2]
+        results = [basename(image).replace('#', '%23') for image in results2]
+        gcount = len(results)
+        results3 = zip(results, imh, results4)
+
+    return render_template('galleryhosted.html', gal=gal, results3=results3, gcount=gcount)
+
+
+@app.route("/images/wallpaper/<search>/<sizew>/<sizeh>")
+def i7gam111es(search=None, sizew=None, sizeh=None):
+    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'imagesnew3.db'))
+    cursor = connection.cursor()
+    cursor.execute("select file, fullpath, subfolder, file, sizewidth, sizeheight, ftime, exifd from images \
+        where (fullpath like ? or exifd like ?) and (sizewidth like ? and sizeheight like ?) order by ftime desc", ('%'+search+'%', '%'+search+'%', int(sizew), int(sizeh)))
+    results = [(item[0], item[1], item[2], unicode(item[3]).split(' ')[0].replace('.jpg', ''),
+                 str(item[4]).replace(', ', 'x'), item[5], item[6]) for item in cursor.fetchall()]
+    gcounts = len(results)
+    cursor.close()
+    return render_template('images.html', results=results, search=search, gcounts=gcounts)
 
 @app.route('/rinfo')
 def inde22x():
@@ -110,7 +183,7 @@ def dash1(results=None):
 
         connection2 = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'movies.db'))
         cursor2 = connection2.cursor()
-        sql2 = 'select * from (select * from movies order by dated desc limit 10) order by dated desc'
+        sql2 = 'select * from (select * from movies order by dated desc limit 20) order by dated desc'
         cursor2.execute(sql2)
         results2 = [(item[0], item[1], item[2], item[3], item[4], item[5], item[6], item[7], item[8]) for item in cursor2.fetchall()]
         cursor2.close()
@@ -158,7 +231,7 @@ def celblist(groups=None):
 
 @app.route("/images/<search>/<sizew>")
 def i7games(search=None, sizew=None):
-    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'imagesnew3.db'))
+    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'imagesnew3111.db'))
     cursor = connection.cursor()
     cursor.execute("select file, fullpath, subfolder, file, sizewidth, sizeheight, ftime, exifd from images \
         where (fullpath like ? or exifd like ?) and sizewidth > ? order by ftime desc", ('%'+search+'%', '%'+search+'%', int(sizew)))
@@ -376,6 +449,7 @@ def companylist2(studio=None):
 @app.route("/movies/company/<studio>")
 def companylist3(studio=None):
     film_list = []
+    genres_list = []
     connection2 = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'imdb_scrape_database2.db'))
     cursor2 = connection2.cursor()
     cursor2.execute('select company, imdbid, title, year, role from companies where company like ? group by title order by year desc, title desc', ('%'+studio+'%',))
@@ -385,19 +459,19 @@ def companylist3(studio=None):
 
     for item3 in companies:
 
-        cursor.execute('select distinct imdb from movies where imdb like ?', ('%'+item3[1]+'%',))
-        [film_list.append(item3) for item in cursor.fetchall()]
+        cursor.execute('select release, imdb, year, infogenres from movies where imdb like ? group by imdb order by year desc', ('%'+item3[1]+'%',))
+        [film_list.append(item) for item in cursor.fetchall()]
     count = len(film_list)
     cursor2.close()
     cursor.close()
-    return render_template('company_list2.html', companies=companies, results=film_list, count=count, studio=studio)
+    return render_template('company_list2.html', companies=companies, results=film_list, count=count, studio=studio, genres_list=genres_list)
 
 
 @app.route("/movies/seven2")
 def sevent2wen(results=None):
     connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'movies.db'))
     cursor = connection.cursor()
-    cursor.execute('select release, imdb, year from movies where imdb not in (select imdb from movies720) order by year desc')
+    cursor.execute('select release, year, infogenres, infogenres, imdb from movies where imdb not in (select imdb from movies720) group by imdb order by year desc')
     results = [(item) for item in cursor.fetchall()]
     cursor.close()
     return render_template('movies2.html', results=results)
@@ -432,7 +506,8 @@ def movierelease(release=None):
     cursor.close()
     cursor2.close()
 
-    return render_template('releasedetails.html', results=results, results3=results3, results4=results4, compane=imdbidor, main_cast=main_cast, remaining_cast=remaining_cast, genres_list=genres_list)
+    return render_template('releasedetails.html', results=results, results3=results3, results4=results4, compane=imdbidor, main_cast=main_cast, remaining_cast=remaining_cast, genres_list=genres_list, release=release)
+
 
 @app.route("/gallery")
 def gallery():
