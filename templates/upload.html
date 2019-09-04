@@ -1,0 +1,26 @@
+<!doctype html>
+<script src="/static/dropzone.js"></script>
+<title>File Upload</title>
+<a href="/pics/{{gal}}">Link to gallery {{gal}}</a>
+<h2>Select a file to upload</h2>
+<p>
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul class=flashes>
+        {% for message in messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+</p>
+<form method="post" action="/file-upload/{{gal}}" class="dropzone" enctype="multipart/form-data">
+    <dl>
+        <p>
+            <input type="file" name="file" autocomplete="off" required>
+        </p>
+    </dl>
+    <p>
+        <input type="submit" value="Submit">
+    </p>
+</form>
