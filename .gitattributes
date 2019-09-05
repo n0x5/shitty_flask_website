@@ -1,4 +1,4 @@
-/js/* linguist-vendored=true
+*.js linguist-vendored=true
 
 *.css_ linguist-language=CSS
 *.php_ linguist-language=PHP
