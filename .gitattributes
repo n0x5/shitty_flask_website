@@ -1,0 +1,6 @@
+/js/* linguist-vendored=true
+
+*.css_ linguist-language=CSS
+*.php_ linguist-language=PHP
+*.html_ linguist-language=HTML
+*.js_ linguist-language=JavaScript
