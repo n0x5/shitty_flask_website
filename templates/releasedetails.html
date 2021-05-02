@@ -1,10 +1,9 @@
 {% extends "layout.html" %}
-{% block title %}>{{ search }} search results{% endblock %}
+{% block title %}> {{ release }} (Release Details){% endblock %}
 
 {% block b2 %}<h2><a href="/movies">Back</a></h2>{% endblock %}
 
 {% block content %}
-<p><b>{{ gcounts }}</b> search results for<b> {{ search }}</b></p>
 
 {% set comma = joiner(",") %}
 {% for item in results %}
@@ -19,11 +18,30 @@
       <b>remaining cast</b>: {% set comma = joiner(",") %} {% for item4 in remaining_cast %}{{comma()}} <a href="/movies/cast/{{item4}}">{{item4}}</a>{% endfor %}<br>
       <b>plot summary</b>: {{item[10]}}<br>
 {% endfor %}
+
+<br>
+
+{% for item7 in results6 %}
+       <b>BOX genre</b>: {{item7[0]}}<br>
+{% endfor %}
+
+<b>BOX theaters</b>: {{results6[0][1]}} {% if results6[0][1] > 800 %} (Wide){% endif %} {% if results6[0][1] < 800 %} (Limited){% endif %}<br>
+
+
+
+<b>BOX distributor</b>: {{results6[0][2]}}<br>
+
+<br>
 {% for item2 in results3 %}
        <b>company</b>: {{item2[0]}}<br>
 {% endfor %}
+
+<br>
+
 {% for item2 in results4 %}
        <b>company</b>: {{item2[0]}}<br>
 {% endfor %}
+
+
 {% endblock %}
 
