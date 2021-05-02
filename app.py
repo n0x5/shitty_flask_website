@@ -494,20 +494,35 @@ def movierelease(release=None):
     genres_list = (item.strip() for item in results[0][8])
     imdborig = re.search(r'\d{7}', str(results[0][4]))
     imdbidor = imdborig.group(0)
+    imdbor2 = 'tt'+imdbidor
     connection2 = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'imdb_scrape_database2.db'))
+    connection3 = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'movie-genres.db'))
+    cursor3 = connection3.cursor()
     cursor2 = connection2.cursor()
     cursor2.execute('select company, imdbid from companies where imdbid like ?', ('%'+imdbidor+'%',))
+    cursor3.execute('select genre, theaters, distributor, imdb_id from movie_genres where imdb_id like ?', ('%'+imdbor2+'%',))
     cursor.execute('select company, imdbid from companyinfo where imdbid like ? group by company', ('%'+imdbidor+'%',))
     try:
         results3 = [item2 for item2 in cursor2.fetchall()]
+        results6 = [item6 for item6 in cursor3.fetchall()]
         results4 = [item3 for item3 in cursor.fetchall()]
     except:
         results3 = ('None',)
+    
+
     cursor.close()
     cursor2.close()
+    cursor3.close()
 
-    return render_template('releasedetails.html', results=results, results3=results3, results4=results4, compane=imdbidor, main_cast=main_cast, remaining_cast=remaining_cast, genres_list=genres_list, release=release)
+    try:
+        return render_template('releasedetails.html', results=results, results3=results3, results4=results4, compane=imdbidor, \
+                    main_cast=main_cast, remaining_cast=remaining_cast, genres_list=genres_list, release=release, results6=results6)
 
+    # ugly exception handling dont do it
+    except:
+        results6 = [('None', 'None', 'None',)]
+        return render_template('releasedetails.html', results=results, results3=results3, results4=results4, compane=imdbidor, \
+                    main_cast=main_cast, remaining_cast=remaining_cast, genres_list=genres_list, release=release, results6=results6)
 
 @app.route("/gallery")
 def gallery():
