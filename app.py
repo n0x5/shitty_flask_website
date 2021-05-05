@@ -506,23 +506,29 @@ def movierelease(release=None):
         results3 = [item2 for item2 in cursor2.fetchall()]
         results6 = [item6 for item6 in cursor3.fetchall()]
         results4 = [item3 for item3 in cursor.fetchall()]
+
+        try:
+            theaters = results6[0][1]
+        except:
+            theaters = 0
+        try:
+            distributor = results6[0][2]
+        except:
+            distributor = 'None'
+
     except:
         results3 = ('None',)
-    
+        results6 = [('None', 'None', 'None',)]
+
+    return render_template('releasedetails.html', results=results, results3=results3, results4=results4, compane=imdbidor, \
+                main_cast=main_cast, remaining_cast=remaining_cast, genres_list=genres_list, release=release, results6=results6, \
+                theaters=theaters, distributor=distributor)
+
 
     cursor.close()
     cursor2.close()
     cursor3.close()
 
-    try:
-        return render_template('releasedetails.html', results=results, results3=results3, results4=results4, compane=imdbidor, \
-                    main_cast=main_cast, remaining_cast=remaining_cast, genres_list=genres_list, release=release, results6=results6)
-
-    # ugly exception handling dont do it
-    except:
-        results6 = [('None', 'None', 'None',)]
-        return render_template('releasedetails.html', results=results, results3=results3, results4=results4, compane=imdbidor, \
-                    main_cast=main_cast, remaining_cast=remaining_cast, genres_list=genres_list, release=release, results6=results6)
 
 @app.route("/gallery")
 def gallery():
