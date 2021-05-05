@@ -18,7 +18,7 @@ import json
 
 today = time.strftime("__%m_%Y_%H_%M_%S")
 
-cwd = r'C:\movie_folder'
+cwd = r'F:\archive\xvid-scan'
 number = 0
 
 conn = sqlite3.connect('movies44.db')
@@ -85,7 +85,10 @@ def get_info(url):
     actor = data['actor']
     actors = [item4['name'] for item4 in actor]
     director = data['director']
-    directors = [item5['name'] for item5 in director]
+    try:
+        directors = [item5['name'] for item5 in director]
+    except:
+        directors = data['director']['name']
     summary = data['description']
     keywords = data['keywords']
     score = data['aggregateRating']
