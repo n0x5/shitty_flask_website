@@ -41,7 +41,7 @@ def imdburl(fn):
     filn2 = open(fn, "r")
     for line in filn2:
         if "imdb.com/" in line.lower():
-            urls = re.findall(r'\d{7}', line)
+            urls = re.findall(r'\d{6,10}', line)
             urls23 = "[]".join(urls)
     return 'https://www.imdb.com/title/tt'+urls23
 
@@ -130,7 +130,7 @@ for subdir, dirs, files in os.walk(cwd):
                 file7 = "[]".join(basenm2.split('.')[-1:]).split('-')[0]
                 banned = ['cd1', 'cd2', 'sample', 'vobsub', 'subs', 'proof', 'prooffix', 'syncfix']
                 url = imdburl(file2)
-                print(url)
+                print(url, file2)
                 if url is not None: 
                     imdb_info = get_info(url)
                 if basenm2.lower().split('.')[0] not in banned:
