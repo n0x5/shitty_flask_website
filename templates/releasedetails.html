@@ -25,11 +25,11 @@
        <b>BOX genre</b>: {{item7[0]}}<br>
 {% endfor %}
 
-<b>BOX theaters</b>: {{results6[0][1]}} {% if results6[0][1] > 800 %} (Wide){% endif %} {% if results6[0][1] < 800 %} (Limited){% endif %}<br>
+
+<b>BOX theaters</b>: {{theaters}} {% if theaters > 800 %} (Wide){% endif %} {% if theaters < 800 %} (Limited){% endif %}<br>
 
 
-
-<b>BOX distributor</b>: {{results6[0][2]}}<br>
+<b>BOX distributor</b>: {{distributor}}<br>
 
 <br>
 {% for item2 in results3 %}
