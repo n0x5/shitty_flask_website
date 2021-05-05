@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 
-# Scan a folder for movie folders with .nfo files
-# grab info from imdb and add to an sqlite database
+# Create a list of movies in a folder
+# It uses currently active directory so cd into the folder
+# then run ./list-html-movies.py and it will make a html file
+# in the same folder
 
 import os
 import requests
@@ -9,18 +11,19 @@ import re
 from bs4 import BeautifulSoup
 import time
 import sqlite3
-from random import randint, uniform
+from random import randint
 import urllib.request
 from urllib.request import FancyURLopener
+import json
 
 today = time.strftime("__%m_%Y_%H_%M_%S")
 
-cwd = r'/path/to/movies'
+cwd = r'C:\movie_folder'
 number = 0
 
-conn = sqlite3.connect('movies.db')
+conn = sqlite3.connect('movies44.db')
 cur = conn.cursor()
-cur.execute('''CREATE TABLE movies 
+cur.execute('''CREATE TABLE if not exists movies 
             (release text unique, grp text, genre text, format text, imdb text, title text, director text, 
             mainactors text, infogenres text, inforest text, infosummary text, year text, dated datetime DEFAULT CURRENT_TIMESTAMP)''')
 
@@ -35,7 +38,7 @@ class GrabIt(urllib.request.FancyURLopener):
                     print(str(e))
 
 def imdburl(fn):
-    filn2 = open(fn, "r", errors='ignore')
+    filn2 = open(fn, "r")
     for line in filn2:
         if "imdb.com/" in line.lower():
             urls = re.findall(r'\d{7}', line)
@@ -55,97 +58,69 @@ def store(release, grp, genre, title, director, mainactors, infogenres, inforest
 def genrs(fn):
     genrelist = (["romance", "comedy", "animation", "mystery", "documentary", "crime", "family", "sport", 
                 "biography", "history", "western", "sci-fi", "horror", "adventure", "drama", "fantasy", "thriller", "action"])
-    filn = open(fn, "r", errors='ignore')
+    filn = open(fn, "r")
     for genres in filn:
         if "genre" in genres.lower():
             output = [item.title() for item in genrelist if item in genres.lower()]
             return(", ".join(repr(e).replace("'", "") for e in output))
 
 def get_info(url):
-    grab1 = GrabIt()
-    info_genres = []
-    info_main = []
-    info_rest = []
     headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:47.0) Gecko/20100101 Firefox/47.0'
-    'Referer': url
     }
 
+    #print(url)
     response = requests.get(url, headers=headers)
     soup = BeautifulSoup(response.text, "html.parser")
 
-    cover = soup.find('div', attrs={'class': 'poster'})
-    cover2 = cover.find('img', src=re.compile('.'))
-    coverurl = cover2['src']
-    id2 = os.path.basename(url)
-    endpoint = os.path.join(os.path.dirname(__file__), 'covers', id2+'.jpg')
+    table = soup.find('script', type=re.compile('ld\+json'))
+    data = json.loads(table.get_text())
+
+    year = soup.find('span', attrs={'id': 'titleYear'}).get_text().replace('(', '').replace(')', '')
+    typ3 = data['@type']
+    url5 = data['url']
+    title = data['name']
+    cover = data['image']
+    genres = data['genre']
+    actor = data['actor']
+    actors = [item4['name'] for item4 in actor]
+    director = data['director']
+    directors = [item5['name'] for item5 in director]
+    summary = data['description']
+    keywords = data['keywords']
+    score = data['aggregateRating']
+    rating = data['contentRating']
+    cast2 = soup.find('table', attrs={'class': 'cast_list'})
+    names = cast2.find_all('a', href=re.compile('\/name'))
+    inforest = []
+    inforest1 = []
+
+    grab1 = GrabIt()
+    id2 = re.search(r'(tt\d+)', str(url5))
+    endpoint = os.path.join(os.path.dirname(__file__), 'covers', id2.group(1)+'.jpg')
     if not os.path.exists('covers'):
         os.makedirs('covers')
     if os.path.isfile(endpoint):
         print('file exists - skipping')
-    grab1.download_file(coverurl, endpoint)
-    print(id2)
+    grab1.download_file(cover, endpoint)
 
-    title2 = soup.find('div', attrs={'class': 'title_wrapper'})
-    title = title2.find('h1')
-    year = title2.find('span', attrs={'id': 'titleYear'})
-    year2 = re.search(r'\((\d{4})\)', title.get_text())
-    year = year2.group(1)
-    soup2 = soup.find('div', attrs={'class': 'subtext'})
-    genre = [genre1.get_text() for genre1 in soup2.findAll('a', href=re.compile('\/genre'))]
-    director2 = soup.find('div', attrs={'class': 'credit_summary_item'})
-    director = director2.find('a')
-    sumactors2 = soup.find('div', attrs={'class': 'plot_summary'})
-    sumactors = sumactors2.find_all('div', attrs={'class': 'credit_summary_item'})
-    main_actors2 = sumactors[-1].get_text().replace('See full cast & crew »', '').replace('Stars:', '').replace(' |', '').replace('\n', '').split(',')
-    summary = soup.find('div', attrs={'class': 'summary_text'})
-    actor_table = soup.find('table', attrs={'class': 'cast_list'})
-    rest_actors = actor_table.find_all('img', alt=re.compile('.'))
+    for item in names:
+        inforest1.append(item.get_text().strip())
 
+    for item in inforest1:
+        if item:
+            inforest.append(item)
 
-    for line2 in genre:
-        info_genres.append(line2)
-    for line in main_actors2:
-        info_main.append(line.replace(',', ''))
-    for line3 in rest_actors:
-        info_rest.append(line3['alt'])
-    return title.get_text(), director.get_text(), info_main, info_genres, info_rest, summary.get_text().strip(), year
+    #stuff = year, typ3, title, cover, genres, actors, directors, summary, keywords, rating, score['ratingValue'], inforest
 
+    return title, directors, actors, genres, inforest, summary, year
 
-def get_infocompany(url, release):
-    conn2 = sqlite3.connect('movies.db')
-    cur = conn2.cursor()
-    cur.execute('''CREATE TABLE IF NOT EXISTS companyinfo
-                (release text, company text, imdbid text, coid text, title text, dated datetime DEFAULT CURRENT_TIMESTAMP)''')
-
-    headers = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:47.0) Gecko/20100101 Firefox/47.0'
-    }
-
-    response = requests.get(url+'/companycredits', headers=headers)
-    soup = BeautifulSoup(response.text, "html.parser")
-    title2 = soup.find('a', attrs={'itemprop': 'url'})
-    table1 = soup.find('div', attrs={'id': 'company_credits_content'})
-
-    for item in table1.find_all('ul', attrs={'class': 'simpleList'}):
-        for item2 in item.find_all('a'):
-            coid2 = re.findall(r'\d{7}', str(item2))
-            coid = "[]".join(coid2)
-            imdbid2 = re.findall(r'\d{7}', str(url))
-            imdbid = "[]".join(imdbid2)
-            print(item2.get_text(), imdbid, coid, title2.get_text())
-            try:
-                cur.execute('insert into companyinfo (release, company, imdbid, coid, title) VALUES (?,?,?,?,?)', (basenm2, item2.get_text(), imdbid, coid, title2.get_text()))
-                cur.connection.commit()
-            except:
-                pass
 
 
 for subdir, dirs, files in os.walk(cwd):
     for fn in files:
         if fn.endswith(".nfo"):
             try:
-                print(fn)
                 file2 = os.path.join(subdir, fn)
                 basenm2 = os.path.basename(os.path.join(subdir))
                 file6 = "[]".join(basenm2.split('-')[-1:])
@@ -155,9 +130,6 @@ for subdir, dirs, files in os.walk(cwd):
                 print(url)
                 if url is not None: 
                     imdb_info = get_info(url)
-                    r_int2 = uniform(0.8, 2.4)
-                    time.sleep(r_int2)
-                    get_infocompany(url, basenm2)
                 if basenm2.lower().split('.')[0] not in banned:
                     store(basenm2, file6, genrs(file2), imdb_info[0], imdb_info[1], imdb_info[2], imdb_info[3], imdb_info[4], imdb_info[5], str(imdb_info[6]))
                     number += 1
