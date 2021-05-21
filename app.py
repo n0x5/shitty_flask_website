@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-import sys
-reload(sys)  
-sys.setdefaultencoding('utf8')
+try:
+    import sys
+    reload(sys)  
+    sys.setdefaultencoding('utf8')
+except:
+    pass
 import os
 import time
 import re
@@ -48,8 +51,8 @@ def hello(tpath=None):
 
 ####### FILE UPLOAD DRAG N DROP ######
 
-ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'webp'])
-UPLOAD_FOLDER = r'/home/flask/static/hosted'
+ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'mp3', 'mp4', 'mkv', 'avi'])
+UPLOAD_FOLDER = r'/home/coax/websites/hidden2/virtualenv-3.3.5/FlaskApp/static/hosted'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 def allowed_file(filename):
@@ -94,7 +97,8 @@ def get_gallery_pics(gal=None, results3=None, gcount=None):
     for subdir, dirs, files in os.walk(str(dirgl)):
         if 'thumbs' not in subdir:
             results2 = [os.path.join(dirgl, image) for image in files]
-            results2.sort(key=os.path.getmtime, reverse=True)
+            #results2.sort(key=os.path.getmtime, reverse=True)
+            results2.sort()
 
         imh = [str(Image.open(image).size).replace('(', '').replace(')', '').replace(', ', 'x') for image in results2]
         results4 = [time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(os.path.getmtime(image))) for image in results2]
@@ -103,6 +107,17 @@ def get_gallery_pics(gal=None, results3=None, gcount=None):
         results3 = zip(results, imh, results4)
 
     return render_template('galleryhosted.html', gal=gal, results3=results3, gcount=gcount)
+
+
+@app.route('/pics')
+def get_gallery_folders():
+    dirgl = os.path.join(os.path.dirname(__file__), 'static', 'hosted')
+    empty1 = []
+    empty2 = []
+    for subdir, dirs, files in os.walk(dirgl):
+        empty1.append(os.path.basename(subdir))
+
+    return render_template('picsindex.html', empty1=empty1)
 
 
 @app.route("/images/wallpaper/<search>/<sizew>/<sizeh>")
@@ -284,6 +299,24 @@ def sgames(search=None):
     gcounts = len(results)
     cursor.close()
     return render_template('games.html', results=results, search=search, gcounts=gcounts)
+
+@app.route("/movies/boxgenres")
+def moviesbox1():
+    conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'movie-genres.db'))
+    cur = conn.cursor()
+    cur.execute('select distinct(genre) from movie_genres')
+    results = [(item[0],) for item in cur.fetchall()]
+
+    return render_template('movies-boxgenres.html', results=results)
+
+@app.route("/movies/boxgenres/<search>")
+def movies_searchbox1(search=None):
+    conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'movie-genres.db'))
+    cur = conn.cursor()
+    cur.execute('select title, genre, theaters, distributor, gross, imdb_id, release_date, year from movie_genres where (genre like ? and theaters > 2000) order by year desc', ('%'+search+'%',))
+    results = [(item[0], item[1], item[2], item[3], item[4], item[5], item[6], item[7]) for item in cur.fetchall()]
+
+    return render_template('movies-boxgenresearch.html', results=results)
 
 @app.route("/movies")
 def movieindex(genres=None):
@@ -476,7 +509,6 @@ def sevent2wen(results=None):
     cursor.close()
     return render_template('movies2.html', results=results)
 
-
 @app.route("/movies/release/<release>")
 def movierelease(release=None):
     colist = []
@@ -495,10 +527,15 @@ def movierelease(release=None):
     imdborig = re.search(r'\d{7}', str(results[0][4]))
     imdbidor = imdborig.group(0)
     imdbor2 = 'tt'+imdbidor
+    rls = str(results[0][0])
+
     connection2 = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'imdb_scrape_database2.db'))
     connection3 = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'movie-genres.db'))
+    connection7 = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'moviesdb-divx.db'))
     cursor3 = connection3.cursor()
     cursor2 = connection2.cursor()
+    cursor7 = connection7.cursor()
+    cursor7.execute('select rel_time_readable, release from db_movies where release like ?', ('%'+rls+'%',))
     cursor2.execute('select company, imdbid from companies where imdbid like ?', ('%'+imdbidor+'%',))
     cursor3.execute('select genre, theaters, distributor, imdb_id from movie_genres where imdb_id like ?', ('%'+imdbor2+'%',))
     cursor.execute('select company, imdbid from companyinfo where imdbid like ? group by company', ('%'+imdbidor+'%',))
@@ -506,6 +543,12 @@ def movierelease(release=None):
         results3 = [item2 for item2 in cursor2.fetchall()]
         results6 = [item6 for item6 in cursor3.fetchall()]
         results4 = [item3 for item3 in cursor.fetchall()]
+        results7 = [item7 for item7 in cursor7.fetchall()]
+
+        try:
+            pre_date = results7[0][0]
+        except:
+            pre_date = 'None'
 
         try:
             theaters = results6[0][1]
@@ -522,7 +565,7 @@ def movierelease(release=None):
 
     return render_template('releasedetails.html', results=results, results3=results3, results4=results4, compane=imdbidor, \
                 main_cast=main_cast, remaining_cast=remaining_cast, genres_list=genres_list, release=release, results6=results6, \
-                theaters=theaters, distributor=distributor)
+                theaters=theaters, distributor=distributor, pre_date=pre_date)
 
 
     cursor.close()
