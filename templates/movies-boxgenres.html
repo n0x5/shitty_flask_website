@@ -1,0 +1,12 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+  <ul class=entries>
+  {% for item in results %}
+   <p><a href="/movies/boxgenres/{{item[0]}}">{{item[0]}}</a> </p>
+  {% else %}
+    <li><em>Unbelievable.  No entries here so far</em>
+  {% endfor %}
+  </ul>
+{% endblock %}
