@@ -15,6 +15,7 @@ from random import randint
 import urllib.request
 from urllib.request import FancyURLopener
 import json
+import traceback
 
 today = time.strftime("__%m_%Y_%H_%M_%S")
 
@@ -76,7 +77,10 @@ def get_info(url):
     table = soup.find('script', type=re.compile('ld\+json'))
     data = json.loads(table.get_text())
 
-    year = soup.find('span', attrs={'id': 'titleYear'}).get_text().replace('(', '').replace(')', '')
+    try:
+        year = soup.find('span', attrs={'id': 'titleYear'}).get_text().replace('(', '').replace(')', '')
+    except:
+        year = soup.find('div', attrs={'class': 'title_wrapper'}).get_text().replace('(', '').replace(')', '')
     typ3 = data['@type']
     url5 = data['url']
     title = data['name']
@@ -116,7 +120,7 @@ def get_info(url):
 
     #stuff = year, typ3, title, cover, genres, actors, directors, summary, keywords, rating, score['ratingValue'], inforest
 
-    return title, directors, actors, genres, inforest, summary, year
+    return title+' ('+year+')', directors, actors, genres, inforest, summary, year
 
 
 
@@ -140,3 +144,7 @@ for subdir, dirs, files in os.walk(cwd):
                     time.sleep(r_int)
             except Exception as e:
                 print(e)
+                traceback.print_exc()
+
+
+            
