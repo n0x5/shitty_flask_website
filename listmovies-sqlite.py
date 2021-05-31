@@ -70,17 +70,29 @@ def get_info(url):
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:47.0) Gecko/20100101 Firefox/47.0'
     }
 
-    #print(url)
     response = requests.get(url, headers=headers)
     soup = BeautifulSoup(response.text, "html.parser")
+    with open('errors3.txt', 'w', encoding='utf-8') as sfver:
+        sfver.write(str(soup))
 
     table = soup.find('script', type=re.compile('ld\+json'))
-    data = json.loads(table.get_text())
+    table2 = str(table).replace('<script type="application/ld+json">', '').replace('</script>', '')
+    data = json.loads(table2)
 
     try:
-        year = soup.find('span', attrs={'id': 'titleYear'}).get_text().replace('(', '').replace(')', '')
+        year2 = soup.find('span', attrs={'id': 'titleYear'})
+        year = year2.get_text().replace('(', '').replace(')', '')
+        
+        try:
+            year2 = soup.find('title').get_text()
+            year3 = re.search(r'(\d{4})', year2)
+            year = year3.group(1)
+        except:
+            pass
+
     except:
         year = soup.find('div', attrs={'class': 'title_wrapper'}).get_text().replace('(', '').replace(')', '')
+
     typ3 = data['@type']
     url5 = data['url']
     title = data['name']
@@ -146,5 +158,3 @@ for subdir, dirs, files in os.walk(cwd):
                 print(e)
                 traceback.print_exc()
 
-
-            
