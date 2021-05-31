@@ -72,23 +72,19 @@ def get_info(url):
 
     response = requests.get(url, headers=headers)
     soup = BeautifulSoup(response.text, "html.parser")
-    with open('errors3.txt', 'w', encoding='utf-8') as sfver:
-        sfver.write(str(soup))
 
     table = soup.find('script', type=re.compile('ld\+json'))
-    table2 = str(table).replace('<script type="application/ld+json">', '').replace('</script>', '')
-    data = json.loads(table2)
 
     try:
-        year2 = soup.find('span', attrs={'id': 'titleYear'})
-        year = year2.get_text().replace('(', '').replace(')', '')
-        
-        try:
-            year2 = soup.find('title').get_text()
-            year3 = re.search(r'(\d{4})', year2)
-            year = year3.group(1)
-        except:
-            pass
+        data = json.loads(table.string)
+    except:
+        data = json.loads(table.get_text())
+
+    try:
+        year2 = soup.find('title').get_text()
+        year3 = re.search(r'(\d{4})', year2)
+        year = year3.group(1)
+
 
     except:
         year = soup.find('div', attrs={'class': 'title_wrapper'}).get_text().replace('(', '').replace(')', '')
