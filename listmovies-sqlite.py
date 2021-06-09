@@ -28,15 +28,6 @@ cur.execute('''CREATE TABLE if not exists movies
             (release text unique, grp text, genre text, format text, imdb text, title text, director text, 
             mainactors text, infogenres text, inforest text, infosummary text, year text, dated datetime DEFAULT CURRENT_TIMESTAMP)''')
 
-class GrabIt(urllib.request.FancyURLopener):
-        version = ('Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36'
-                ' (KHTML, like Gecko) Chrome/47.0.2526.111 Safari/537.36')
-        def download_file(self, url, path):
-                try:
-                    self.urlretrieve = GrabIt().retrieve
-                    self.urlretrieve(url, path)
-                except Exception as e:
-                    print(str(e))
 
 def imdburl(fn):
     filn2 = open(fn, "r")
@@ -75,6 +66,7 @@ def get_info(url):
 
     table = soup.find('script', type=re.compile('ld\+json'))
 
+
     try:
         data = json.loads(table.string)
     except:
@@ -110,14 +102,18 @@ def get_info(url):
     inforest = []
     inforest1 = []
 
-    grab1 = GrabIt()
     id2 = re.search(r'(tt\d+)', str(url5))
     endpoint = os.path.join(os.path.dirname(__file__), 'covers', id2.group(1)+'.jpg')
     if not os.path.exists('covers'):
         os.makedirs('covers')
     if os.path.isfile(endpoint):
         print('file exists - skipping')
-    grab1.download_file(cover, endpoint)
+
+    r = requests.get(cover, headers=headers)
+    fn = os.path.basename(cover)
+
+    with open(endpoint, 'wb') as cover_jpg:
+        cover_jpg.write(r.content)
 
     for item in names:
         inforest1.append(item.get_text().strip())
