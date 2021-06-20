@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 
-# Create a list of movies in a folder
-# It uses currently active directory so cd into the folder
-# then run ./list-html-movies.py and it will make a html file
-# in the same folder
+# Create an sqlite db of movies in a folder
+# Recursive scan of folders
+# Uses imdb for data
 
 import os
 import requests
@@ -63,7 +62,8 @@ def get_info(url):
 
     response = requests.get(url, headers=headers)
     soup = BeautifulSoup(response.text, "html.parser")
-
+    with open('errors4.txt', 'w', encoding='utf-8') as sfver:
+        sfver.write(str(soup))
     table = soup.find('script', type=re.compile('ld\+json'))
 
 
@@ -97,8 +97,13 @@ def get_info(url):
     keywords = data['keywords']
     score = data['aggregateRating']
     rating = data['contentRating']
-    cast2 = soup.find('table', attrs={'class': 'cast_list'})
-    names = cast2.find_all('a', href=re.compile('\/name'))
+    try:
+        cast2 = soup.find('table', attrs={'class': 'cast_list'})
+        names = cast2.find_all('a', href=re.compile('\/name'))
+    except:
+        cast2 = soup.find('section', attrs={'data-testid': 'title-cast'})
+        names = cast2.find_all('a', href=re.compile('\/name'))
+
     inforest = []
     inforest1 = []
 
@@ -144,7 +149,7 @@ for subdir, dirs, files in os.walk(cwd):
                 if basenm2.lower().split('.')[0] not in banned:
                     store(basenm2, file6, genrs(file2), imdb_info[0], imdb_info[1], imdb_info[2], imdb_info[3], imdb_info[4], imdb_info[5], str(imdb_info[6]))
                     number += 1
-                    r_int = randint(60, 130)
+                    r_int = randint(5, 15)
                     time.sleep(r_int)
             except Exception as e:
                 print(e)
