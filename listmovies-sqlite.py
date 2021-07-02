@@ -2,7 +2,7 @@
 
 # Create an sqlite db of movies in a folder
 # Recursive scan of folders
-# Uses imdb for data
+# Uses imdb for data from .nfo imdb url
 
 import os
 import requests
@@ -62,8 +62,6 @@ def get_info(url):
 
     response = requests.get(url, headers=headers)
     soup = BeautifulSoup(response.text, "html.parser")
-    with open('errors4.txt', 'w', encoding='utf-8') as sfver:
-        sfver.write(str(soup))
     table = soup.find('script', type=re.compile('ld\+json'))
 
 
@@ -91,6 +89,7 @@ def get_info(url):
     director = data['director']
     try:
         directors = [item5['name'] for item5 in director]
+        directors = directors[0]
     except:
         directors = data['director']['name']
     summary = data['description']
