@@ -57,9 +57,9 @@ for table in table3:
         gross_final = '-'
 
     try:
-        stuff = title.get_text(), int(args.year), theaters_final, theatersopen_final, gross_final, release_date.get_text(), distributor.get_text().replace('\n\n', ''), box_id2.group(1)
+        stuff = title.get_text(), int(args.year), theaters_final, theatersopen_final, gross_final, distributor.get_text().replace('\n\n', ''), release_date.get_text(), box_id2.group(1)
         print(stuff)
-        cur.execute('INSERT INTO boxoffice (title, year, theaters, theatersopen, gross, release_date, distributor, rl_id) VALUES (?,?,?,?,?,?,?,?)', (stuff))
+        cur.execute('INSERT INTO boxoffice (title, year, theaters, theatersopen, gross, distributor, release_date, rl_id) VALUES (?,?,?,?,?,?,?,?)', (stuff))
         cur.connection.commit()
     except Exception as e:
         print(e)

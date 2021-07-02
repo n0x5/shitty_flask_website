@@ -42,7 +42,7 @@ for table in table3:
     try:
         stuff = title.get_text(), int(args.year), int(theaters.get_text().replace(',', '')), gross.get_text(), release_date.get_text(), distributor.get_text().replace('\n\n', ''), box_id2.group(1)
         print(stuff)
-        cur.execute('INSERT INTO boxoffice (title, year, theaters, gross, distributor, release_date, rl_id) VALUES (?,?,?,?,?,?,?)', (stuff))
+        cur.execute('INSERT INTO boxoffice (title, year, theaters, gross, release_date, distributor , rl_id) VALUES (?,?,?,?,?,?,?)', (stuff))
         cur.connection.commit()
         
     except Exception as e:
