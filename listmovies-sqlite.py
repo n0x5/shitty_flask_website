@@ -18,7 +18,7 @@ import traceback
 
 today = time.strftime("__%m_%Y_%H_%M_%S")
 
-cwd = r'F:\archive\xvid-scan'
+cwd = r'C:\film\2020'
 number = 0
 
 conn = sqlite3.connect('movies44.db')
@@ -130,6 +130,33 @@ def get_info(url):
 
     return title+' ('+year+')', directors, actors, genres, inforest, summary, year
 
+def get_infocompany(url, release):
+    conn2 = sqlite3.connect('movies44.db')
+    cur = conn2.cursor()
+    cur.execute('''CREATE TABLE IF NOT EXISTS companyinfo
+                (release text, company text, imdbid text, coid text, title text, dated datetime DEFAULT CURRENT_TIMESTAMP)''')
+
+    headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:47.0) Gecko/20100101 Firefox/47.0'
+    }
+
+    response = requests.get(url+'/companycredits', headers=headers)
+    soup = BeautifulSoup(response.text, "html.parser")
+    title2 = soup.find('a', attrs={'itemprop': 'url'})
+    table1 = soup.find('div', attrs={'id': 'company_credits_content'})
+
+    for item in table1.find_all('ul', attrs={'class': 'simpleList'}):
+        for item2 in item.find_all('a'):
+            coid2 = re.findall(r'\d{7}', str(item2))
+            coid = "[]".join(coid2)
+            imdbid2 = re.findall(r'\d{7}', str(url))
+            imdbid = "[]".join(imdbid2)
+            print(item2.get_text(), imdbid, coid, title2.get_text())
+            try:
+                cur.execute('insert into companyinfo (release, company, imdbid, coid, title) VALUES (?,?,?,?,?)', (basenm2, item2.get_text(), imdbid, coid, title2.get_text()))
+                cur.connection.commit()
+            except:
+                pass
 
 
 for subdir, dirs, files in os.walk(cwd):
@@ -143,13 +170,17 @@ for subdir, dirs, files in os.walk(cwd):
                 banned = ['cd1', 'cd2', 'sample', 'vobsub', 'subs', 'proof', 'prooffix', 'syncfix']
                 url = imdburl(file2)
                 print(url, file2)
-                if url is not None: 
+                get_infocompany(url, basenm2)
+                r_int2 = randint(2, 4)
+                time.sleep(r_int2)
+                if url is not None:
                     imdb_info = get_info(url)
                 if basenm2.lower().split('.')[0] not in banned:
                     store(basenm2, file6, genrs(file2), imdb_info[0], imdb_info[1], imdb_info[2], imdb_info[3], imdb_info[4], imdb_info[5], str(imdb_info[6]))
                     number += 1
-                    r_int = randint(5, 15)
+                    r_int = randint(2, 6)
                     time.sleep(r_int)
+
             except Exception as e:
                 print(e)
                 traceback.print_exc()
