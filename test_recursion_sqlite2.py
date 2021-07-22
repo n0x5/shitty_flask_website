@@ -6,9 +6,10 @@ connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'movies44.d
 cursor = connection.cursor()
 
 all_pages = []
+posts_per_page = 15
 
 def pages(search, lastvalue):
-    cursor.execute('select release, director from movies where release like ? and release > ? order by release limit 8', ('%'+search+'%', lastvalue))
+    cursor.execute('select release, director from movies where release like ? and release > ? order by release limit ?', ('%'+search+'%', lastvalue, posts_per_page))
     results = [(item[0], item[1]) for item in cursor.fetchall()]
     count = int(len(results))
     count = count - 1
@@ -20,18 +21,26 @@ def pages(search, lastvalue):
         try:
             pages(search, lastvalue)
         except IndexError:
-            cursor.execute('select release, director from movies where release like ? and release > ? order by release limit 8', ('%'+search+'%', firstvalue))
+            cursor.execute('select release, director from movies where release like ? and release > ? order by release limit ?', ('%'+search+'%', firstvalue, posts_per_page))
             results = [(item[0], item[1]) for item in cursor.fetchall()]
             all_pages.append(results)
 
 
-search = 'men.in.black'
+search = 'diamond'
 lastvalue = ''
 pages(search, lastvalue)
 
 page = 0
+all_dict = {}
+
+
 for item in all_pages:
-    page += 1
-    print(page, item)
+    if item:
+        page += 1
+        all_dict[page] = item
+
+
+for item in all_dict:
+    print(item, all_dict[item])
 
 cursor.close()
