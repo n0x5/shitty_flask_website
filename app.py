@@ -368,6 +368,53 @@ def mmgames333(search=None):
     cursor2.close()
     return render_template('moviecast.html', results=results1, search=search, gcounts=gcounts2, results2=results2)
 
+@app.route("/movies/genrewide/<search>")
+def mmg4343sdsfdd3ames2(search=None):
+    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'movies.db'))
+    cursor = connection.cursor()
+    cursor.execute('select movies.release, movies.director, movies.imdb, movies.infogenres, substr(movies.title, -1, -4),  \
+    box_imdb.rlid, boxoffice_wide.theatersopen from movies join box_imdb on box_imdb.imdbid = substr(movies.imdb, -9) \
+    join boxoffice_wide on substr(box_imdb.rlid, 3) = boxoffice_wide.rl_id where (movies.genre like ? or movies.infogenres like ?) \
+    and theatersopen > 2000 group by movies.release order by substr(movies.title, -1, -4) desc',
+        ('%'+search+'%', '%'+search+'%'))
+    
+    results = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), os.path.basename(item[2]+'.jpg'), 
+            item[3].replace('[', '').replace(']', '').replace('\'', ''), item[4], item[5], item[6]) for item in cursor.fetchall()]
+    gcounts = len(results)
+    cursor.close()
+    return render_template('movies7.html', results=results, search=search, gcounts=gcounts)
+
+@app.route("/movies/genreall/<search>")
+def mmg4343sdsames2(search=None):
+    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'movies.db'))
+    cursor = connection.cursor()
+    cursor.execute('select movies.release, movies.director, movies.imdb, movies.infogenres, substr(movies.title, -1, -4),  \
+    box_imdb.rlid, boxoffice_wide.theatersopen from movies left join box_imdb on box_imdb.imdbid = substr(movies.imdb, -9) \
+    left join boxoffice_wide on substr(box_imdb.rlid, 3) = boxoffice_wide.rl_id where (movies.genre like ? or movies.infogenres like ?) \
+     group by movies.release order by substr(movies.title, -1, -4) desc',
+        ('%'+search+'%', '%'+search+'%'))
+    
+    results = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), os.path.basename(item[2]+'.jpg'), 
+            item[3].replace('[', '').replace(']', '').replace('\'', ''), item[4], item[5], item[6]) for item in cursor.fetchall()]
+    gcounts = len(results)
+    cursor.close()
+    return render_template('movies7.html', results=results, search=search, gcounts=gcounts)
+
+@app.route("/movies/genreltd/<search>")
+def mmg4343sdsfdfd43ames2(search=None):
+    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'movies.db'))
+    cursor = connection.cursor()
+    cursor.execute('select movies.release, movies.director, movies.imdb, movies.infogenres, substr(movies.title, -1, -4),  \
+    box_imdb.rlid, boxoffice_wide.theatersopen from movies join box_imdb on box_imdb.imdbid = substr(movies.imdb, -9) \
+    join boxoffice_wide on substr(box_imdb.rlid, 3) = boxoffice_wide.rl_id where (movies.genre like ? or movies.infogenres like ?) \
+    and theatersopen < 2000 group by movies.release order by substr(movies.title, -1, -4) desc',
+        ('%'+search+'%', '%'+search+'%'))
+    
+    results = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), os.path.basename(item[2]+'.jpg'), 
+            item[3].replace('[', '').replace(']', '').replace('\'', ''), item[4], item[5], item[6]) for item in cursor.fetchall()]
+    gcounts = len(results)
+    cursor.close()
+    return render_template('movies7.html', results=results, search=search, gcounts=gcounts)
 
 @app.route("/movies/genre/<search>")
 def mmgames2(search=None):
