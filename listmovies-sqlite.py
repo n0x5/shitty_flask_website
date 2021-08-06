@@ -18,7 +18,7 @@ import traceback
 
 today = time.strftime("__%m_%Y_%H_%M_%S")
 
-cwd = r'C:\film\2020'
+cwd = r'F:\archive\xvid-scan'
 number = 0
 
 conn = sqlite3.connect('movies44.db')
@@ -54,6 +54,23 @@ def genrs(fn):
         if "genre" in genres.lower():
             output = [item.title() for item in genrelist if item in genres.lower()]
             return(", ".join(repr(e).replace("'", "") for e in output))
+
+def get_info(url):
+    headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:47.0) Gecko/20100101 Firefox/47.0'
+    }
+
+    response = requests.get(url, headers=headers)
+    soup = BeautifulSoup(response.text, "html.parser")
+    table = soup.find('div', attrs={'class': 'a-section mojo-gutter'})
+    lists = table.find('a', href=re.compile('\/release'))
+    rl_id = re.search(r'(rl\d{7,12})', str(lists['href']))
+    imdb_id = re.search(r'(tt\d{6,12})', url)
+    stuff = rl_id.group(1), imdb_id.group(1)
+    print(stuff)
+    cur.execute('INSERT INTO box_imdb (rlid, imdbid) VALUES (?,?)', (stuff))
+    cur.connection.commit()
+
 
 def get_info(url):
     headers = {
@@ -170,6 +187,7 @@ for subdir, dirs, files in os.walk(cwd):
                 banned = ['cd1', 'cd2', 'sample', 'vobsub', 'subs', 'proof', 'prooffix', 'syncfix']
                 url = imdburl(file2)
                 print(url, file2)
+                get_info(url)
                 get_infocompany(url, basenm2)
                 r_int2 = randint(2, 4)
                 time.sleep(r_int2)
