@@ -64,12 +64,26 @@ def get_info(url):
     soup = BeautifulSoup(response.text, "html.parser")
     table = soup.find('div', attrs={'class': 'a-section mojo-gutter'})
     lists = table.find('a', href=re.compile('\/release'))
-    rl_id = re.search(r'(rl\d{7,12})', str(lists['href']))
     imdb_id = re.search(r'(tt\d{6,12})', url)
-    stuff = rl_id.group(1), imdb_id.group(1)
-    print(stuff)
-    cur.execute('INSERT INTO box_imdb (rlid, imdbid) VALUES (?,?)', (stuff))
-    cur.connection.commit()
+    try:
+        rl_id = re.search(r'(rl\d{7,12})', str(lists['href']))
+        stuff = rl_id.group(1), imdb_id.group(1)
+        print(stuff)
+        cur.execute('INSERT INTO box_imdb (rlid, imdbid) VALUES (?,?)', (stuff))
+        cur.connection.commit()
+    except:
+        lists = table.find('a', href=re.compile('\/releasegroup'))
+        response2 = requests.get('https://www.boxofficemojo.com'+lists['href'], headers=headers)
+        soup2 = BeautifulSoup(response2.text, "html.parser")
+        table2 = soup2.find('div', attrs={'class': 'a-section a-spacing-none mojo-gutter'})
+        lists2 = table2.find('a', href=re.compile('\/release'))
+        rl_id2 = re.search(r'(rl\d{7,12})', str(lists2['href']))
+        stuff2 = rl_id2.group(1), imdb_id.group(1)
+        print('Original: ', stuff2)
+        cur.execute('INSERT INTO box_imdb (rlid, imdbid) VALUES (?,?)', (stuff2))
+        cur.connection.commit()
+    finally:
+        pass
 
 
 def get_info(url):
