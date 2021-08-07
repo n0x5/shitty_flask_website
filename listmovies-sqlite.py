@@ -55,35 +55,39 @@ def genrs(fn):
             output = [item.title() for item in genrelist if item in genres.lower()]
             return(", ".join(repr(e).replace("'", "") for e in output))
 
-def get_info(url):
+def get_info_box(url):
     headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:47.0) Gecko/20100101 Firefox/47.0'
     }
 
     response = requests.get(url, headers=headers)
     soup = BeautifulSoup(response.text, "html.parser")
-    table = soup.find('div', attrs={'class': 'a-section mojo-gutter'})
-    lists = table.find('a', href=re.compile('\/release'))
     imdb_id = re.search(r'(tt\d{6,12})', url)
-    try:
-        rl_id = re.search(r'(rl\d{7,12})', str(lists['href']))
-        stuff = rl_id.group(1), imdb_id.group(1)
-        print(stuff)
-        cur.execute('INSERT INTO box_imdb (rlid, imdbid) VALUES (?,?)', (stuff))
-        cur.connection.commit()
-    except:
-        lists = table.find('a', href=re.compile('\/releasegroup'))
-        response2 = requests.get('https://www.boxofficemojo.com'+lists['href'], headers=headers)
-        soup2 = BeautifulSoup(response2.text, "html.parser")
-        table2 = soup2.find('div', attrs={'class': 'a-section a-spacing-none mojo-gutter'})
-        lists2 = table2.find('a', href=re.compile('\/release'))
-        rl_id2 = re.search(r'(rl\d{7,12})', str(lists2['href']))
-        stuff2 = rl_id2.group(1), imdb_id.group(1)
-        print('Original: ', stuff2)
-        cur.execute('INSERT INTO box_imdb (rlid, imdbid) VALUES (?,?)', (stuff2))
-        cur.connection.commit()
-    finally:
-        pass
+    table = soup.find('main')
+    title = table.find('h1', attrs={'class': 'a-size-extra-large'}).get_text()
+    table2 = table.find('div', attrs={'class': 'a-section a-spacing-none mojo-gutter mojo-summary-table'})
+    distributor2 = table2.find('div', attrs={'class': 'a-section a-spacing-none mojo-summary-values mojo-hidden-from-mobile'})
+    distributor = distributor2.find_all('span')[1].get_text().replace('See full company information\n\n', '')
+    rel_date = distributor2.find_all('span')[6].get_text()
+    rel1 = table.find('table', attrs={'class': 'a-bordered a-horizontal-stripes a-size-base-plus'})
+    lists = rel1.find('a', href=re.compile('\/release'))
+    rl_id = re.search(r'(rl\d{7,12})', str(lists['href']))
+    url2 = 'https://www.boxofficemojo.com'+lists['href']+'/weekend/'
+    response2 = requests.get(url2, headers=headers)
+    soup2 = BeautifulSoup(response2.text, "html.parser")
+    table2 = soup2.find('div', attrs={'class': 'a-section a-spacing-none mojo-summary-values mojo-hidden-from-mobile'})
+    table3 = table2.find_all('div', attrs={'class': 'a-section a-spacing-none'})[1]
+    table4 = table3.find_all('span')[1]
+    theaters = re.search(r'(\d{0,4}\,\d{2,5})\s+theaters', str(table4).replace('\n', ''))
+    theaters_openwide = theaters.group(1).replace(',', '')
+    theater_max1 = table2.find_all('div', attrs={'class': 'a-section a-spacing-none'})[7]
+    theaters_max2 = re.search(r'(\d{0,4}\,\d{2,5})\s+theaters', str(theater_max1).replace('\n', ''))
+    theaters_max3 = theaters_max2.group(1).replace(' theaters', '').replace(',', '')
+    alt_theaters = theaters_max3
+    stuff = title, theaters_openwide, theaters_max3, alt_theaters, rel_date, distributor, rl_id.group(1), imdb_id.group(1)
+    cur.execute('INSERT INTO boxoffice (title, wide_theatersopen, wide_theaters, alt_theaters, alt_releasedate, alt_distributor, rlid, imdbid) VALUES (?,?,?,?,?,?,?,?)', (stuff))
+    cur.connection.commit()
+    print(stuff)
 
 
 def get_info(url):
@@ -202,6 +206,7 @@ for subdir, dirs, files in os.walk(cwd):
                 url = imdburl(file2)
                 print(url, file2)
                 get_info(url)
+                get_info_box(url.replace('imdb', 'boxofficemojo'))
                 get_infocompany(url, basenm2)
                 r_int2 = randint(2, 4)
                 time.sleep(r_int2)
