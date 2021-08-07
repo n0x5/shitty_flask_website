@@ -4,7 +4,6 @@
 
 {% block b2 %}<h2><a href="../gallery">Back</a></h2>{% endblock %}
 {% block content %}
-{% if session.logged_in %}
   <h1>{{ gal }} images</h1>
 
 
@@ -13,7 +12,6 @@
 
 
 {% for img, imh in results3 %}
-  <div class="imglink" style="margin:5px;float:left;"><a href="/static/gallery/{{ gal }}/{{img}}"><img alt="{{img}}" title="{{img}}" height="100%" src="/static/gallery/{{ gal }}/thumbs/thumb_{{ img|e }}"/></a> <div class="size" style="position:relative;bottom:30px;color:white;background-color:black;">{{ imh }}</div></div>
+  <div class="imglink" style="margin:5px;float:left;"><a href="/static/gallery/{{ gal }}/{{img}}"><img alt="{{img}}" title="{{img}}" height="250" src="/static/gallery/{{ gal }}/{{ img|e }}"/></a> <div class="size" style="position:relative;bottom:30px;color:white;background-color:black;">{{ imh }}</div></div>
 {% endfor %}
-{% endif %}
 {% endblock %}

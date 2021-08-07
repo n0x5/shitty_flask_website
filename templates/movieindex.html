@@ -10,10 +10,13 @@
 <a href="/movies/years">List of years</a><br>
 <a href="/movies/company">List of studios</a>
 
+
 <p>List of genres:</p>
+(The wide/limited/video sections incomplete)<br><br>
 
 {% for item in genres %}
-   <a href="/movies/genre/{{item}}">{{item}}</a><br>
+   <a href="/movies/genre/{{item}}">{{item}}</a> | <a style="color:red;font-size:13px;" href="/movies/genrewide/{{item}}">Wide releases</a> | <a style="color:red;font-size:13px;" href="/movies/genreltd/{{item}}">Limited releases</a> | <a style="color:red;font-size:13px;" href="/movies/genrevideo/{{item}}">Video releases</a><br>
+------------------------------------------------------------------------<br>
 {% endfor %}
 <a href="/movies/genre/None">None</a>
 

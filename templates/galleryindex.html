@@ -3,8 +3,7 @@
 
 <h2><a href="../">Home</a></h2>
 
-{% if session.logged_in %}
 {% for item in results2 %}
   <li><a class="link" href="/gallery/{{ item }}">{{item}}</a></li>
 {% endfor %}
-{% endif %}
+

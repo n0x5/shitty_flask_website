@@ -8,6 +8,6 @@
 <p>{{count}} movies</p>
 
 {% for item in results %}
-  <a href="https://www.imdb.com/title/tt{{item[1]}}">{{item[2]}}</a>     <strong>{{item[3]}}</strong> - {{item[0]}} - {{item[4]}}<br>
+  <a href="/movies/release/{{item[0]}}">{{item[0]}}</a> {{item[3]}} <strong>{{item[2]}}</strong><br>
 {% endfor %}
 {% endblock %}

@@ -12,7 +12,7 @@
 
 <table class="sortable" style="width:100%"><script src="/static/sorttable.js"></script><tr><th style="text-align:left">Image</th><th style="text-align:left">File name</th><th style="text-align:left">Date modified</th><th style="text-align:left">Resolution</th></tr>
 {% for img, imh, imm in results3 %}
-<tr><td class="title"><a href="/static/hosted/{{ gal }}/{{img}}"><img alt="{{img}}" title="{{img}}" height="100px" src="/static/hosted/{{ gal }}/{{ img|e }}"/></a><div class="size" style="position:relative;bottom:25px;color:white;background-color:black;padding-left:3px;font-size:14px;">{{ imh }}</div</td> <td class="name">{{img}}</td> <td class="rlsdate">{{imm}}</td><td class="rlsdate">{{imh}}</td></tr>
+<tr><td class="title"><a href="/static/hosted/{{ gal }}/{{img}}"><img alt="{{img}}" title="{{img}}" height="100px" src="/static/hosted/{{ gal }}/{{ img|e }}"/></a><div class="size" style="position:relative;bottom:25px;color:white;padding-left:3px;font-size:14px;">{{ imh }}</div</td> <td class="name">{{img}}</td> <td class="rlsdate">{{imm}}</td><td class="rlsdate">{{imh}}</td></tr>
 
 {% endfor %}
 </table>

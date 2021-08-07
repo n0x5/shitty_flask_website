@@ -30,22 +30,19 @@ from PIL import Image
 import sqlite3
 import yaml
 import zipfile
+import configs
 
 app = Flask(__name__)
 api = Api(app)
 app.debug = True
-app.config.update(dict(
-        DEBUG=True,
-        SECRET_KEY=b'',
-        USERNAME='',
-        PASSWORD=''
-    ))
+app.config.update(configs.conf) # edit configs-sample.py and rename to configs.py
 
 @app.route("/")
 def hello(tpath=None):
     image = 'hey there guy'
     tpath = os.path.join(os.path.dirname(__file__), 'static', 'gallery')
     return render_template('index.html', tpath=tpath)
+
 
 
 
@@ -132,6 +129,9 @@ def i7gam111es(search=None, sizew=None, sizeh=None):
     cursor.close()
     return render_template('images.html', results=results, search=search, gcounts=gcounts)
 
+
+###################### ADMIN / STUFF #########################
+
 @app.route('/rinfo')
 def inde22x():
     if session.get('logged_in'):
@@ -162,25 +162,7 @@ def logout():
     flash('You were logged out')
     return redirect(url_for('inde22x'))
 
-@app.route('/add', methods=['GET', 'POST'])
-def add_entry():
-    if not session.get('logged_in'):
-        return 'access denied'
 
-    if request.method == 'POST':
-        filename = os.path.join(os.path.dirname(__file__), 'posts', request.form['title']+'.yaml')
-        with open(filename, 'w+') as f:
-            datafile = '''
-postroot:
-    title: {}
-    body: {}
-    date: {}
-''' .format(request.form['title'], request.form['body'], time.strftime("%m/%d/%Y"))
-            f.write(datafile)
-
-        flash('New entry was successfully posted')
-        
-    return render_template('addyaml.html')
 
 
 @app.route('/dashboard', methods=['GET', 'POST'])
@@ -206,99 +188,56 @@ def dash1(results=None):
     return render_template('dashboard.html', results=results, results2=results2)
 
 
-@app.route('/blog')
-def blogit():
-    for root, dirs, files in os.walk(str(os.path.join(os.path.dirname(__file__), 'posts'))):
-        results3 = [os.path.join(root, post1) for post1 in files]
-        results3.sort(key=os.path.getmtime, reverse=True)
-        results2 = [basename(post1).split('.')[0] for post1 in results3]
-    return render_template('blogindex.html', results2=results2)
 
-@app.route('/blog/<post>')
-def blogit2(post=None):
-    filename = os.path.join(os.path.dirname(__file__), 'posts', post+'.yaml')
-    with open(filename, 'r') as f:
-        doc = yaml.load(f)
-        title1 = doc['postroot']['title']
-        body = Markup(markdown.markdown(doc['postroot']['body']))
-        date = doc['postroot']['date']
+###################### MOVIES #########################
 
-    return render_template('blogit.html', doc=doc, title1=title1, body=body, date=date)
-
-@app.route("/images")
-def gallery2():
-    for root, dirs, files in os.walk(str(os.path.join(os.path.dirname(__file__), 'static', 'gallery'))):
-        results2 = [image for image in dirs]
-        results2.sort(reverse=True)
-
-        return render_template('gallery2index.html', results2=results2)
-
-
-@app.route("/images3/celebs")
-def celblist(groups=None):
-    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'imagename5.db'))
+@app.route("/movies8/<search>/page/<paged>")
+def mmgadsadsasdasdwemes(search=None, paged=None):
+    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'movies44.db'))
     cursor = connection.cursor()
-    sql = 'select cname, count(fn) c, cname, subfolder from celebs group by cname having c > 0 order by c desc'
-    cursor.execute(sql)
-    years = [(item[0], item[1], item[2].replace(' ', '%25')) for item in cursor.fetchall()]
-    return render_template('celeblist.html', years=years)
+
+    all_pages = []
+
+    def pages(lastvalue):
+        cursor.execute('select release, director from movies where release > ? order by release limit 8', (lastvalue,))
+        results = [(item[0], item[1]) for item in cursor.fetchall()]
+        lastvalue = results[7][0]
+        firstvalue = results[0][0]
+        all_pages.append(results)
+
+        if lastvalue:
+            try:
+                pages(lastvalue)
+            except IndexError:
+                cursor.execute('select release, director from movies where release > ? order by release limit 8', (firstvalue,))
+                results = [(item[0], item[1]) for item in cursor.fetchall()]
+                all_pages.append(results)
 
 
-@app.route("/images/<search>/<sizew>")
-def i7games(search=None, sizew=None):
-    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'imagesnew3111.db'))
-    cursor = connection.cursor()
-    cursor.execute("select file, fullpath, subfolder, file, sizewidth, sizeheight, ftime, exifd from images \
-        where (fullpath like ? or exifd like ?) and sizewidth > ? order by ftime desc", ('%'+search+'%', '%'+search+'%', int(sizew)))
-    results = [(item[0], item[1], item[2], unicode(item[3]).split(' ')[0].replace('.jpg', ''),
-                 str(item[4]).replace(', ', 'x'), item[5]) for item in cursor.fetchall()]
-    gcounts = len(results)
+    pages('')
+
+    page = 0
+    for item in all_pages:
+        page += 1
+        print(page, item)
+
     cursor.close()
-    return render_template('images.html', results=results, search=search, gcounts=gcounts)
+    return render_template('movies4.html', results2=results2, search=search, gcounts=gcounts)
 
-
-@app.route("/images/<search>")
-def i613games(search=None):
-    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'imagesnew3111.db'))
+@app.route("/movies7/<search>/page/<paged>")
+def mmgadsadsasdmes(search=None, paged=None):
+    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'movies.db'))
     cursor = connection.cursor()
-    cursor.execute("select file, fullpath, subfolder, file, sizewidth, sizeheight, ftime, exifd, celebname \
-        from images where (fullpath like ? or exifd like ? or celebname like ?) order by ftime desc", ('%'+search+'%', '%'+search+'%', '%'+search+'%'))
-    results = [(item[0], item[1], item[2], unicode(item[3]).split(' ')[0].replace('.jpg', ''), 
-                str(item[4]).replace(', ', 'x'), item[5], item[6], item[7], item[8].replace('[', '').replace("'", "").replace(']', '')) for item in cursor.fetchall()]
+    cursor.execute('select release, director from movies order by release',)
+    results = [(item[0], item[1]) for item in cursor.fetchall()]
+    lastvalue = ''
+    paged = 0
     gcounts = len(results)
+    cursor.execute('select release, director from movies where release > ? order by release limit 8', (lastvalue,))
+    results2 = [(item1[0], item1[1]) for item1 in cursor.fetchall()]
+    lastvalue = results2[7][0]
     cursor.close()
-    return render_template('imagesname.html', results=results, search=search, gcounts=gcounts)
-
-
-@app.route("/images/<search>/zip")
-def i613games222(search=None):
-    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'imagesnew3111.db'))
-    cursor = connection.cursor()
-    cursor.execute("select file, fullpath, subfolder, file, sizewidth, sizeheight, ftime, exifd, celebname \
-        from images where (fullpath like ? or exifd like ? or celebname like ?) order by ftime desc", ('%'+search+'%', '%'+search+'%', '%'+search+'%'))
-    results = [(item[0], item[1], item[2], unicode(item[3]).split(' ')[0].replace('.jpg', ''), 
-                unicode(item[4]).replace(', ', 'x'), item[5], item[6], item[7], item[8].replace('[', '').replace("'", "").replace(']', '')) for item in cursor.fetchall()]
-    zipr = os.path.join(os.path.dirname(__file__), 'static', '{}_{}.zip' .format(search.replace('%', '_'), time.strftime("%m_%d_%Y")))
-    with zipfile.ZipFile(zipr, 'w' ) as myzip:
-        for fi2 in results:
-            path1 = os.path.join(os.path.dirname(__file__), 'static', 'gallery', fi2[2].encode('utf8'), fi2[0].encode('utf8'))
-            myzip.write(path1.encode('utf8'), fi2[2].encode('utf8')+'_'+fi2[0].encode('utf8').replace('(', '_').replace(')', '').replace(' ', '_').replace('__', '_'))
-    return 'zip complete <a href="/static/{}_{}.zip">{}</a>' .format(search.replace('%', '_'), time.strftime("%m_%d_%Y"), search.replace('%', '_'))
-
-@app.route("/games")
-def igames(search=None):
-    return render_template('gamesindex.html')
-
-@app.route("/games/<search>")
-def sgames(search=None):
-    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'games.db'))
-    cursor = connection.cursor()
-    cursor.execute("select title, systems, rlsdate from games where systems like ? \
-        order by substr(rlsdate, -4), title", ('%'+search+'%',))
-    results = [(item[0], item[1], item[2]) for item in cursor.fetchall()]
-    gcounts = len(results)
-    cursor.close()
-    return render_template('games.html', results=results, search=search, gcounts=gcounts)
+    return render_template('movies4.html', results2=results2, search=search, gcounts=gcounts)
 
 @app.route("/movies/boxgenres")
 def moviesbox1():
@@ -308,6 +247,34 @@ def moviesbox1():
     results = [(item[0],) for item in cur.fetchall()]
 
     return render_template('movies-boxgenres.html', results=results)
+
+
+@app.route("/movies/boxgenres2/<search>")
+def movies_searchbox12(search=None):
+    conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'movie-genres.db'))
+    cur = conn.cursor()
+    cur.execute('select title, genre, theaters, distributor, gross, imdb_id, release_date, year from movie_genres where (genre like ? and theaters > 2000) order by year desc', ('%'+search+'%',))
+    results = [(item[0], item[1], item[2], item[3], item[4], item[5], item[6], item[7]) for item in cur.fetchall()]
+
+    stuffs = []
+
+    for item2 in results:
+        connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'movies.db'))
+        cursor = connection.cursor()
+        try:
+            cursor.execute('select release from movies where imdb like ?', ('%'+item2[5]+'%',))
+            results2 = [(item1) for item1 in cursor.fetchone()]
+            stuff2 = item2, results2[0]
+            stuffs.append(stuff2)
+        except:
+            #stuff2 = item2
+            stuffs.append(item2)
+            #results2 = ('None',)
+
+        #stuff2 = item4[0][1], item4[0][2], item4[0][3], item4[0][4], item4[0][5], item4[0][6], item4[0][7], results2
+
+
+    return render_template('movies-boxgenresearch2.html', results=results, stuffs=stuffs)
 
 @app.route("/movies/boxgenres/<search>")
 def movies_searchbox1(search=None):
@@ -372,14 +339,44 @@ def mmgames333(search=None):
 def mmg4343sdsfdd3ames2(search=None):
     connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'movies.db'))
     cursor = connection.cursor()
-    cursor.execute('select movies.release, movies.director, movies.imdb, movies.infogenres, substr(movies.title, -1, -4),  \
-    box_imdb.rlid, boxoffice_wide.theatersopen from movies join box_imdb on box_imdb.imdbid = substr(movies.imdb, -9) \
-    join boxoffice_wide on substr(box_imdb.rlid, 3) = boxoffice_wide.rl_id where (movies.genre like ? or movies.infogenres like ?) \
-    and theatersopen > 2000 group by movies.release order by substr(movies.title, -1, -4) desc',
+    cursor.execute("select movies.release, movies.director, movies.imdb, movies.infogenres, substr(movies.title, -1, -4), \
+    boxoffice.rlid, boxoffice.wide_theatersopen from movies join boxoffice on movies.imdb = boxoffice.imdbid where (movies.genre like ? or movies.infogenres like ?) \
+    and wide_theatersopen > 2000 and boxoffice.wide_theatersopen != 'None' group by movies.release order by year desc",
         ('%'+search+'%', '%'+search+'%'))
     
     results = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), os.path.basename(item[2]+'.jpg'), 
             item[3].replace('[', '').replace(']', '').replace('\'', ''), item[4], item[5], item[6]) for item in cursor.fetchall()]
+    gcounts = len(results)
+    cursor.close()
+    return render_template('movies7.html', results=results, search=search, gcounts=gcounts)
+
+
+
+@app.route("/movies/genreltd/<search>")
+def mmg4343sdsfdfd43ames2(search=None):
+    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'movies.db'))
+    cursor = connection.cursor()
+    cursor.execute("select movies.release, movies.director, movies.imdb, movies.infogenres, substr(movies.title, -1, -4), \
+    boxoffice.rlid, boxoffice.wide_theatersopen from movies join boxoffice on movies.imdb = boxoffice.imdbid where (movies.genre like ? or movies.infogenres like ?) \
+    and wide_theatersopen < 2000 and boxoffice.wide_theatersopen != 'None' group by movies.release order by year desc",
+        ('%'+search+'%', '%'+search+'%'))
+    
+    results = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), os.path.basename(item[2]+'.jpg'), 
+            item[3].replace('[', '').replace(']', '').replace('\'', ''), item[4], item[5], item[6]) for item in cursor.fetchall()]
+    gcounts = len(results)
+    cursor.close()
+    return render_template('movies7.html', results=results, search=search, gcounts=gcounts)
+
+@app.route("/movies/genrevideo/<search>")
+def mmg4343sd3243fsames2(search=None):
+    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'movies.db'))
+    cursor = connection.cursor()
+    cursor.execute("select movies.release, movies.director, movies.imdb, movies.infogenres, substr(movies.title, -1, -4) \
+    from movies where imdb not in (select imdbid from boxoffice) and (genre like ? or infogenres like ?) group by movies.release order by year desc",
+        ('%'+search+'%', '%'+search+'%'))
+    
+    results = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), os.path.basename(item[2]+'.jpg'), 
+            item[3].replace('[', '').replace(']', '').replace('\'', ''), item[4]) for item in cursor.fetchall()]
     gcounts = len(results)
     cursor.close()
     return render_template('movies7.html', results=results, search=search, gcounts=gcounts)
@@ -388,10 +385,27 @@ def mmg4343sdsfdd3ames2(search=None):
 def mmg4343sdsames2(search=None):
     connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'movies.db'))
     cursor = connection.cursor()
-    cursor.execute('select movies.release, movies.director, movies.imdb, movies.infogenres, substr(movies.title, -1, -4),  \
-    box_imdb.rlid, boxoffice_wide.theatersopen from movies left join box_imdb on box_imdb.imdbid = substr(movies.imdb, -9) \
-    left join boxoffice_wide on substr(box_imdb.rlid, 3) = boxoffice_wide.rl_id where (movies.genre like ? or movies.infogenres like ?) \
-     group by movies.release order by substr(movies.title, -1, -4) desc',
+    cursor.execute("select movies.release, movies.director, movies.imdb, movies.infogenres, substr(movies.title, -1, -4), \
+    boxoffice.rlid, boxoffice.wide_theatersopen, boxoffice.alt_theaters from movies join boxoffice on movies.imdb = boxoffice.imdbid where (movies.genre like ? or movies.infogenres like ?) \
+    group by movies.release order by year desc",
+        ('%'+search+'%', '%'+search+'%'))
+    
+    results = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), os.path.basename(item[2]+'.jpg'), 
+            item[3].replace('[', '').replace(']', '').replace('\'', ''), item[4], item[5], item[6], item[7]) for item in cursor.fetchall()]
+    gcounts = len(results)
+    cursor.close()
+    return render_template('movies8.html', results=results, search=search, gcounts=gcounts)
+
+
+###############
+
+@app.route("/movies/genrewide1/<search>")
+def mmgh655676g4343sdsfdd3ames2(search=None):
+    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'movies.db'))
+    cursor = connection.cursor()
+    cursor.execute("select boxoffice.title, movies.director, movies.imdb, movies.infogenres, substr(movies.title, -1, -4), \
+    boxoffice.rlid, boxoffice.wide_theatersopen from movies join boxoffice on movies.imdb = boxoffice.imdbid where (movies.genre like ? or movies.infogenres like ?) \
+    and wide_theatersopen > 2000 and boxoffice.wide_theatersopen != 'None' group by movies.release order by year desc",
         ('%'+search+'%', '%'+search+'%'))
     
     results = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), os.path.basename(item[2]+'.jpg'), 
@@ -400,14 +414,14 @@ def mmg4343sdsames2(search=None):
     cursor.close()
     return render_template('movies7.html', results=results, search=search, gcounts=gcounts)
 
-@app.route("/movies/genreltd/<search>")
-def mmg4343sdsfdfd43ames2(search=None):
+
+@app.route("/movies/genreltd1/<search>")
+def m12323mg4343sdsfdfd43ames2(search=None):
     connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'movies.db'))
     cursor = connection.cursor()
-    cursor.execute('select movies.release, movies.director, movies.imdb, movies.infogenres, substr(movies.title, -1, -4),  \
-    box_imdb.rlid, boxoffice_wide.theatersopen from movies join box_imdb on box_imdb.imdbid = substr(movies.imdb, -9) \
-    join boxoffice_wide on substr(box_imdb.rlid, 3) = boxoffice_wide.rl_id where (movies.genre like ? or movies.infogenres like ?) \
-    and theatersopen < 2000 group by movies.release order by substr(movies.title, -1, -4) desc',
+    cursor.execute("select boxoffice.title, movies.director, movies.imdb, movies.infogenres, substr(movies.title, -1, -4), \
+    boxoffice.rlid, boxoffice.wide_theatersopen from movies join boxoffice on movies.imdb = boxoffice.imdbid where (movies.genre like ? or movies.infogenres like ?) \
+    and wide_theatersopen < 2000 and boxoffice.wide_theatersopen != 'None' group by movies.release order by year desc",
         ('%'+search+'%', '%'+search+'%'))
     
     results = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), os.path.basename(item[2]+'.jpg'), 
@@ -415,6 +429,24 @@ def mmg4343sdsfdfd43ames2(search=None):
     gcounts = len(results)
     cursor.close()
     return render_template('movies7.html', results=results, search=search, gcounts=gcounts)
+
+@app.route("/movies/genrevideo1/<search>")
+def mm34656g4343sd3243fsames2(search=None):
+    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'movies.db'))
+    cursor = connection.cursor()
+    cursor.execute("select substr(movies.title, -6, -60), movies.director, movies.imdb, movies.infogenres, substr(movies.title, -1, -4) \
+    from movies where imdb not in (select imdbid from boxoffice) and (genre like ? or infogenres like ?) group by movies.release order by year desc",
+        ('%'+search+'%', '%'+search+'%'))
+    
+    results = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), os.path.basename(item[2]+'.jpg'), 
+            item[3].replace('[', '').replace(']', '').replace('\'', ''), item[4]) for item in cursor.fetchall()]
+    gcounts = len(results)
+    cursor.close()
+    return render_template('movies7.html', results=results, search=search, gcounts=gcounts)
+
+
+
+########
 
 @app.route("/movies/genre/<search>")
 def mmgames2(search=None):
@@ -460,6 +492,27 @@ def mmgames3(search=None):
         from movies where grp like ? order by substr(title, -1, -4) desc, dated desc", ('%'+search+'%',))
     results = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), os.path.basename(item[2]+'.jpg'), 
         item[3].replace('[', '').replace(']', '').replace('\'', ''), item[4]) for item in cursor.fetchall()]
+    gcounts = len(results)
+    cursor.close()
+    return render_template('movies2.html', results=results, search=search, gcounts=gcounts)
+
+@app.route("/movies/distributorsbox")
+def moviedirect3432(groups=None):
+    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'movies.db'))
+    cursor = connection.cursor()
+    sql = 'select alt_distributor, count(distinct(imdbid)) c from boxoffice group by alt_distributor having c > 0 order by c desc'
+    cursor.execute(sql)
+    groups = [(item[0].strip().replace('\\n', '').replace(',', ''), item[1]) for item in cursor.fetchall()]
+    return render_template('moviedirector.html', groups=groups)
+
+@app.route("/movies/distributorsbox/<search>")
+def mmgamdgdges44(search=None):
+    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'movies.db'))
+    cursor = connection.cursor()
+    cursor.execute("select title, alt_distributor, imdb, infogenres, substr(title, -1, -4), title, dated from movies \
+        where director like ? order by substr(title, -1, -4) desc, dated desc", ('%'+search+'%',))
+    results = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), os.path.basename(item[2]+'.jpg'), 
+            item[3].replace('[', '').replace(']', '').replace('\'', ''), item[4]) for item in cursor.fetchall()]
     gcounts = len(results)
     cursor.close()
     return render_template('movies2.html', results=results, search=search, gcounts=gcounts)
@@ -530,19 +583,19 @@ def companylist2(studio=None):
 def companylist3(studio=None):
     film_list = []
     genres_list = []
-    connection2 = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'imdb_scrape_database2.db'))
-    cursor2 = connection2.cursor()
-    cursor2.execute('select company, imdbid, title, year, role from companies where company like ? group by title order by year desc, title desc', ('%'+studio+'%',))
-    companies = [(item2[0], item2[1], item2[2], item2[3], item2[4]) for item2 in cursor2.fetchall()]
     connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'movies.db'))
     cursor = connection.cursor()
+    cursor.execute('select company, imdbid, title from companyinfo where company like ? group by title order by title asc', ('%'+studio+'%',))
+    companies = [(item2[0], item2[1], item2[2]) for item2 in cursor.fetchall()]
+    #connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'movies.db'))
+    #cursor = connection.cursor()
 
     for item3 in companies:
-
+        #cursor.execute('select release, imdbid from companyinfo where imdbid like ? group by imdbid order by release desc', ('%'+item3[1]+'%',))
         cursor.execute('select release, imdb, year, infogenres from movies where imdb like ? group by imdb order by year desc', ('%'+item3[1]+'%',))
         [film_list.append(item) for item in cursor.fetchall()]
     count = len(film_list)
-    cursor2.close()
+    #cursor2.close()
     cursor.close()
     return render_template('company_list2.html', companies=companies, results=film_list, count=count, studio=studio, genres_list=genres_list)
 
@@ -620,6 +673,113 @@ def movierelease(release=None):
     cursor3.close()
 
 
+###################### BLOG #########################
+
+
+@app.route('/add', methods=['GET', 'POST'])
+def add_entry():
+    if not session.get('logged_in'):
+        return 'access denied'
+
+    if request.method == 'POST':
+        filename = os.path.join(os.path.dirname(__file__), 'posts', request.form['title']+'.yaml')
+        with open(filename, 'w+') as f:
+            datafile = '''
+postroot:
+    title: {}
+    body: {}
+    date: {}
+''' .format(request.form['title'], request.form['body'], time.strftime("%m/%d/%Y"))
+            f.write(datafile)
+
+        flash('New entry was successfully posted')
+        
+    return render_template('addyaml.html')
+
+
+@app.route('/blog')
+def blogit():
+    for root, dirs, files in os.walk(str(os.path.join(os.path.dirname(__file__), 'posts'))):
+        results3 = [os.path.join(root, post1) for post1 in files]
+        results3.sort(key=os.path.getmtime, reverse=True)
+        results2 = [basename(post1).split('.')[0] for post1 in results3]
+    return render_template('blogindex.html', results2=results2)
+
+@app.route('/blog/<post>')
+def blogit2(post=None):
+    filename = os.path.join(os.path.dirname(__file__), 'posts', post+'.yaml')
+    with open(filename, 'r') as f:
+        doc = yaml.load(f)
+        title1 = doc['postroot']['title']
+        body = Markup(markdown.markdown(doc['postroot']['body']))
+        date = doc['postroot']['date']
+
+    return render_template('blogit.html', doc=doc, title1=title1, body=body, date=date)
+
+
+###################### IMAGES #########################
+
+@app.route("/images")
+def gallery2():
+    for root, dirs, files in os.walk(str(os.path.join(os.path.dirname(__file__), 'static', 'gallery'))):
+        results2 = [image for image in dirs]
+        results2.sort(reverse=True)
+
+        return render_template('gallery2index.html', results2=results2)
+
+
+@app.route("/images3/celebs")
+def celblist(groups=None):
+    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'imagename5.db'))
+    cursor = connection.cursor()
+    sql = 'select cname, count(fn) c, cname, subfolder from celebs group by cname having c > 0 order by c desc'
+    cursor.execute(sql)
+    years = [(item[0], item[1], item[2].replace(' ', '%25')) for item in cursor.fetchall()]
+    return render_template('celeblist.html', years=years)
+
+
+@app.route("/images/<search>/<sizew>")
+def i7games(search=None, sizew=None):
+    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'imagesnew3111.db'))
+    cursor = connection.cursor()
+    cursor.execute("select file, fullpath, subfolder, file, sizewidth, sizeheight, ftime, exifd from images \
+        where (fullpath like ? or exifd like ?) and sizewidth > ? order by ftime desc", ('%'+search+'%', '%'+search+'%', int(sizew)))
+    results = [(item[0], item[1], item[2], unicode(item[3]).split(' ')[0].replace('.jpg', ''),
+                 str(item[4]).replace(', ', 'x'), item[5]) for item in cursor.fetchall()]
+    gcounts = len(results)
+    cursor.close()
+    return render_template('images.html', results=results, search=search, gcounts=gcounts)
+
+
+@app.route("/images/<search>")
+def i613games(search=None):
+    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'imagesnew3111.db'))
+    cursor = connection.cursor()
+    cursor.execute("select file, fullpath, subfolder, file, sizewidth, sizeheight, ftime, exifd, celebname \
+        from images where (fullpath like ? or exifd like ? or celebname like ?) order by ftime desc", ('%'+search+'%', '%'+search+'%', '%'+search+'%'))
+    results = [(item[0], item[1], item[2], unicode(item[3]).split(' ')[0].replace('.jpg', ''), 
+                str(item[4]).replace(', ', 'x'), item[5], item[6], item[7], item[8].replace('[', '').replace("'", "").replace(']', '')) for item in cursor.fetchall()]
+    gcounts = len(results)
+    cursor.close()
+    return render_template('imagesname.html', results=results, search=search, gcounts=gcounts)
+
+
+@app.route("/images/<search>/zip")
+def i613games222(search=None):
+    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'imagesnew3111.db'))
+    cursor = connection.cursor()
+    cursor.execute("select file, fullpath, subfolder, file, sizewidth, sizeheight, ftime, exifd, celebname \
+        from images where (fullpath like ? or exifd like ? or celebname like ?) order by ftime desc", ('%'+search+'%', '%'+search+'%', '%'+search+'%'))
+    results = [(item[0], item[1], item[2], unicode(item[3]).split(' ')[0].replace('.jpg', ''), 
+                unicode(item[4]).replace(', ', 'x'), item[5], item[6], item[7], item[8].replace('[', '').replace("'", "").replace(']', '')) for item in cursor.fetchall()]
+    zipr = os.path.join(os.path.dirname(__file__), 'static', '{}_{}.zip' .format(search.replace('%', '_'), time.strftime("%m_%d_%Y")))
+    with zipfile.ZipFile(zipr, 'w' ) as myzip:
+        for fi2 in results:
+            path1 = os.path.join(os.path.dirname(__file__), 'static', 'gallery', fi2[2].encode('utf8'), fi2[0].encode('utf8'))
+            myzip.write(path1.encode('utf8'), fi2[2].encode('utf8')+'_'+fi2[0].encode('utf8').replace('(', '_').replace(')', '').replace(' ', '_').replace('__', '_'))
+    return 'zip complete <a href="/static/{}_{}.zip">{}</a>' .format(search.replace('%', '_'), time.strftime("%m_%d_%Y"), search.replace('%', '_'))
+
+
 @app.route("/gallery")
 def gallery():
     for root, dirs, files in os.walk(str(os.path.join(os.path.dirname(__file__), 'static', 'gallery'))):
@@ -674,6 +834,29 @@ def thumbc(gal, image):
         if not os.path.exists(thumbs2): 
             im.save(thumbs2, "JPEG", quality=quality_val)
             os.chmod(thumbs2, 0o777)
+
+
+
+###################### GAMES #########################
+
+@app.route("/games")
+def igames(search=None):
+    return render_template('gamesindex.html')
+
+@app.route("/games/<search>")
+def sgames(search=None):
+    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'games.db'))
+    cursor = connection.cursor()
+    cursor.execute("select title, systems, rlsdate from games where systems like ? \
+        order by substr(rlsdate, -4), title", ('%'+search+'%',))
+    results = [(item[0], item[1], item[2]) for item in cursor.fetchall()]
+    gcounts = len(results)
+    cursor.close()
+    return render_template('games.html', results=results, search=search, gcounts=gcounts)
+
+
+
+
 
 
 ######################## REST API ################
