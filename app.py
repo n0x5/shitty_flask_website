@@ -357,8 +357,8 @@ def mmg4343sdsfdfd43ames2(search=None):
     connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'movies.db'))
     cursor = connection.cursor()
     cursor.execute("select movies.release, movies.director, movies.imdb, movies.infogenres, substr(movies.title, -1, -4), \
-    boxoffice.rlid, boxoffice.wide_theatersopen from movies join boxoffice on movies.imdb = boxoffice.imdbid where (movies.genre like ? or movies.infogenres like ?) \
-    and wide_theatersopen < 2000 and boxoffice.wide_theatersopen != 'None' group by movies.release order by year desc",
+    boxoffice.rlid, boxoffice.alt_theaters from movies join boxoffice on movies.imdb = boxoffice.imdbid where (movies.genre like ? or movies.infogenres like ?) \
+    and boxoffice.alt_theaters < 2000 and boxoffice.alt_theaters != 'None' group by movies.release order by year desc",
         ('%'+search+'%', '%'+search+'%'))
     
     results = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), os.path.basename(item[2]+'.jpg'), 
