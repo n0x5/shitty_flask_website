@@ -11,8 +11,6 @@ from bs4 import BeautifulSoup
 import time
 import sqlite3
 from random import randint
-import urllib.request
-from urllib.request import FancyURLopener
 import json
 import traceback
 
@@ -59,7 +57,7 @@ def get_info_box(url):
     headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:47.0) Gecko/20100101 Firefox/47.0'
     }
-
+    print('getting film:', url)
     response = requests.get(url, headers=headers)
     soup = BeautifulSoup(response.text, "html.parser")
     imdb_id = re.search(r'(tt\d{6,12})', url)
@@ -71,23 +69,50 @@ def get_info_box(url):
     rel_date = distributor2.find_all('span')[6].get_text()
     rel1 = table.find('table', attrs={'class': 'a-bordered a-horizontal-stripes a-size-base-plus'})
     lists = rel1.find('a', href=re.compile('\/release'))
-    rl_id = re.search(r'(rl\d{7,12})', str(lists['href']))
-    url2 = 'https://www.boxofficemojo.com'+lists['href']+'/weekend/'
-    response2 = requests.get(url2, headers=headers)
-    soup2 = BeautifulSoup(response2.text, "html.parser")
-    table2 = soup2.find('div', attrs={'class': 'a-section a-spacing-none mojo-summary-values mojo-hidden-from-mobile'})
-    table3 = table2.find_all('div', attrs={'class': 'a-section a-spacing-none'})[1]
-    table4 = table3.find_all('span')[1]
-    theaters = re.search(r'(\d{0,4}\,\d{2,5})\s+theaters', str(table4).replace('\n', ''))
-    theaters_openwide = theaters.group(1).replace(',', '')
-    theater_max1 = table2.find_all('div', attrs={'class': 'a-section a-spacing-none'})[7]
-    theaters_max2 = re.search(r'(\d{0,4}\,\d{2,5})\s+theaters', str(theater_max1).replace('\n', ''))
-    theaters_max3 = theaters_max2.group(1).replace(' theaters', '').replace(',', '')
+    if 'Domestic' in str(lists):
+        rl_id = re.search(r'(rl\d{7,12})', str(lists['href']))
+        url2 = 'https://www.boxofficemojo.com'+lists['href']+'/weekend/'
+        print('Fetching Boxoffice weekend:')
+        response2 = requests.get(url2, headers=headers)
+        soup2 = BeautifulSoup(response2.text, "html.parser")
+        table2 = soup2.find('div', attrs={'class': 'a-section a-spacing-none mojo-summary-values mojo-hidden-from-mobile'})
+        for item in table2.find_all('div', attrs={'class': 'a-section a-spacing-none'}):
+            if 'theaters' in str(item) and 'Opening' in str(item):
+                theaters_max2 = re.search(r'(\d{0,4}\,\d{2,5}|\d{0,9000})\s+theaters', str(item).replace('\n', ''))
+                theaters_max3 = theaters_max2.group(1).replace('theaters', '').strip()
+
+            if 'theaters' in str(item) and 'Widest' in str(item):
+                theaters_openwide1 = re.search(r'(\d{0,4}\,\d{2,5}|\d{0,9000})\s+theaters', str(item).replace('\n', ''))
+                theaters_openwide = theaters_openwide1.group(1).replace('theaters', '').strip()
+
+
+    if 'Original Release' in str(lists):
+        print('Fetching Boxoffice original:')
+        lists = table.find('a', href=re.compile('\/releasegroup'))
+        response2 = requests.get('https://www.boxofficemojo.com'+lists['href'], headers=headers)
+        soup2 = BeautifulSoup(response2.text, "html.parser")
+        lists2 = soup2.find('a', href=re.compile('\/release'))
+        rl_id = re.search(r'(rl\d{7,12})', str(lists2['href']))
+        print(lists2['href']+'/weekend/')
+        response3 = requests.get('https://www.boxofficemojo.com'+lists2['href']+'/weekend/', headers=headers)
+        soup3 = BeautifulSoup(response3.text, "html.parser")
+        table2 = soup3.find('div', attrs={'class': 'a-section a-spacing-none mojo-summary-values mojo-hidden-from-mobile'})
+        for item in table2.find_all('div', attrs={'class': 'a-section a-spacing-none'}):
+            if 'theaters' in str(item) and 'Opening' in str(item):
+                theaters_max2 = re.search(r'(\d{0,4}\,\d{2,5}|\d{0,9000})\s+theaters', str(item).replace('\n', ''))
+                theaters_max3 = theaters_max2.group(1).replace('theaters', '').strip()
+
+            if 'theaters' in str(item) and 'Widest' in str(item):
+                theaters_openwide1 = re.search(r'(\d{0,4}\,\d{2,5}|\d{0,9000})\s+theaters', str(item).replace('\n', ''))
+                theaters_openwide = theaters_openwide1.group(1).replace('theaters', '').strip()
+
     alt_theaters = theaters_max3
     stuff = title, theaters_openwide, theaters_max3, alt_theaters, rel_date, distributor, rl_id.group(1), imdb_id.group(1)
     cur.execute('INSERT INTO boxoffice (title, wide_theatersopen, wide_theaters, alt_theaters, alt_releasedate, alt_distributor, rlid, imdbid) VALUES (?,?,?,?,?,?,?,?)', (stuff))
     cur.connection.commit()
     print(stuff)
+
+
 
 
 def get_info(url):
@@ -190,8 +215,8 @@ def get_infocompany(url, release):
             try:
                 cur.execute('insert into companyinfo (release, company, imdbid, coid, title) VALUES (?,?,?,?,?)', (basenm2, item2.get_text(), imdbid, coid, title2.get_text()))
                 cur.connection.commit()
-            except:
-                pass
+            except Exception as e:
+                print(e)
 
 
 for subdir, dirs, files in os.walk(cwd):
@@ -205,7 +230,9 @@ for subdir, dirs, files in os.walk(cwd):
                 banned = ['cd1', 'cd2', 'sample', 'vobsub', 'subs', 'proof', 'prooffix', 'syncfix']
                 url = imdburl(file2)
                 print(url, file2)
+                print('Fetching iMDB:')
                 get_info(url)
+                print('Fetching boxofficemojo:')
                 get_info_box(url.replace('imdb', 'boxofficemojo'))
                 get_infocompany(url, basenm2)
                 r_int2 = randint(2, 4)
