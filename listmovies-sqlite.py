@@ -21,8 +21,8 @@ number = 0
 
 conn = sqlite3.connect('movies44.db')
 cur = conn.cursor()
-cur.execute('''CREATE TABLE if not exists movies 
-            (release text unique, grp text, genre text, format text, imdb text, title text, director text, 
+cur.execute('''CREATE TABLE if not exists movies
+            (release text unique, grp text, genre text, format text, imdb text, title text, director text,
             mainactors text, infogenres text, inforest text, infosummary text, year text, dated datetime DEFAULT CURRENT_TIMESTAMP)''')
 
 
@@ -36,10 +36,11 @@ def imdburl(fn):
 
 
 def store(release, grp, genre, title, director, mainactors, infogenres, inforest, infosummary, year):
-    print('{} - {} - {} - {} - {} - {} - {} - {} - {} - {} - {} - {}' .format(basenm2, file6, genrs(file2), file7, imdburl(file2), 
-        str(imdb_info[0]).strip(), str(imdb_info[1]).strip(), str(imdb_info[2]).replace('\\n', ''), str(imdb_info[3]), 
-        str(imdb_info[4]), str(imdb_info[5]).strip(), str(imdb_info[6])))
-    cur.execute('INSERT INTO movies (release, grp, genre, format, imdb, title, director, mainactors, infogenres, inforest, infosummary, year) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)', 
+    print('{} - {} - {} - {} - {} - {} - {} - {} - {} - {} - {} - {}'
+          .format(basenm2, file6, genrs(file2), file7, imdburl(file2),
+                  str(imdb_info[0]).strip(), str(imdb_info[1]).strip(), str(imdb_info[2]).replace('\\n', ''), str(imdb_info[3]),
+                  str(imdb_info[4]), str(imdb_info[5]).strip(), str(imdb_info[6])))
+    cur.execute('INSERT INTO movies (release, grp, genre, format, imdb, title, director, mainactors, infogenres, inforest, infosummary, year) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',
                 (basenm2, file6, genrs(file2), file7, imdburl(file2), str(imdb_info[0]).strip(), str(imdb_info[1]).strip().replace(',', ''), str(imdb_info[2]).replace('\\n', '').strip(), 
                 str(imdb_info[3]).strip(), str(imdb_info[4]).strip(), str(imdb_info[5]).strip(), str(imdb_info[6])))
     cur.connection.commit()
@@ -68,7 +69,7 @@ def get_info_box(url):
     distributor = distributor2.find_all('span')[1].get_text().replace('See full company information\n\n', '')
     rel_date = distributor2.find_all('span')[6].get_text()
     rel1 = table.find('table', attrs={'class': 'a-bordered a-horizontal-stripes a-size-base-plus'})
-    lists = rel1.find('a', href=re.compile('\/release'))
+    lists = rel1.find('a', href=re.compile(r'\/release'))
     if 'Domestic' in str(lists):
         rl_id = re.search(r'(rl\d{7,12})', str(lists['href']))
         url2 = 'https://www.boxofficemojo.com'+lists['href']+'/weekend/'
@@ -88,10 +89,10 @@ def get_info_box(url):
 
     if 'Original Release' in str(lists):
         print('Fetching Boxoffice original:')
-        lists = table.find('a', href=re.compile('\/releasegroup'))
+        lists = table.find('a', href=re.compile(r'\/releasegroup'))
         response2 = requests.get('https://www.boxofficemojo.com'+lists['href'], headers=headers)
         soup2 = BeautifulSoup(response2.text, "html.parser")
-        lists2 = soup2.find('a', href=re.compile('\/release'))
+        lists2 = soup2.find('a', href=re.compile(r'\/release'))
         rl_id = re.search(r'(rl\d{7,12})', str(lists2['href']))
         print(lists2['href']+'/weekend/')
         response3 = requests.get('https://www.boxofficemojo.com'+lists2['href']+'/weekend/', headers=headers)
@@ -122,7 +123,7 @@ def get_info(url):
 
     response = requests.get(url, headers=headers)
     soup = BeautifulSoup(response.text, "html.parser")
-    table = soup.find('script', type=re.compile('ld\+json'))
+    table = soup.find('script', type=re.compile(r'ld\+json'))
 
 
     try:
@@ -155,13 +156,16 @@ def get_info(url):
     summary = data['description']
     keywords = data['keywords']
     score = data['aggregateRating']
-    rating = data['contentRating']
+    try:
+        rating = data['contentRating']
+    except:
+        rating = 'Not rated'
     try:
         cast2 = soup.find('table', attrs={'class': 'cast_list'})
-        names = cast2.find_all('a', href=re.compile('\/name'))
+        names = cast2.find_all('a', href=re.compile(r'\/name'))
     except:
         cast2 = soup.find('section', attrs={'data-testid': 'title-cast'})
-        names = cast2.find_all('a', href=re.compile('\/name'))
+        names = cast2.find_all('a', href=re.compile(r'\/name'))
 
     inforest = []
     inforest1 = []
@@ -228,12 +232,19 @@ for subdir, dirs, files in os.walk(cwd):
                 file6 = "[]".join(basenm2.split('-')[-1:])
                 file7 = "[]".join(basenm2.split('.')[-1:]).split('-')[0]
                 banned = ['cd1', 'cd2', 'sample', 'vobsub', 'subs', 'proof', 'prooffix', 'syncfix']
-                url = imdburl(file2)
+                try:
+                    url = imdburl(file2)
+                except:
+                    url = 'None'
+                    print('imdb not in file')
                 print(url, file2)
                 print('Fetching iMDB:')
                 get_info(url)
                 print('Fetching boxofficemojo:')
-                get_info_box(url.replace('imdb', 'boxofficemojo'))
+                try:
+                    get_info_box(url.replace('imdb', 'boxofficemojo'))
+                except Exception as e:
+                    print('film not in boxoffice')
                 get_infocompany(url, basenm2)
                 r_int2 = randint(2, 4)
                 time.sleep(r_int2)
@@ -248,4 +259,3 @@ for subdir, dirs, files in os.walk(cwd):
             except Exception as e:
                 print(e)
                 traceback.print_exc()
-
