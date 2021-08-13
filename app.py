@@ -88,6 +88,7 @@ def upload_file(gal=None):
             return redirect('/uploadf')
 
 
+
 @app.route('/pics/<gal>')
 def get_gallery_pics(gal=None, results3=None, gcount=None):
     dirgl = os.path.join(os.path.dirname(__file__), 'static', 'hosted', '{}' .format(gal))
@@ -178,7 +179,7 @@ def dash1(results=None):
         results = [(item[0], item[1]) for item in cursor.fetchall()]
         cursor.close()
 
-        connection2 = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'movies.db'))
+        connection2 = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', 'movies.db'))
         cursor2 = connection2.cursor()
         sql2 = 'select * from (select * from movies order by dated desc limit 20) order by dated desc'
         cursor2.execute(sql2)
@@ -280,6 +281,49 @@ def genrevideosearch(search=None):
     conn.close()
     gcounts = len(results)
     return render_template('movies7.html', results=results, search=search, gcounts=gcounts)
+
+
+@app.route("/movies/yearwide/<search>")
+def yearwidesearch(search=None):
+    conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', 'movies.db'))
+    sql = "select movies.release, movies.director, movies.imdb, movies.infogenres, substr(movies.title, -1, -4), \
+        boxoffice.rlid, boxoffice.wide_theatersopen from movies join boxoffice on movies.imdb = boxoffice.imdbid where movies.year like ? \
+        and wide_theatersopen > 2000 and boxoffice.wide_theatersopen != 'None' group by movies.release order by year desc"
+
+    results = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), os.path.basename(item[2]+'.jpg'), 
+                item[3].replace('[', '').replace(']', '').replace('\'', ''), item[4], item[5], item[6]) for item in \
+    conn.execute(sql, ('%'+search+'%',))]
+    conn.close()
+    gcounts = len(results)
+    return render_template('movies7.html', results=results, search=search, gcounts=gcounts)
+
+@app.route("/movies/yearltd/<search>")
+def yearltdsearch(search=None):
+    conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', 'movies.db'))
+    sql = "select movies.release, movies.director, movies.imdb, movies.infogenres, substr(movies.title, -1, -4), \
+        boxoffice.rlid, boxoffice.alt_theaters from movies join boxoffice on movies.imdb = boxoffice.imdbid where movies.year like ? \
+        and boxoffice.alt_theaters < 2000 and boxoffice.alt_theaters != 'None' group by movies.release order by year desc"
+
+    results = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), os.path.basename(item[2]+'.jpg'), 
+                item[3].replace('[', '').replace(']', '').replace('\'', ''), item[4], item[5], item[6]) for item in \
+             conn.execute(sql, ('%'+search+'%',))]
+    conn.close()
+    gcounts = len(results)
+    return render_template('movies7.html', results=results, search=search, gcounts=gcounts)
+
+@app.route("/movies/yearvideo/<search>")
+def yearvideosearch(search=None):
+    conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', 'movies.db'))
+    sql = "select movies.release, movies.director, movies.imdb, movies.infogenres, substr(movies.title, -1, -4) \
+        from movies where imdb not in (select imdbid from boxoffice) and movies.year like ? group by movies.release order by year desc"
+
+    results = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), os.path.basename(item[2]+'.jpg'), 
+                item[3].replace('[', '').replace(']', '').replace('\'', ''), item[4]) for item in \
+             conn.execute(sql, ('%'+search+'%',))]
+    conn.close()
+    gcounts = len(results)
+    return render_template('movies7.html', results=results, search=search, gcounts=gcounts)
+
 
 @app.route("/movies/genre/<search>")
 def genresearch(search=None):

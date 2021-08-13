@@ -7,6 +7,6 @@
 <h1>list of years</h1>
 
 {% for item in years %}
-  <a href="/movies/years/{{item[0]}}">{{item[0]}}</a>     <strong>{{item[1]}}</strong> movies<br>
+  <a href="/movies/years/{{item[0]}}">{{item[0]}}</a>     <strong>{{item[1]}}</strong> movies | <a style="color:red;font-size:13px;" href="/movies/yearwide/{{item[0]}}">Wide releases</a> | <a style="color:red;font-size:13px;" href="/movies/yearltd/{{item[0]}}">Limited releases</a> | <a style="color:red;font-size:13px;" href="/movies/yearvideo/{{item[0]}}">Video releases</a><br>
 {% endfor %}
 {% endblock %}

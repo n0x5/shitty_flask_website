@@ -4,6 +4,13 @@
 
 {% block b2 %}<h2><a href="/">Back</a></h2>{% endblock %}
 {% block content %}
+
+<form method='post' action='/movies/{{search}}'>
+<div><input type='text' name='fname' placeholder='File name'>
+<input type='submit'>
+</div>
+</form>
+
 <p>Number of movies: {{count}}</p>
 <a href="/movies/groups">List of groups</a><br>
 <a href="/movies/director">List of directors</a><br>
