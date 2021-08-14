@@ -19,7 +19,7 @@ today = time.strftime("__%m_%Y_%H_%M_%S")
 cwd = r'F:\archive\xvid-scan'
 number = 0
 
-conn = sqlite3.connect('movies44.db')
+conn = sqlite3.connect('movies.db')
 cur = conn.cursor()
 cur.execute('''CREATE TABLE if not exists movies
             (release text unique, grp text, genre text, format text, imdb text, title text, director text,
@@ -41,7 +41,7 @@ def store(release, grp, genre, title, director, mainactors, infogenres, inforest
                   str(imdb_info[0]).strip(), str(imdb_info[1]).strip(), str(imdb_info[2]).replace('\\n', ''), str(imdb_info[3]),
                   str(imdb_info[4]), str(imdb_info[5]).strip(), str(imdb_info[6])))
     cur.execute('INSERT INTO movies (release, grp, genre, format, imdb, title, director, mainactors, infogenres, inforest, infosummary, year) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',
-                (basenm2, file6, genrs(file2), file7, imdburl(file2), str(imdb_info[0]).strip(), str(imdb_info[1]).strip().replace(',', ''), str(imdb_info[2]).replace('\\n', '').strip(), 
+                (basenm2, file6, genrs(file2), file7, imdburl(file2).replace('https://www.imdb.com/title/', ''), str(imdb_info[0]).strip(), str(imdb_info[1]).strip().replace(',', ''), str(imdb_info[2]).replace('\\n', '').strip(), 
                 str(imdb_info[3]).strip(), str(imdb_info[4]).strip(), str(imdb_info[5]).strip(), str(imdb_info[6])))
     cur.connection.commit()
 
@@ -107,8 +107,8 @@ def get_info_box(url):
                 theaters_openwide1 = re.search(r'(\d{0,4}\,\d{2,5}|\d{0,9000})\s+theaters', str(item).replace('\n', ''))
                 theaters_openwide = theaters_openwide1.group(1).replace('theaters', '').strip()
 
-    alt_theaters = theaters_max3
-    stuff = title, theaters_openwide, theaters_max3, alt_theaters, rel_date, distributor, rl_id.group(1), imdb_id.group(1)
+    alt_theaters = theaters_openwide
+    stuff = title, theaters_max3, theaters_openwide, alt_theaters, rel_date, distributor, rl_id.group(1), imdb_id.group(1)
     cur.execute('INSERT INTO boxoffice (title, wide_theatersopen, wide_theaters, alt_theaters, alt_releasedate, alt_distributor, rlid, imdbid) VALUES (?,?,?,?,?,?,?,?)', (stuff))
     cur.connection.commit()
     print(stuff)
@@ -150,7 +150,9 @@ def get_info(url):
     director = data['director']
     try:
         directors = [item5['name'] for item5 in director]
-        directors = directors[0]
+        #directors = directors[0]
+        directors = ','.join(directors)
+
     except:
         directors = data['director']['name']
     summary = data['description']
@@ -195,7 +197,7 @@ def get_info(url):
     return title+' ('+year+')', directors, actors, genres, inforest, summary, year
 
 def get_infocompany(url, release):
-    conn2 = sqlite3.connect('movies44.db')
+    conn2 = sqlite3.connect('movies.db')
     cur = conn2.cursor()
     cur.execute('''CREATE TABLE IF NOT EXISTS companyinfo
                 (release text, company text, imdbid text, coid text, title text, dated datetime DEFAULT CURRENT_TIMESTAMP)''')
@@ -253,7 +255,7 @@ for subdir, dirs, files in os.walk(cwd):
                 if basenm2.lower().split('.')[0] not in banned:
                     store(basenm2, file6, genrs(file2), imdb_info[0], imdb_info[1], imdb_info[2], imdb_info[3], imdb_info[4], imdb_info[5], str(imdb_info[6]))
                     number += 1
-                    r_int = randint(2, 6)
+                    r_int = randint(15, 20)
                     time.sleep(r_int)
 
             except Exception as e:
