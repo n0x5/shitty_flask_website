@@ -10,6 +10,7 @@ import sqlite3
 import urllib.request
 from urllib.request import FancyURLopener
 import argparse
+import json
 
 parser = argparse.ArgumentParser()
 parser.add_argument('imdb_id')
@@ -30,31 +31,37 @@ conn = sqlite3.connect('tv.db')
 cur = conn.cursor()
 cur.execute('''CREATE TABLE if not exists tv
             (imdb_id, show_title text, episode_title text, air_date text, episode_summary text, 
-                season_number text, episode_number text, dated datetime DEFAULT CURRENT_TIMESTAMP)''')
+                season_number int, episode_number int, dated datetime DEFAULT CURRENT_TIMESTAMP)''')
 
 url = r'https://www.imdb.com/title/{}/episodes?season={}' .format(args.imdb_id, args.season)
 headers = {
 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:47.0) Gecko/20100101 Firefox/47.0'
 }
 
-endpoint4 = os.path.join(os.path.dirname(__file__), 'covers_tv', args.imdb_id+'.jpg')
+endpoint4 = os.path.join(os.path.dirname(__file__), 'cover_tv', args.imdb_id+'.jpg')
 if not os.path.isfile(endpoint4):
     grab1 = GrabIt()
     url2 = r'https://www.imdb.com/title/{}' .format(args.imdb_id)
     response2 = requests.get(url2, headers=headers)
     soup3 = BeautifulSoup(response2.text, "html.parser")
-    cover = soup3.find('div', attrs={'class': 'poster'})
-    cover2 = cover.find('img', src=re.compile('.'))
-    coverurl = cover2['src']
-    id2 = os.path.basename(url2)
-    endpoint = os.path.join(os.path.dirname(__file__), 'covers_tv', id2+'.jpg')
-    if not os.path.exists('covers_tv'):
-        os.makedirs('covers_tv')
+    table = soup3.find('script', type=re.compile(r'ld\+json'))
+    try:
+        data = json.loads(table.string)
+    except:
+        data = json.loads(table.get_text())
+    cover = data['image']
+    id2 = re.search(r'(tt\d+)', str(url2))
+    endpoint = os.path.join(os.path.dirname(__file__), 'cover_tv', id2.group(1)+'.jpg')
+    if not os.path.exists('cover_tv'):
+        os.makedirs('cover_tv')
     if os.path.isfile(endpoint):
         print('file exists - skipping')
-    grab1.download_file(coverurl, endpoint)
-else:
-    print('cover exists, skipping')
+    r = requests.get(cover, headers=headers)
+    fn = os.path.basename(cover)
+
+    with open(endpoint, 'wb') as cover_jpg:
+        cover_jpg.write(r.content)
+
 
 response = requests.get(url, headers=headers)
 soup = BeautifulSoup(response.text, "html.parser")
