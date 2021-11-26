@@ -15,7 +15,7 @@ parser.add_argument('url')
 args = parser.parse_args()
 
 def get_info(url):
-    conn = sqlite3.connect('movies-flm.db')
+    conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'movies-flm.db'))
     cur = conn.cursor()
     cur.execute('''CREATE TABLE if not exists moviesflm
             (imdb text unique, title text, director text,
@@ -63,13 +63,22 @@ def get_info(url):
         directors = ','.join(directors)
 
     except:
-        directors = data['director']['name']
-    summary = data['description']
+        try:
+            directors = data['director']['name']
+        except:
+            directors = 'None'
+    try:
+        summary = data['description']
+    except:
+        summary = 'No summary'
     try:
         keywords = data['keywords']
     except:
         keywords = 'No keywords'
-    score = data['aggregateRating']
+    try:
+        score = data['aggregateRating']
+    except:
+        score = 'No aggregate rating'
     try:
         rating = data['contentRating']
     except:
