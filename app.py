@@ -428,7 +428,14 @@ def companylist():
     sql2 = 'select company, count(distinct(imdbid)) c from companyinfo join movies on movies.imdb = "tt" || companyinfo.imdbid group by company having c > 10 order by c desc'
     cursor.execute(sql2)
     companies2 = [(item[0], item[1]) for item in cursor.fetchall()]
-    return render_template('company_list_all.html', companies=companies, companies2=companies2)
+
+    sql3 = 'select alt_distributor, count(distinct(imdbid)) c from boxoffice join movies on movies.imdb = boxoffice.imdbid group by alt_distributor having c > 0 order by c desc;'
+    cursor.execute(sql3)
+    companies3 = [(item[0], item[1]) for item in cursor.fetchall()]
+
+    cursor.close()
+    return render_template('company_list_all.html', companies=companies, companies2=companies2, companies3=companies3)
+
 
 @app.route("/movies/company/all/<studio>")
 def companylist2(studio=None):
@@ -447,6 +454,18 @@ def companylist3(studio=None):
     connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', 'movies.db'))
     cursor = connection.cursor()
     cursor.execute('select movies.release, movies.year, movies.imdb, movies.infogenres from companyinfo join movies on movies.imdb = "tt" || companyinfo.imdbid where companyinfo.company like ? group by movies.release order by movies.year desc', ('%'+studio+'%',))
+    results = [(item[0], item[1], item[2], item[3]) for item in cursor.fetchall()]
+    count = len(results)
+    cursor.close()
+    return render_template('company_list2.html', results=results, count=count, studio=studio)
+
+@app.route("/movies/company/theatrical/<studio>")
+def companylist3theatrical(studio=None):
+    film_list = []
+    genres_list = []
+    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', 'movies.db'))
+    cursor = connection.cursor()
+    cursor.execute('select movies.release, movies.year, movies.imdb, movies.infogenres from boxoffice join movies on movies.imdb = boxoffice.imdbid where boxoffice.alt_distributor like ? group by movies.release order by movies.year desc', ('%'+studio+'%',))
     results = [(item[0], item[1], item[2], item[3]) for item in cursor.fetchall()]
     count = len(results)
     cursor.close()
