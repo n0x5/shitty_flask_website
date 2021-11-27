@@ -10,10 +10,10 @@ parser = argparse.ArgumentParser()
 parser.add_argument('year')
 args = parser.parse_args()
 
-conn = sqlite3.connect('boxofficemojo-alternate.db')
+conn = sqlite3.connect('movies.db')
 cur = conn.cursor()
-cur.execute('''CREATE TABLE if not exists boxoffice
-            (title text, theaters int, gross text, distributor text, release_date text, 
+cur.execute('''CREATE TABLE if not exists boxoffice_alt
+            (title text, theaters int, gross text, release_date text, distributor text,
              year int, rl_id text unique, dated datetime DEFAULT CURRENT_TIMESTAMP)''')
 
 
@@ -42,7 +42,7 @@ for table in table3:
     try:
         stuff = title.get_text(), int(args.year), int(theaters.get_text().replace(',', '')), gross.get_text(), release_date.get_text(), distributor.get_text().replace('\n\n', ''), box_id2.group(1)
         print(stuff)
-        cur.execute('INSERT INTO boxoffice (title, year, theaters, gross, release_date, distributor , rl_id) VALUES (?,?,?,?,?,?,?)', (stuff))
+        cur.execute('INSERT INTO boxoffice_alt (title, year, theaters, gross, release_date, distributor , rl_id) VALUES (?,?,?,?,?,?,?)', (stuff))
         cur.connection.commit()
         
     except Exception as e:
