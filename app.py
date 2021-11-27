@@ -422,7 +422,13 @@ def companylist():
     cursor2.execute(sql)
     companies = [(item[0], item[1], item[2]) for item in cursor2.fetchall()]
     cursor2.close()
-    return render_template('company_list_all.html', companies=companies)
+
+    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', 'movies.db'))
+    cursor = connection.cursor()
+    sql2 = 'select company, count(distinct(imdbid)) c from companyinfo join movies on movies.imdb = "tt" || companyinfo.imdbid group by company having c > 10 order by c desc'
+    cursor.execute(sql2)
+    companies2 = [(item[0], item[1]) for item in cursor.fetchall()]
+    return render_template('company_list_all.html', companies=companies, companies2=companies2)
 
 @app.route("/movies/company/all/<studio>")
 def companylist2(studio=None):
@@ -440,16 +446,11 @@ def companylist3(studio=None):
     genres_list = []
     connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', 'movies.db'))
     cursor = connection.cursor()
-    cursor.execute('select company, imdbid, title from companyinfo where company like ? group by title order by title asc', ('%'+studio+'%',))
-    companies = [(item2[0], item2[1], item2[2]) for item2 in cursor.fetchall()]
-
-
-    for item3 in companies:
-        cursor.execute('select release, imdb, year, infogenres from movies where imdb like ? group by imdb order by year desc', ('%'+item3[1]+'%',))
-        [film_list.append(item) for item in cursor.fetchall()]
-    count = len(film_list)
+    cursor.execute('select movies.release, movies.year, movies.imdb, movies.infogenres from companyinfo join movies on movies.imdb = "tt" || companyinfo.imdbid where companyinfo.company like ? group by movies.release order by movies.year desc', ('%'+studio+'%',))
+    results = [(item[0], item[1], item[2], item[3]) for item in cursor.fetchall()]
+    count = len(results)
     cursor.close()
-    return render_template('company_list2.html', companies=companies, results=film_list, count=count, studio=studio, genres_list=genres_list)
+    return render_template('company_list2.html', results=results, count=count, studio=studio)
 
 @app.route("/movies/release/<release>")
 def movierelease(release=None):

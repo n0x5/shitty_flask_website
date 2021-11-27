@@ -6,6 +6,12 @@
 {% block content %}
 <h1>List of studios</h1>
 
+<h2>Studios in collection:</h2>
+{% for item in companies2 %}
+  <a href="/movies/company/{{item[0]}}">{{item[0]}}</a>     <strong>{{item[1]}}</strong> movies<br>
+{% endfor %}
+
+<h2>All studios in database:</h2>
 {% for item in companies %}
   <a href="/movies/company/all/{{item[0]}}">{{item[0]}}</a>     <strong>{{item[2]}}</strong> movies <a href="/movies/company/{{item[0]}}">(in collection)</a><br>
 {% endfor %}
