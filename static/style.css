@@ -1,0 +1,24 @@
+.html {
+width:900px;
+}
+body {
+background-color: #ffffff;
+}
+
+.content{
+overflow: auto;
+margin-left: 10px;
+width: 1300px;
+
+}
+.sidebar {
+margin-right: 15px;
+float:left;
+}
+.img1 {
+float: right;
+margin-left: 1px;
+}
+a {
+text-decoration: none;
+}

@@ -13,12 +13,7 @@
     </dl>
   </form>
 
-  <h1>Latest 10 images</h1>
-    <p>
-      {% for item in results %}
-      <a href="/static/gallery/{{item[1]}}/{{item[0]}}"><img src="/static/gallery/{{item[1]}}/{{item[0]}}" height="200" /><a/>
-      {% endfor %}
-    </p>
+
   <h1>Latest 10 movies</h1>
     <p>
       {% for item in results2 %}
