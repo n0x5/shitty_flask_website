@@ -23,9 +23,9 @@ def movieindex(genres=None):
 @app.route("/movies/<search>")
 def moviesearch(search=None):
     conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', 'movies.db'))
-    sql = "select release, director, imdb, infogenres, substr(title, -1, -4), dated from \
+    sql = "select release, director, imdb, infogenres, year, dated from \
             movies where (genre like ? or infogenres like ? or release like ? or director like ? \
-            or mainactors like ? or inforest like ? or imdb like ?) order by substr(title, -1, -4) desc, dated desc"
+            or mainactors like ? or inforest like ? or imdb like ?) order by year desc, dated desc"
 
     results = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), os.path.basename(item[2]+'.jpg'), 
                     item[3].replace('[', '').replace(']', '').replace("\'", ""), item[4]) for item in \
@@ -37,8 +37,8 @@ def moviesearch(search=None):
 @app.route("/movies/cast/<search>")
 def castsearch(search=None):
     conn1 = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', 'movies.db'))
-    sql1 = "select release, director, imdb, infogenres, substr(title, -1, -4), dated from \
-            movies where mainactors like ? order by substr(title, -1, -4) desc, dated desc"
+    sql1 = "select release, director, imdb, infogenres, year, dated from \
+            movies where mainactors like ? order by year desc, dated desc"
 
     results1 = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), os.path.basename(item[2]+'.jpg'), 
                     item[3].replace('[', '').replace(']', '').replace('\'', ''), item[4]) for item in \
@@ -46,8 +46,8 @@ def castsearch(search=None):
     conn1.close()
 
     conn2 = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', 'movies.db'))
-    sql2 = "select release, director, imdb, infogenres, substr(title, -1, -4), dated from \
-            movies where (inforest like ? and mainactors not like ?) order by substr(title, -1, -4) desc, dated desc"
+    sql2 = "select release, director, imdb, infogenres, year, dated from \
+            movies where (inforest like ? and mainactors not like ?) order by year desc, dated desc"
 
     results2 = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), os.path.basename(item[2]+'.jpg'), 
                     item[3].replace('[', '').replace(']', '').replace("\'", ""), item[4]) for item in \
@@ -59,7 +59,7 @@ def castsearch(search=None):
 @app.route("/movies/genrewide/<search>")
 def genrewidesearch(search=None):
     conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', 'movies.db'))
-    sql = "select movies.release, movies.director, movies.imdb, movies.infogenres, substr(movies.title, -1, -4), \
+    sql = "select movies.release, movies.director, movies.imdb, movies.infogenres, movies.year, \
         boxoffice.rlid, boxoffice.wide_theatersopen from movies join boxoffice on movies.imdb = boxoffice.imdbid where (movies.genre like ? or movies.infogenres like ?) \
         and wide_theatersopen > 2000 and boxoffice.wide_theatersopen != 'None' group by movies.release order by year desc"
 
@@ -73,7 +73,7 @@ def genrewidesearch(search=None):
 @app.route("/movies/genreltd/<search>")
 def genreltdsearch(search=None):
     conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', 'movies.db'))
-    sql = "select movies.release, movies.director, movies.imdb, movies.infogenres, substr(movies.title, -1, -4), \
+    sql = "select movies.release, movies.director, movies.imdb, movies.infogenres, movies.year, \
         boxoffice.rlid, boxoffice.alt_theaters from movies join boxoffice on movies.imdb = boxoffice.imdbid where (movies.genre like ? or movies.infogenres like ?) \
         and boxoffice.alt_theaters < 2000 and boxoffice.alt_theaters != 'None' group by movies.release order by year desc"
 
@@ -87,7 +87,7 @@ def genreltdsearch(search=None):
 @app.route("/movies/genrevideo/<search>")
 def genrevideosearch(search=None):
     conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', 'movies.db'))
-    sql = "select movies.release, movies.director, movies.imdb, movies.infogenres, substr(movies.title, -1, -4) \
+    sql = "select movies.release, movies.director, movies.imdb, movies.infogenres, movies.year \
         from movies where imdb not in (select imdbid from boxoffice) and (genre like ? or infogenres like ?) group by movies.release order by year desc"
 
     results = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), os.path.basename(item[2]+'.jpg'), 
@@ -101,7 +101,7 @@ def genrevideosearch(search=None):
 @app.route("/movies/yearwide/<search>")
 def yearwidesearch(search=None):
     conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', 'movies.db'))
-    sql = "select movies.release, movies.director, movies.imdb, movies.infogenres, substr(movies.title, -1, -4), \
+    sql = "select movies.release, movies.director, movies.imdb, movies.infogenres, movies.year, \
         boxoffice.rlid, boxoffice.wide_theatersopen from movies join boxoffice on movies.imdb = boxoffice.imdbid where movies.year like ? \
         and wide_theatersopen > 2000 and boxoffice.wide_theatersopen != 'None' group by movies.release order by year desc"
 
@@ -115,7 +115,7 @@ def yearwidesearch(search=None):
 @app.route("/movies/yearltd/<search>")
 def yearltdsearch(search=None):
     conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', 'movies.db'))
-    sql = "select movies.release, movies.director, movies.imdb, movies.infogenres, substr(movies.title, -1, -4), \
+    sql = "select movies.release, movies.director, movies.imdb, movies.infogenres, movies.year, \
         boxoffice.rlid, boxoffice.alt_theaters from movies join boxoffice on movies.imdb = boxoffice.imdbid where movies.year like ? \
         and boxoffice.alt_theaters < 2000 and boxoffice.alt_theaters != 'None' group by movies.release order by year desc"
 
@@ -129,7 +129,7 @@ def yearltdsearch(search=None):
 @app.route("/movies/yearvideo/<search>")
 def yearvideosearch(search=None):
     conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', 'movies.db'))
-    sql = "select movies.release, movies.director, movies.imdb, movies.infogenres, substr(movies.title, -1, -4) \
+    sql = "select movies.release, movies.director, movies.imdb, movies.infogenres, movies.year \
         from movies where imdb not in (select imdbid from boxoffice) and movies.year like ? group by movies.release order by year desc"
 
     results = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), os.path.basename(item[2]+'.jpg'), 
@@ -143,8 +143,8 @@ def yearvideosearch(search=None):
 @app.route("/movies/genre/<search>")
 def genresearch(search=None):
     conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', 'movies.db'))
-    sql = "select release, director, imdb, infogenres, substr(title, -1, -4), dated from movies \
-            where (genre like ? or infogenres like ?) order by substr(title, -1, -4) desc, dated desc"
+    sql = "select release, director, imdb, infogenres, year, dated from movies \
+            where (genre like ? or infogenres like ?) order by year desc, dated desc"
     results = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), os.path.basename(item[2]+'.jpg'), 
                 item[3].replace('[', '').replace(']', '').replace('\'', ''), item[4]) for item in \
              conn.execute(sql, ('%'+search+'%', '%'+search+'%'))]
@@ -166,8 +166,8 @@ def grouplist(groups=None):
 @app.route("/movies/group/<search>")
 def groupsearch(search=None):
     conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', 'movies.db'))
-    sql = "select release, director, imdb, infogenres, substr(title, -1, -4), dated \
-            from movies where grp like ? order by substr(title, -1, -4) desc, dated desc"
+    sql = "select release, director, imdb, infogenres, year, dated \
+            from movies where grp like ? order by year desc, dated desc"
     results = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), os.path.basename(item[2]+'.jpg'), 
             item[3].replace('[', '').replace(']', '').replace('\'', ''), item[4]) for item in \
                  conn.execute(sql, ('%'+search+'%',))]
@@ -190,8 +190,8 @@ def director(groups=None):
 @app.route("/movies/director/<search>")
 def directorsearch(search=None):
     conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', 'movies.db'))
-    sql = "select release, director, imdb, infogenres, substr(title, -1, -4), title, dated from movies \
-            where director like ? order by substr(title, -1, -4) desc, dated desc"
+    sql = "select release, director, imdb, infogenres, year, title, dated from movies \
+            where director like ? order by year desc, dated desc"
     results = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), os.path.basename(item[2]+'.jpg'), 
                 item[3].replace('[', '').replace(']', '').replace('\'', ''), item[4]) for item in \
                  conn.execute(sql, ('%'+search+'%',))]
@@ -292,12 +292,12 @@ def movierelease(release=None):
     connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', 'movies.db'))
     cursor = connection.cursor()
     cursor.execute('select release, grp, genre, format, imdb, title, director, mainactors, infogenres, inforest, \
-        infosummary, substr(title, -1, -4), imdb from movies where release like ?', ('%'+release+'%',))
+        infosummary, year, imdb from movies where release like ?', ('%'+release+'%',))
 
     results = [(item[0], item[1], item[2], item[3], os.path.basename(item[4]+'.jpg'), item[5], item[6].strip(' ').replace('\\n', '').replace(',', ''), 
             item[7].replace('[', '').replace(']', '').replace('\'', '').split(','), 
             item[8].replace('[', '').replace(']', '').replace('\'', '').split(','), item[9].replace('[', '').replace(']', '').replace('\'', '').split(','), 
-            item[10], item[11].replace(')', '').replace('(', ''), item[12]) for item in cursor.fetchall()]
+            item[10], item[11], item[12]) for item in cursor.fetchall()]
     remaining_cast = (item.strip() for item in results[0][9])
     main_cast = (item.strip() for item in results[0][7])
     genres_list = (item.strip() for item in results[0][8])
@@ -348,3 +348,6 @@ def movierelease(release=None):
     cursor.close()
     cursor2.close()
     cursor3.close()
+
+
+
