@@ -14,7 +14,6 @@ from flask import render_template
 
 import configs
 
-
 app = Flask(__name__)
 app.debug = True
 app.config.update(configs.conf) # edit configs-sample.py and rename to configs.py
@@ -27,10 +26,12 @@ def hello(tpath=None):
     tpath = os.path.join(os.path.dirname(__file__), 'static', 'gallery')
     return render_template('index.html', tpath=tpath)
 
+
 @app.route("/tst")
 def hello2(tpath=None):
     tpath = __name__
     return tpath
+
 
 ###################### ADMIN / STUFF #########################
 
@@ -40,6 +41,10 @@ import admin
 
 import movies
 
+########################## TV ############################
+
+import tv
+
 
 ###################### BLOG #########################
 
@@ -47,7 +52,7 @@ import blog
 
 ###################### IMAGES #########################
 
-#import images
+import images
 
 
 ###################### GAMES #########################
@@ -58,5 +63,3 @@ import games
 
 if __name__ == "__main__":
     app.run()
-
-

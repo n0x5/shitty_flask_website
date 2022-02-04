@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+
+{% block title %}>Tv Database episode guide{% endblock %}
+
+{% block b2 %}<h2><a href="/">Back</a></h2>{% endblock %}
+{% block content %}
+
+
+<p>List of Tv shows:</p>
+
+{% for item in results %}
+<img width="100" src="/static/cover_tv/{{item[0]}}.jpg" /><a style="font-weight:bold;" href="/tv/{{item[0]}}">{{item[1]}}</a> | Episodes: {{item[2]}}<br>
+{% endfor %}
+
+{% endblock %}
