@@ -26,3 +26,34 @@ def tvdetails(search=None):
     count = len(results)
     conn.close()
     return render_template('tvdetails.html', results=results, count=count)
+
+
+@app.route("/tv/stargate")
+def tvstargate(results=None):
+    conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', 'stargate.db'))
+    sql = 'select title from stargate where title like "%Category%" order by title;'
+    results = [item for item in conn.execute(sql)]
+    count = len(results)
+    conn.close()
+    return render_template('tv_stargate_index.html', results=results, count=count)
+
+@app.route("/tv/stargate/category/<search>")
+def tvstargatedetails(search=None):
+    conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', 'stargate.db'))
+    sql = "select title, content from stargate where content like ? order by title"
+    results = [item for item in conn.execute(sql, ('%'+search+'%',))]
+    count = len(results)
+    conn.close()
+    return render_template('tv_stargate_details.html', results=results, count=count)
+
+@app.route("/tv/stargate/article/<search>")
+def tvstargatearticle(search=None):
+    conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', 'stargate.db'))
+    sql = "select content from stargate where title like ?"
+    results = [item for item in conn.execute(sql, ('%'+search+'%',))]
+    count = len(results)
+    conn.close()
+    final_string1 = '<pre>'+str(results[0][0])+'</pre>'
+    final_string2 = re.sub(r'\[\[(.+?)\]\]', r'<a href="\1">\1</a>', final_string1)
+    final_string = re.sub(r'<a href="(Category.+?)"', r'<a href="/tv/stargate/category/\1">\1</a>', final_string2)
+    return final_string.replace('.html', '')

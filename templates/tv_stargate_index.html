@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+
+{% block title %}>Stargate Database{% endblock %}
+
+{% block b2 %}<h2><a href="/">Back</a></h2>{% endblock %}
+{% block content %}
+
+
+
+{% for item in results %}
+<a style="font-weight:bold;" href="/tv/stargate/category/{{item[0]}}">{{item[0]}}</a><br>
+{% endfor %}
+
+{% endblock %}

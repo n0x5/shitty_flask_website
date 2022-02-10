@@ -7,8 +7,10 @@ import os
 from flask import render_template
 from flask import flash
 import re
+from memory_profiler import profile
 
 @app.route("/movies")
+@profile
 def movieindex(genres=None):
     conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', 'movies.db'))
     sql = 'select release from movies'
@@ -57,6 +59,7 @@ def castsearch(search=None):
     return render_template('moviecast.html', results=results1, search=search, gcounts=gcounts2, results2=results2)
 
 @app.route("/movies/genrewide/<search>")
+@profile
 def genrewidesearch(search=None):
     conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', 'movies.db'))
     sql = "select movies.release, movies.director, movies.imdb, movies.infogenres, movies.year, \
