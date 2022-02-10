@@ -54,10 +54,14 @@ def wiki_article(search=None, search2=None):
     results = [item for item in conn.execute(sql, ('%'+search+'%',))]
     count = len(results)
     conn.close()
-    final_string1 = '<pre style="word-wrap: break-word; white-space: pre-wrap;">'+str(results[0][0])+'</pre>'
+    final_string1 = '<title>'+search+'</title>'+'<pre style="word-wrap: break-word; white-space: pre-wrap;">'+str(results[0][0])+'</pre>'
     final_string2 = re.sub(r'\[\[(.+?)\]\]', r'<a href="\1">\1</a>', final_string1)
     final_string3 = re.sub(r'\=\=\=\=(.+?)\=\=\=\=', r'<h4>\1</h4>', final_string2)
     final_string4 = re.sub(r'\=\=\=(.+?)\=\=\=', r'<h3>\1</h3>', final_string3)
     final_string5 = re.sub(r'\=\=(.+?)\=\=', r'<h2>\1</h2>', final_string4)
-    final_string = re.sub(r'<a href="(Category.+?)"', r'<a href="/tv/halflife/category/\1">\1</a>', final_string5)
+    final_string6 = re.sub(r"'''(.+?)'''", r'<b>\1</b>', final_string5)
+    final_string7 = final_string6.replace('images/', '/static/stargate_images/')
+    final_string8 = re.sub(r"''(.+?)''", r'<b>\1</b>', final_string7)
+    final_string = re.sub(r'<a href="(Category.+?)"', r'<a href="/tv/halflife/category/\1">\1</a>', final_string8)
     return final_string.replace('.html', '')
+
