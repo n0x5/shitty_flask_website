@@ -51,18 +51,20 @@ def wiki_details(search=None, search2=None):
 def wiki_article(search=None, search2=None):
     conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', '{}'+'.db').format(search2))
     sql = "select content from {} where title like ?" .format(search2)
-    results = [item for item in conn.execute(sql, ('%'+search+'%',))]
+    results = [item for item in conn.execute(sql, (search,))]
     count = len(results)
     conn.close()
     final_string1 = '<title>'+search+'</title>'+'<pre style="word-wrap: break-word; white-space: pre-wrap;">'+str(results[0][0])+'</pre>'
     final_string2 = re.sub(r'\[\[(.+?)\]\]', r'<a href="\1">\1</a>', final_string1)
-    final_string3 = re.sub(r'\=\=\=\=(.+?)\=\=\=\=', r'<h4>\1</h4>', final_string2)
-    final_string4 = re.sub(r'\=\=\=(.+?)\=\=\=', r'<h3>\1</h3>', final_string3)
-    final_string5 = re.sub(r'\=\=(.+?)\=\=', r'<h2>\1</h2>', final_string4)
+    final_string3 = re.sub(r'\=\=\=\=(.+?)\=\=\=\=', r'<h4 style="display:inline;">\1</h4>', final_string2)
+    final_string4 = re.sub(r'\=\=\=(.+?)\=\=\=', r'<h3 style="display:inline;">\1</h3>', final_string3)
+    final_string5 = re.sub(r'\=\=(.+?)\=\=', r'<h2 style="display:inline;">\1</h2>', final_string4)
     final_string6 = re.sub(r"'''(.+?)'''", r'<b>\1</b>', final_string5)
     final_string7 = final_string6.replace('images/', '/static/{}_images/' .format(search2)).replace('{{cite}}', '').replace('{{Cite}}', '')
     final_string8 = re.sub(r"''(.+?)''", r'<b>\1</b>', final_string7)
     final_string9 = re.sub(r"\{\{dablink(.+?)\}\}", r'<b>\1</b><br>', final_string8)
-    final_string = re.sub(r'<a href="(Category.+?)"', r'<a href="/wiki/{}/category/\1">\1</a>' .format(search2), final_string9)
+    final_string10 = re.sub(r"\*(.+?)\n", r'<li>\1</li>', final_string9)
+    final_string11 = re.sub(r"{{(.+)}}", r'{{\1}}<br><br>', final_string10)
+    final_string = re.sub(r'<a href="(Category.+?)"', r'<a href="/wiki/{}/category/\1">\1</a>' .format(search2), final_string11)
     return final_string.replace('.html', '')
 
