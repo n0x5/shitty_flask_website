@@ -60,8 +60,9 @@ def wiki_article(search=None, search2=None):
     final_string4 = re.sub(r'\=\=\=(.+?)\=\=\=', r'<h3>\1</h3>', final_string3)
     final_string5 = re.sub(r'\=\=(.+?)\=\=', r'<h2>\1</h2>', final_string4)
     final_string6 = re.sub(r"'''(.+?)'''", r'<b>\1</b>', final_string5)
-    final_string7 = final_string6.replace('images/', '/static/stargate_images/')
+    final_string7 = final_string6.replace('images/', '/static/{}_images/' .format(search2)).replace('{{cite}}', '').replace('{{Cite}}', '')
     final_string8 = re.sub(r"''(.+?)''", r'<b>\1</b>', final_string7)
-    final_string = re.sub(r'<a href="(Category.+?)"', r'<a href="/tv/halflife/category/\1">\1</a>', final_string8)
+    final_string9 = re.sub(r"\{\{dablink(.+?)\}\}", r'<b>\1</b><br>', final_string8)
+    final_string = re.sub(r'<a href="(Category.+?)"', r'<a href="/wiki/{}/category/\1">\1</a>' .format(search2), final_string9)
     return final_string.replace('.html', '')
 
