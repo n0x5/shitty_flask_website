@@ -64,7 +64,7 @@ def wiki_article(search=None, search2=None):
     final_string8 = re.sub(r"''(.+?)''", r'<b>\1</b>', final_string7)
     final_string9 = re.sub(r"\{\{dablink(.+?)\}\}", r'<b>\1</b><br>', final_string8)
     final_string10 = re.sub(r"\*(.+?)\n", r'<li>\1</li>', final_string9)
-    final_string11 = re.sub(r"{{(.+)}}", r'{{\1}}<br><hr><br>', final_string10)
+    final_string11 = re.sub(r'{{(.+?)}}', r'{{\1}}<hr>', final_string10)
     final_string = re.sub(r'<a href="(Category.+?)"', r'<a href="/wiki/{}/category/\1">\1</a>' .format(search2), final_string11)
-    return final_string.replace('.html', '').replace('{{up}}<br><hr><br>', '')
+    return final_string.replace('.html', '').replace('{{up}}<hr>', '')
 
