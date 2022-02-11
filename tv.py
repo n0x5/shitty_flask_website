@@ -68,8 +68,8 @@ def wiki_article(search=None, search2=None):
     final_string = re.sub(r'<a href="(Category.+?)"', r'<a href="/wiki/{}/category/\1">\1</a>' .format(search2), final_string11)
     imgsearch = re.search(r'src="\/static\/\w+\/(.+?)"', str(final_string))
     imgsearch_final = imgsearch.group(1)
-    conn2 = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', 'residentevilimages.db'))
-    sql2 = "select url, filename from resevilimages where filename like ?" 
+    conn2 = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', '{}_images.db').format(search2))
+    sql2 = "select url, filename from resevilimages where filename like ?"
     results2 = [item for item in conn2.execute(sql2, (imgsearch_final,))]
     file_url = results2[0][0]
     filename1 = results2[0][1]
@@ -82,7 +82,13 @@ def wiki_article(search=None, search2=None):
         r = requests.get(file_url, headers=headers)
         with open(endpoint, 'wb') as cover_jpg:
             cover_jpg.write(r.content)
+    if not os.path.exists(os.path.join('imgsearch_final', imgsearch_final)):
+        imgsearch_final_img = str(imgsearch_final).replace('_', ' ')
+        final_string_img_3 = re.sub(r'{}_images\/.+?"' .format(search2), r'{}_images\/{}"' .format(search2, imgsearch_final_img), final_string)
+        return final_string_img_3.replace('.html', '').replace('{{up}}<hr>', '').replace('250px', '550px')
 
-    return final_string11.replace('.html', '').replace('{{up}}<hr>', '').replace('250px', '550px')
+    else:
+        return final_string.replace('.html', '').replace('{{up}}<hr>', '').replace('250px', '550px')
+
 
 
