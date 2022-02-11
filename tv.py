@@ -7,7 +7,7 @@ import os
 from flask import render_template
 from flask import flash
 import re
-
+import requests
 
 @app.route("/tv")
 def tvindex(results=None):
@@ -66,5 +66,23 @@ def wiki_article(search=None, search2=None):
     final_string10 = re.sub(r"\*(.+?)\n", r'<li>\1</li>', final_string9)
     final_string11 = re.sub(r'{{(.+?)}}', r'{{\1}}<hr>', final_string10)
     final_string = re.sub(r'<a href="(Category.+?)"', r'<a href="/wiki/{}/category/\1">\1</a>' .format(search2), final_string11)
-    return final_string.replace('.html', '').replace('{{up}}<hr>', '')
+    imgsearch = re.search(r'src="\/static\/\w+\/(.+?)"', str(final_string))
+    imgsearch_final = imgsearch.group(1)
+    conn2 = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', 'residentevilimages.db'))
+    sql2 = "select url, filename from resevilimages where filename like ?" 
+    results2 = [item for item in conn2.execute(sql2, (imgsearch_final,))]
+    file_url = results2[0][0]
+    filename1 = results2[0][1]
+    endpoint = os.path.join(os.path.dirname(__file__), 'static', '{}_images', filename1) .format(search2)
+    endpoint2 = os.path.join(os.path.dirname(__file__), 'static', '{}_images') .format(search2)
+    if not os.path.exists(endpoint2): 
+        os.makedirs(endpoint2)
+    if not os.path.exists(endpoint):
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:47.0) Gecko/20100101 Firefox/47.0'}
+        r = requests.get(file_url, headers=headers)
+        with open(endpoint, 'wb') as cover_jpg:
+            cover_jpg.write(r.content)
+
+    return final_string11.replace('.html', '').replace('{{up}}<hr>', '').replace('250px', '550px')
+
 
