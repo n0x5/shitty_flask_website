@@ -8,8 +8,11 @@
 
 
 {% for item in results %}
+{% if 'Category' in item[0] %}
+<a href="/wiki/{{search2}}/category/{{item[0]}}"><h2 style="display:inline;">{{item[0]}}</h2></a>
+{% else %}
 <a href="/wiki/{{search2}}/article/{{item[0]}}"><h2 style="display:inline;">{{item[0]}}</h2></a>
-
+{% endif %}
 <br>
 {% endfor %}
 
