@@ -48,7 +48,7 @@ def wiki_details(search=None, search2=None):
     return render_template('wiki_details.html', results=results, count=count, search=search, search2=search2)
 
 
-@app.route("/wiki/<search2>/article2/<search>")
+@app.route("/wiki/<search2>/article/<search>")
 def wiki_article2(search=None, search2=None):
     conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', '{}'+'.db').format(search2))
     sql = "select content from {} where title like ?" .format(search2)
