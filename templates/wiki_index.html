@@ -5,7 +5,11 @@
 {% block b2 %}<h2><a href="/">Back</a></h2>{% endblock %}
 {% block content %}
 
-
+<form method='post' action='/wiki/{{search}}/search'>
+<div><input type='text' name='search' placeholder='Article name'>
+<input type='submit'>
+</div>
+</form>
 
 {% for item in results %}
 <a style="font-weight:bold;" href="/wiki/{{search}}/category/{{item[0]}}">{{item[0]}}</a><br>
