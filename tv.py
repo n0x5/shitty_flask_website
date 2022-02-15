@@ -6,6 +6,7 @@ import sqlite3
 import os
 from flask import render_template
 from flask import flash
+from flask import request
 import re
 import requests
 
