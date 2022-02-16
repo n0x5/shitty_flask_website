@@ -121,7 +121,7 @@ def wiki_article2(search=None, search2=None):
 def wiki_search(search=None, search2=None):
     conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', '{}'+'.db').format(search2))
     search = request.form['search']
-    sql = "select title, substr(content, instr(content, '{}'), 45) from {} where content like ? order by title" .format(search, search2)
+    sql = "select title, substr(content, instr(content, '{}')-25, 65) from {} where content like ? order by title" .format(search, search2)
     results = [item for item in conn.execute(sql, ('%'+search+'%',))]
     count = len(results)
     conn.close()
