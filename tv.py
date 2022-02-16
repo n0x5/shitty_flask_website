@@ -116,13 +116,14 @@ def wiki_article2(search=None, search2=None):
 
     except Exception:
         return final_string.replace('.html', '').replace('{{up}}<hr>', '')
-
+    
 @app.route("/wiki/<search2>/search", methods=['GET', 'POST'])
 def wiki_search(search=None, search2=None):
     conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', '{}'+'.db').format(search2))
-    sql = "select title, content from {} where content like ? order by title" .format(search2)
     search = request.form['search']
+    sql = "select title, substr(content, instr(content, \"{}\"), 45) from {} where content like ? order by title" .format(search, search2)
     results = [item for item in conn.execute(sql, ('%'+search+'%',))]
     count = len(results)
     conn.close()
-    return render_template('wiki_details.html', results=results, count=count, search=search, search2=search2)
+    return render_template('wiki_search.html', results=results, count=count, search=search, search2=search2)
+
