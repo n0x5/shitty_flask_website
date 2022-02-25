@@ -44,8 +44,10 @@ def get_info(url):
     except:
         year = soup.find('div', attrs={'class': 'title_wrapper'}).get_text().replace('(', '').replace(')', '')
 
+
     typ3 = data['@type']
     url5 = data['url']
+    
     title = data['name']
     try:
         title_alt = data['alternateName']
@@ -123,6 +125,7 @@ def get_info(url):
         if item:
             inforest.append(item)
 
+    flm_actress = 'none'
     langs = soup.find('div', attrs={'data-testid': 'title-details-section'})
     country_origin = langs.find('a', href=re.compile('country_of_origin')).text
     try:
@@ -131,10 +134,10 @@ def get_info(url):
         language_orig = 'None'
     #stuff = year, typ3, title, cover, genres, actors, directors, summary, keywords, rating, score['ratingValue'], inforest
 
-    stuff = url, title+' ('+year+')', directors, ', '.join(actors), ', '.join(genres), ', '.join(inforest), summary, year, country_origin, language_orig
+    stuff = id2.group(1), title, title_alt, directors, ', '.join(actors), ', '.join(genres), ', '.join(inforest), summary, year, country_origin, language_orig, flm_actress
     print(stuff)
     try:
-        cur.execute('insert into moviesflm (imdb, title, director, mainactors, infogenres, inforest, infosummary, year, country, language) VALUES (?,?,?,?,?,?,?,?,?,?)', (stuff))
+        cur.execute('insert into flmlist (imdb, eng_title, orig_title, director, mainactors, infogenres, inforest, infosummary, year, country, language, flm_actress) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)', (stuff))
         cur.connection.commit()
     except Exception as e:
         print(e)
