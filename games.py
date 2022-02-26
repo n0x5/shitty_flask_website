@@ -39,22 +39,25 @@ def games2index():
     sql3 = "select year, count(distinct(title)) c from gamesv2 group by year having c > 2 order by c desc"
     years = [(item[0], item[1]) for item in conn.execute(sql3)]
 
+    sql5 = "select genre, count(distinct(title)) c from gamesv2 group by genre having c > 7 order by c desc"
+    genres = [(item[0], item[1]) for item in conn.execute(sql5)]
+
     conn.close()
     gcounts = len(groups)
-    return render_template('gamesv2index.html', groups=groups, publishers=publishers, years=years, developers=developers)
+    return render_template('gamesv2index.html', groups=groups, publishers=publishers, years=years, developers=developers, genres=genres)
 
 @app.route("/gamesv2/system/<search>")
 def v2systemsearch(search=None):
     conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', 'gamesv2.db'))
     sql = "select title, genre, developer, publisher, year, systems, orig_system from gamesv2 \
             where orig_system like ? order by year asc"
-    results = [(item[0], item[1], item[2], item[3], item[4], item[5], item[6]) for item in conn.execute(sql, ('%'+search+'%',))]
+    results = [(item[0], item[1], item[2], item[3], item[4], item[5], item[6]) for item in conn.execute(sql, (search,))]
     conn.close()
     gcounts = len(results)
     return render_template('games2_search.html', results=results, search=search, gcounts=gcounts)
 
 
-@app.route("/gamesv2/sysexclusive/<search>")
+@app.route("/gamesv2/exclusives/<search>")
 def v2systemexclsearch(search=None):
     conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', 'gamesv2.db'))
     sql = "select title, genre, developer, publisher, year, systems, orig_system from gamesv2 \
@@ -64,12 +67,12 @@ def v2systemexclsearch(search=None):
     gcounts = len(results)
     return render_template('games2_search.html', results=results, search=search, gcounts=gcounts)
 
-@app.route("/gamesv2/conxclusive/<search>")
+@app.route("/gamesv2/notonpc/<search>")
 def v2systemconexclsearch(search=None):
     conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', 'gamesv2.db'))
     sql = "select title, genre, developer, publisher, year, systems, orig_system from gamesv2 \
-            where (lower(systems) like ? and systems not like '%PC%') group by title order by year asc"
-    results = [(item[0], item[1], item[2], item[3], item[4], item[5], item[6]) for item in conn.execute(sql, ('%'+search+'%',))]
+            where (lower(systems) like ? and systems not like '%PC%' and orig_system = ?) group by title order by year asc"
+    results = [(item[0], item[1], item[2], item[3], item[4], item[5], item[6]) for item in conn.execute(sql, ('%'+search+'%', search))]
     conn.close()
     gcounts = len(results)
     return render_template('games2_search.html', results=results, search=search, gcounts=gcounts)
@@ -89,6 +92,16 @@ def v2developersearch(search=None):
     conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', 'gamesv2.db'))
     sql = "select title, genre, developer, publisher, year, systems, orig_system from gamesv2 \
             where lower(developer) like ? group by title order by year asc"
+    results = [(item[0], item[1], item[2], item[3], item[4], item[5], item[6]) for item in conn.execute(sql, ('%'+search+'%',))]
+    conn.close()
+    gcounts = len(results)
+    return render_template('games2_search.html', results=results, search=search, gcounts=gcounts)
+
+@app.route("/gamesv2/genre/<search>")
+def v2genresearch(search=None):
+    conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', 'gamesv2.db'))
+    sql = "select title, genre, developer, publisher, year, systems, orig_system from gamesv2 \
+            where lower(genre) like ? group by title order by year asc"
     results = [(item[0], item[1], item[2], item[3], item[4], item[5], item[6]) for item in conn.execute(sql, ('%'+search+'%',))]
     conn.close()
     gcounts = len(results)
