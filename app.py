@@ -15,7 +15,7 @@ from flask import render_template
 import configs
 
 app = Flask(__name__)
-app.debug = True
+#app.debug = True
 app.config.update(configs.conf) # edit configs-sample.py and rename to configs.py
 
 
@@ -52,12 +52,17 @@ import blog
 
 ###################### IMAGES #########################
 
-import images
+#import images
 
 
 ###################### GAMES #########################
 
 import games
+
+###################### FLM #########################
+
+import flm
+
 
 
 

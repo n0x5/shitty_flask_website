@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+
+{% block title %}FLM films{% endblock %}
+
+{% block b2 %}<h2><a href="/">Back</a></h2>{% endblock %}
+{% block content %}
+
+
+<p>List of <b>{{count}}</b> FLM films:</p>
+
+{% for item in results %}
+<div class="main" style="display:block;height: 260px;border-top: 1px solid;padding-top: 5px;">
+<img style="float:left;display:inline;margin-right:5px;" width="110" src="/static/covers_flm/{{item[0]}}.jpg" /><h2 style="display:inline;">{{item[2]}} |</h2><h2 style="display:inline;"> {{item[8]}}</h2><br>
+<div class="title" style="display:inline;">English title: {{item[1]}}</div><br>
+<div class="genres" style="display:inline;">Genres: {{item[5]}}</div><br>
+<div class="plot" style="display:inline;">Plot: {{item[7]}}</div><br>
+<div class="country" style="display:inline;">Country: {{item[9]}}</div><br>
+<div class="language" style="display:inline;">Language: {{item[10]}}</div><br>
+<div class="flmactress">FLM Actress: {{item[11]}}</div>
+</div>
+{% endfor %}
+
+{% endblock %}

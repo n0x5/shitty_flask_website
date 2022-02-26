@@ -1,0 +1,35 @@
+{% extends "layout.html" %}
+{% block title %}>List of games{% endblock %}
+
+{% block b2 %}<h2><a href="/movies">Back</a></h2>{% endblock %}
+
+{% block content %}
+<h1>list of games by system:</h1>
+
+
+
+{% for item in groups %}
+  <a href="/gamesv2/system/{{item[0]}}">{{item[0]}}</a> | <a style="color:red;font-size:13px;" href="/gamesv2/sysexclusive/{{item[0]}}">Exclusives</a> | <a style="color:red;font-size:13px;" href="/gamesv2/conxclusive/{{item[0]}}">Not on PC</a>   <strong>{{item[1]}}</strong> games<br>
+------------------------------------------------------------<br>
+{% endfor %}
+
+
+<h1>list of games by publisher:</h1>
+
+{% for item in publishers %}
+  <a href="/gamesv2/publisher/{{item[0]}}">{{item[0]}}</a>     <strong>{{item[1]}}</strong> games<br>
+{% endfor %}
+
+<h1>list of games by developers:</h1>
+
+{% for item in developers %}
+  <a href="/gamesv2/developer/{{item[0]}}">{{item[0]}}</a>     <strong>{{item[1]}}</strong> games<br>
+{% endfor %}
+
+<h1>list of games by years:</h1>
+
+{% for item in years %}
+  <a href="/gamesv2/game/{{item[0]}}">{{item[0]}}</a>     <strong>{{item[1]}}</strong> games<br>
+{% endfor %}
+
+{% endblock %}
