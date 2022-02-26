@@ -9,8 +9,14 @@
 
 
 {% for item in groups %}
-  <a href="/gamesv2/system/{{item[0]}}">{{item[0]}}</a> | <a style="color:red;font-size:13px;" href="/gamesv2/sysexclusive/{{item[0]}}">Exclusives</a> | <a style="color:red;font-size:13px;" href="/gamesv2/conxclusive/{{item[0]}}">Not on PC</a>   <strong>{{item[1]}}</strong> games<br>
+  <a href="/gamesv2/system/{{item[0]}}">{{item[0]}}</a> | <a style="color:red;font-size:13px;" href="/gamesv2/exclusives/{{item[0]}}">Exclusives</a> | <a style="color:red;font-size:13px;" href="/gamesv2/notonpc/{{item[0]}}">Not on PC</a>   <strong>{{item[1]}}</strong> games<br>
 ------------------------------------------------------------<br>
+{% endfor %}
+
+<h1>list of games by genre:</h1>
+
+{% for item in genres %}
+  <a href="/gamesv2/genre/{{item[0]}}">{{item[0]}}</a>     <strong>{{item[1]}}</strong> games<br>
 {% endfor %}
 
 
