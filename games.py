@@ -124,7 +124,7 @@ def v2systemsearchregionna(search=None):
 def v2systemexclsearchregionna(search=None):
     conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', 'gamesv2.db'))
     sql = "select title, genre, developer, publisher, year, systems, orig_system from gamesv2 \
-            where (lower(systems) = ? and orig_system = ? and na is not null and na not like 'Unreleased') order by year asc"
+            where (lower(systems) = ? and orig_system = ? and na is not null and na not like 'Unreleased' and na not like '') order by year asc"
     results = [(item[0], item[1], item[2], item[3], item[4], item[5], item[6]) for item in conn.execute(sql, (search, search))]
     conn.close()
     gcounts = len(results)
@@ -134,7 +134,7 @@ def v2systemexclsearchregionna(search=None):
 def v2systemconexclsearchregionna(search=None):
     conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', 'gamesv2.db'))
     sql = "select title, genre, developer, publisher, year, systems, orig_system from gamesv2 \
-            where (lower(systems) like ? and systems not like '%PC%' and orig_system = ? and na is not null and na not like 'Unreleased') group by title order by year asc"
+            where (lower(systems) like ? and systems not like '%PC%' and orig_system = ? and na is not null and na not like 'Unreleased' and na not like '') group by title order by year asc"
     results = [(item[0], item[1], item[2], item[3], item[4], item[5], item[6]) for item in conn.execute(sql, ('%'+search+'%', search))]
     conn.close()
     gcounts = len(results)
@@ -144,7 +144,7 @@ def v2systemconexclsearchregionna(search=None):
 def v2systemsearchregioneu(search=None):
     conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', 'gamesv2.db'))
     sql = "select title, genre, developer, publisher, year, systems, orig_system from gamesv2 \
-            where (orig_system like ? and eu is not null and eu not like 'Unreleased') order by year asc"
+            where (orig_system like ? and eu is not null and eu not like 'Unreleased' and eu not like '') order by year asc"
     results = [(item[0], item[1], item[2], item[3], item[4], item[5], item[6]) for item in conn.execute(sql, (search,))]
     conn.close()
     gcounts = len(results)
@@ -155,7 +155,7 @@ def v2systemsearchregioneu(search=None):
 def v2systemexclsearchregioneu(search=None):
     conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', 'gamesv2.db'))
     sql = "select title, genre, developer, publisher, year, systems, orig_system from gamesv2 \
-            where (lower(systems) = ? and orig_system = ? and eu is not null and eu not like 'Unreleased') order by year asc"
+            where (lower(systems) = ? and orig_system = ? and eu is not null and eu not like 'Unreleased' and eu not like '') order by year asc"
     results = [(item[0], item[1], item[2], item[3], item[4], item[5], item[6]) for item in conn.execute(sql, (search, search))]
     conn.close()
     gcounts = len(results)
@@ -165,7 +165,7 @@ def v2systemexclsearchregioneu(search=None):
 def v2systemconexclsearchregioneu(search=None):
     conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', 'gamesv2.db'))
     sql = "select title, genre, developer, publisher, year, systems, orig_system from gamesv2 \
-            where (lower(systems) like ? and systems not like '%PC%' and orig_system = ? and eu is not null and eu not like 'Unreleased') group by title order by year asc"
+            where (lower(systems) like ? and systems not like '%PC%' and orig_system = ? and eu is not null and eu not like 'Unreleased' and eu not like '') group by title order by year asc"
     results = [(item[0], item[1], item[2], item[3], item[4], item[5], item[6]) for item in conn.execute(sql, ('%'+search+'%', search))]
     conn.close()
     gcounts = len(results)
@@ -175,7 +175,7 @@ def v2systemconexclsearchregioneu(search=None):
 def v2systemsearchregionjp(search=None):
     conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', 'gamesv2.db'))
     sql = "select title, genre, developer, publisher, year, systems, orig_system from gamesv2 \
-            where (orig_system like ? and jp is not null and jp not like 'Unreleased') order by year asc"
+            where (orig_system like ? and jp is not null and jp not like 'Unreleased' and jp not like '') order by year asc"
     results = [(item[0], item[1], item[2], item[3], item[4], item[5], item[6]) for item in conn.execute(sql, (search,))]
     conn.close()
     gcounts = len(results)
@@ -186,7 +186,7 @@ def v2systemsearchregionjp(search=None):
 def v2systemexclsearchregionjp(search=None):
     conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', 'gamesv2.db'))
     sql = "select title, genre, developer, publisher, year, systems, orig_system from gamesv2 \
-            where (lower(systems) = ? and orig_system = ? and jp is not null and jp not like 'Unreleased') order by year asc"
+            where (lower(systems) = ? and orig_system = ? and jp is not null and jp not like 'Unreleased' and jp not like '') order by year asc"
     results = [(item[0], item[1], item[2], item[3], item[4], item[5], item[6]) for item in conn.execute(sql, (search, search))]
     conn.close()
     gcounts = len(results)
@@ -196,7 +196,7 @@ def v2systemexclsearchregionjp(search=None):
 def v2systemconexclsearchregionjp(search=None):
     conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', 'gamesv2.db'))
     sql = "select title, genre, developer, publisher, year, systems, orig_system from gamesv2 \
-            where (lower(systems) like ? and systems not like '%PC%' and orig_system = ? and jp is not null and jp not like 'Unreleased') group by title order by year asc"
+            where (lower(systems) like ? and systems not like '%PC%' and orig_system = ? and jp is not null and jp not like 'Unreleased' and jp not like '') group by title order by year asc"
     results = [(item[0], item[1], item[2], item[3], item[4], item[5], item[6]) for item in conn.execute(sql, ('%'+search+'%', search))]
     conn.close()
     gcounts = len(results)
