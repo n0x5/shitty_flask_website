@@ -1,0 +1,75 @@
+/*
+Theme Name: Code 2 center
+Theme URI: http://
+Description: Two-columns, black background with green text theme from <a href="http://">coax*</a>
+Version: 0.0.9
+Author: nox
+Text Domain: English
+Author URI: http://mc
+License: GNU General Public License v2 or later
+License URI: http://www.gnu.org/licenses/gpl-2.0.html
+*/
+
+li {
+	line-height: 170%;
+	list-style: none;
+}
+.imgobj {
+width: 1000px !important;
+}
+body {
+font-family: Verdana, Helvetica, Arial, sans-serif;
+font-size: 11px;
+background-color: #000;
+color: #ccc;
+}
+
+#main {
+background-color: #000;
+width: 750px;
+margin-top: 0px;
+margin-left: auto;
+margin-right: auto;
+margin-bottom: 26px;
+}
+#sidebar {
+float: left;
+width: 230px;
+}
+#content {
+float: right;
+width: 500px;
+}
+
+a {
+color: rgb(0, 153, 153);
+text-decoration: none;
+}
+h2 a{
+	color: #b92020;
+}
+a:hover {
+	color: red;
+}
+h2 {
+color: #cc9;
+font-family: Georgia, 'Times New Roman', Times, serif;
+font-size: 18px;
+letter-spacing: -1px;
+display: inline;
+}
+.subhead {
+	color: #666;
+    font-style: italic;
+    font-size: 11px;
+	display: inline;
+	margin-left: 15px;
+}
+.post {
+	margin-top: 7px;
+	margin-bottom: 10px;
+	border-bottom: 1px solid rgb(0 153 153);
+}
+table {
+	font-size: 11px;
+}
