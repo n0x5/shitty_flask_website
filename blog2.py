@@ -45,8 +45,8 @@ def blog2_edit(post=None):
         post_text = f.read()
     if request.method == 'POST':
         content = request.form['body']
-        with open(filename, 'w+') as f:
-            f.write(content)
+        with open(filename, 'wb') as f:
+            f.write(bytes(content, 'UTF-8'))
 
         return redirect('/blog2')
 
