@@ -63,7 +63,9 @@ import games
 
 import flm
 
+#import wp
 
+import blog2
 
 
 if __name__ == "__main__":
