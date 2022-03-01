@@ -24,7 +24,7 @@ def blog2_index():
     sql = 'select post_title, post_content, post_date from wp_posts where (post_status = "publish" and post_type = "post") order by post_date desc'
     results = [item for item in conn.execute(sql)]
 
-    return render_template('blog2index.html', results2=results2, results=results)
+    return render_template('blog2_index.html', results2=results2, results=results)
 
 @app.route('/blog2/<post>')
 def blog2_post(post=None):
