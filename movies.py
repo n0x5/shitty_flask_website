@@ -7,10 +7,8 @@ import os
 from flask import render_template
 from flask import flash
 import re
-from memory_profiler import profile
 
 @app.route("/movies")
-@profile
 def movieindex(genres=None):
     conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', 'movies.db'))
     sql = 'select release from movies'
@@ -20,7 +18,7 @@ def movieindex(genres=None):
                 "biography", "history", "western", "sci-fi", "horror", "adventure", "drama", "fantasy", "thriller", "action"])
     genres = [item.title() for item in genrelist]
     conn.close()
-    return render_template('movieindex.html', genres=genres, count=count)
+    return render_template('movies/movieindex.html', genres=genres, count=count)
 
 @app.route("/movies/<search>")
 def moviesearch(search=None):
@@ -34,7 +32,7 @@ def moviesearch(search=None):
     conn.execute(sql, ('%'+search+'%', '%'+search+'%', '%'+search+'%', '%'+search+'%', '%'+search+'%', '%'+search+'%', '%'+search+'%'))]
     conn.close()
     gcounts = len(results)
-    return render_template('movies2.html', results=results, search=search, gcounts=gcounts)
+    return render_template('movies/movies2.html', results=results, search=search, gcounts=gcounts)
 
 @app.route("/movies/cast/<search>")
 def castsearch(search=None):
@@ -56,10 +54,9 @@ def castsearch(search=None):
     conn2.execute(sql2, ('%'+search+'%', '%'+search+'%'))]
     conn2.close()
     gcounts2 = len(results2)+len(results1)
-    return render_template('moviecast.html', results=results1, search=search, gcounts=gcounts2, results2=results2)
+    return render_template('movies/moviecast.html', results=results1, search=search, gcounts=gcounts2, results2=results2)
 
 @app.route("/movies/genrewide/<search>")
-@profile
 def genrewidesearch(search=None):
     conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', 'movies.db'))
     sql = "select movies.release, movies.director, movies.imdb, movies.infogenres, movies.year, \
@@ -71,7 +68,7 @@ def genrewidesearch(search=None):
     conn.execute(sql, ('%'+search+'%', '%'+search+'%'))]
     conn.close()
     gcounts = len(results)
-    return render_template('movies7.html', results=results, search=search, gcounts=gcounts)
+    return render_template('movies/movies7.html', results=results, search=search, gcounts=gcounts)
 
 @app.route("/movies/genreltd/<search>")
 def genreltdsearch(search=None):
@@ -85,7 +82,7 @@ def genreltdsearch(search=None):
              conn.execute(sql, ('%'+search+'%', '%'+search+'%'))]
     conn.close()
     gcounts = len(results)
-    return render_template('movies7.html', results=results, search=search, gcounts=gcounts)
+    return render_template('movies/movies7.html', results=results, search=search, gcounts=gcounts)
 
 @app.route("/movies/genrevideo/<search>")
 def genrevideosearch(search=None):
@@ -98,7 +95,7 @@ def genrevideosearch(search=None):
              conn.execute(sql, ('%'+search+'%', '%'+search+'%'))]
     conn.close()
     gcounts = len(results)
-    return render_template('movies7.html', results=results, search=search, gcounts=gcounts)
+    return render_template('movies/movies7.html', results=results, search=search, gcounts=gcounts)
 
 
 @app.route("/movies/yearwide/<search>")
@@ -113,7 +110,7 @@ def yearwidesearch(search=None):
     conn.execute(sql, ('%'+search+'%',))]
     conn.close()
     gcounts = len(results)
-    return render_template('movies7.html', results=results, search=search, gcounts=gcounts)
+    return render_template('movies/movies7.html', results=results, search=search, gcounts=gcounts)
 
 @app.route("/movies/yearltd/<search>")
 def yearltdsearch(search=None):
@@ -127,7 +124,7 @@ def yearltdsearch(search=None):
              conn.execute(sql, ('%'+search+'%',))]
     conn.close()
     gcounts = len(results)
-    return render_template('movies7.html', results=results, search=search, gcounts=gcounts)
+    return render_template('movies/movies7.html', results=results, search=search, gcounts=gcounts)
 
 @app.route("/movies/yearvideo/<search>")
 def yearvideosearch(search=None):
@@ -140,7 +137,7 @@ def yearvideosearch(search=None):
              conn.execute(sql, ('%'+search+'%',))]
     conn.close()
     gcounts = len(results)
-    return render_template('movies7.html', results=results, search=search, gcounts=gcounts)
+    return render_template('movies/movies7.html', results=results, search=search, gcounts=gcounts)
 
 
 @app.route("/movies/genre/<search>")
@@ -153,7 +150,7 @@ def genresearch(search=None):
              conn.execute(sql, ('%'+search+'%', '%'+search+'%'))]
     conn.close()
     gcounts = len(results)
-    return render_template('movies2.html', results=results, search=search, gcounts=gcounts)
+    return render_template('movies/movies2.html', results=results, search=search, gcounts=gcounts)
 
 
 @app.route("/movies/groups")
@@ -163,7 +160,7 @@ def grouplist(groups=None):
     groups = [(item[0], item[1]) for item in conn.execute(sql)]
     conn.close()
     gcounts = len(groups)
-    return render_template('moviegroups.html', groups=groups)
+    return render_template('movies/moviegroups.html', groups=groups)
 
 
 @app.route("/movies/group/<search>")
@@ -176,7 +173,7 @@ def groupsearch(search=None):
                  conn.execute(sql, ('%'+search+'%',))]
     conn.close()
     gcounts = len(results)
-    return render_template('movies2.html', results=results, search=search, gcounts=gcounts)
+    return render_template('movies/movies2.html', results=results, search=search, gcounts=gcounts)
 
 
 @app.route("/movies/director")
@@ -187,7 +184,7 @@ def director(groups=None):
                  conn.execute(sql)]
     conn.close()
     gcounts = len(groups)
-    return render_template('moviedirector.html', groups=groups)
+    return render_template('movies/moviedirector.html', groups=groups)
 
 
 @app.route("/movies/director/<search>")
@@ -200,7 +197,7 @@ def directorsearch(search=None):
                  conn.execute(sql, ('%'+search+'%',))]
     conn.close()
     gcounts = len(results)
-    return render_template('movies2.html', results=results, search=search, gcounts=gcounts)
+    return render_template('movies/movies2.html', results=results, search=search, gcounts=gcounts)
 
 @app.route("/movies/years")
 def movieyears(groups=None):
@@ -208,7 +205,7 @@ def movieyears(groups=None):
     sql = "select distinct(year), count(distinct(imdb)) c from movies group by year having c > 0 order by c desc"
     years = [(item[0], item[1]) for item in conn.execute(sql)]
     conn.close()
-    return render_template('movieyears.html', years=years)
+    return render_template('movies/movieyears.html', years=years)
 
 
 @app.route("/movies/years/<search>")
@@ -221,7 +218,7 @@ def movieyearssearch(search=None):
                  conn.execute(sql, ('%'+search+'%',))]
     conn.close()
     gcounts = len(results)
-    return render_template('movies2.html', results=results, search=search, gcounts=gcounts)
+    return render_template('movies/movies2.html', results=results, search=search, gcounts=gcounts)
 
 @app.route("/movies/boxgenres")
 def moviesbox1():
@@ -230,7 +227,7 @@ def moviesbox1():
     results = [(item[0],) for item in conn.execute(sql)]
     conn.close()
 
-    return render_template('movies-boxgenres.html', results=results)
+    return render_template('movies/movies-boxgenres.html', results=results)
 
 @app.route("/movies/company")
 def companylist():
@@ -252,7 +249,7 @@ def companylist():
     companies3 = [(item[0], item[1]) for item in cursor.fetchall()]
 
     cursor.close()
-    return render_template('company_list_all.html', companies=companies, companies2=companies2, companies3=companies3)
+    return render_template('movies/company_list_all.html', companies=companies, companies2=companies2, companies3=companies3)
 
 
 @app.route("/movies/company/all/<studio>")
@@ -263,7 +260,7 @@ def companylist2(studio=None):
     companies = [(item[0], item[1], item[2], item[3], item[4]) for item in cursor.fetchall()]
     count = len(companies)
     cursor.close()
-    return render_template('company_list.html', companies=companies, count=count, studio=studio)
+    return render_template('movies/company_list.html', companies=companies, count=count, studio=studio)
 
 @app.route("/movies/company/<studio>")
 def companylist3(studio=None):
@@ -275,7 +272,7 @@ def companylist3(studio=None):
     results = [(item[0], item[1], item[2], item[3]) for item in cursor.fetchall()]
     count = len(results)
     cursor.close()
-    return render_template('company_list2.html', results=results, count=count, studio=studio)
+    return render_template('movies/company_list2.html', results=results, count=count, studio=studio)
 
 @app.route("/movies/company/theatrical/<studio>")
 def companylist3theatrical(studio=None):
@@ -287,7 +284,7 @@ def companylist3theatrical(studio=None):
     results = [(item[0], item[1], item[2], item[3]) for item in cursor.fetchall()]
     count = len(results)
     cursor.close()
-    return render_template('company_list2.html', results=results, count=count, studio=studio)
+    return render_template('movies/company_list2.html', results=results, count=count, studio=studio)
 
 @app.route("/movies/release/<release>")
 def movierelease(release=None):
@@ -343,7 +340,7 @@ def movierelease(release=None):
         results3 = ('None',)
         results6 = [('None', 'None', 'None',)]
 
-    return render_template('releasedetails.html', results=results, results3=results3, results4=results4, compane=imdbidor, \
+    return render_template('movies/releasedetails.html', results=results, results3=results3, results4=results4, compane=imdbidor, \
                 main_cast=main_cast, remaining_cast=remaining_cast, genres_list=genres_list, release=release, results6=results6, \
                 theaters=theaters, distributor=distributor, pre_date=pre_date)
 

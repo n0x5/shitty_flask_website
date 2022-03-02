@@ -19,7 +19,6 @@ app = Flask(__name__)
 app.config.update(configs.conf) # edit configs-sample.py and rename to configs.py
 
 
-
 @app.route("/")
 def hello(tpath=None):
     image = 'hey there guy'
@@ -27,45 +26,16 @@ def hello(tpath=None):
     return render_template('index.html', tpath=tpath)
 
 
-@app.route("/tst")
-def hello2(tpath=None):
-    tpath = __name__
-    return tpath
 
-
-###################### ADMIN / STUFF #########################
+# sections of site
 
 import admin
-
-########################## MOVIES ############################
-
 import movies
-
-########################## TV ############################
-
 import tv
-
-
-###################### BLOG #########################
-
-import blog
-
-###################### IMAGES #########################
-
-#import images
-
-
-###################### GAMES #########################
-
 import games
-
-###################### FLM #########################
-
 import flm
-
-#import wp
-
 import blog2
+import wiki
 
 
 if __name__ == "__main__":

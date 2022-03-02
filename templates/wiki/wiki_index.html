@@ -11,8 +11,11 @@
 </div>
 </form>
 
+<div id="results1">
 {% for item in results %}
 <a style="font-weight:bold;" href="/wiki/{{search}}/category/{{item[0]}}">{{item[0]}}</a><br>
 {% endfor %}
+</div>
 
 {% endblock %}
+

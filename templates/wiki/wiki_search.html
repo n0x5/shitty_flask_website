@@ -8,6 +8,7 @@
 
 Search results for: <h3 style="display:inline;">{{search}}</h3><br><br><br>
 
+<div id="results1">
 {% for item in results %}
 {% if 'Category' in item[0] %}
 <a href="/wiki/{{search2}}/category/{{item[0]}}"><h2 style="display:inline;">{{item[0]}}</h2></a>
@@ -16,6 +17,6 @@ Search results for: <h3 style="display:inline;">{{search}}</h3><br><br><br>
 {% endif %}
 <br>
 {% endfor %}
-
+</div>
 {% endblock %}
 

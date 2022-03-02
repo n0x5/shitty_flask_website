@@ -1,0 +1,45 @@
+{% extends "layout.html" %}
+{% block title %}>List of games{% endblock %}
+
+{% block b2 %}<h2><a href="/movies">Back</a></h2>{% endblock %}
+
+
+
+{% block content %}
+
+
+<h1>list of games by system:</h1>
+
+
+
+{% for item in groups %}
+  <a href="/gamesv2/system/{{item[0]}}">{{item[0]}}</a> (<a style="color:red;font-size:13px;" href="/gamesv2/system/na/{{item[0]}}">NA</a> | <a style="color:red;font-size:13px;" href="/gamesv2/system/eu/{{item[0]}}">EU</a> | <a style="color:red;font-size:13px;" href="/gamesv2/system/jp/{{item[0]}}">JP</a>) | <a style="color:red;font-size:13px;" href="/gamesv2/exclusives/{{item[0]}}">Exclusives</a> (<a style="color:red;font-size:12px;" href="/gamesv2/exclusives/na/{{item[0]}}">NA</a> | <a style="color:red;font-size:12px;" href="/gamesv2/exclusives/eu/{{item[0]}}">EU</a> | <a style="color:red;font-size:12px;" href="/gamesv2/exclusives/jp/{{item[0]}}">JP</a>) | <a style="color:red;font-size:13px;" href="/gamesv2/notonpc/{{item[0]}}">Not on PC</a> (<a style="color:red;font-size:12px;" href="/gamesv2/notonpc/na/{{item[0]}}">NA</a> | <a style="color:red;font-size:12px;" href="/gamesv2/notonpc/eu/{{item[0]}}">EU</a> | <a style="color:red;font-size:12px;" href="/gamesv2/notonpc/jp/{{item[0]}}">JP</a>)   <strong>{{item[1]}}</strong> games<br>
+------------------------------------------------------------<br>
+{% endfor %}
+
+<h1>list of games by genre:</h1>
+
+{% for item in genres %}
+  <a href="/gamesv2/genre/{{item[0]}}">{{item[0]}}</a>     <strong>{{item[1]}}</strong> games<br>
+{% endfor %}
+
+
+<h1>list of games by publisher:</h1>
+
+{% for item in publishers %}
+  <a href="/gamesv2/publisher/{{item[0]}}">{{item[0]}}</a>     <strong>{{item[1]}}</strong> games<br>
+{% endfor %}
+
+<h1>list of games by developers:</h1>
+
+{% for item in developers %}
+  <a href="/gamesv2/developer/{{item[0]}}">{{item[0]}}</a>     <strong>{{item[1]}}</strong> games<br>
+{% endfor %}
+
+<h1>list of games by years:</h1>
+
+{% for item in years %}
+  <a href="/gamesv2/game/{{item[0]}}">{{item[0]}}</a>     <strong>{{item[1]}}</strong> games<br>
+{% endfor %}
+
+{% endblock %}

@@ -17,14 +17,14 @@ import re
 def blog2_index():
     for root, dirs, files in os.walk(os.path.join(os.path.dirname(__file__), 'posts')):
         results3 = [os.path.join(root, post1) for post1 in files]
-        results3.sort(key=os.path.getmtime, reverse=True)
+        results3.sort(key=os.path.getctime, reverse=True)
         results2 = [os.path.basename(fn).replace('.md', '') for fn in results3]
 
     #conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', 'wp-posts.db'))
     #sql = 'select post_title, post_content, post_date from wp_posts where (post_status = "publish" and post_type = "post") order by post_date desc'
     #results = [item for item in conn.execute(sql)]
 
-    return render_template('blog2_index.html', results2=results2)
+    return render_template('blog2/blog2_index.html', results2=results2)
 
 @app.route('/blog2/<post>')
 def blog2_post(post=None):
@@ -34,7 +34,7 @@ def blog2_post(post=None):
         your_text_string = f.read()
         html = markdown.markdown(your_text_string, extensions=extension_list)
 
-    return render_template('blog2_post.html', html=html)
+    return render_template('blog2/blog2_post.html', html=html)
 
 @app.route('/blog2/edit/<post>', methods=['GET', 'POST'])
 def blog2_edit(post=None):
@@ -51,5 +51,5 @@ def blog2_edit(post=None):
 
         return redirect('/blog2')
 
-    return render_template('blog2_edit.html', post_text=post_text, filename=os.path.basename(filename).replace('.md', ''))
+    return render_template('blog2/blog2_edit.html', post_text=post_text, filename=os.path.basename(filename).replace('.md', ''))
 

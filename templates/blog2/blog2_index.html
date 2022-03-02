@@ -10,12 +10,4 @@
 <a href="/blog2/{{ post }}">{{ post }}</a> {% if session.logged_in %} | <a href="/blog2/edit/{{ post }}">( Edit post)</a>{% endif %} <br>
 </ul>
 {% endfor %}
-
-
-Old wordpress posts:
-{% for post in results %}
-<ul>
-<li><a href="/blog2/archive/{{ post[2] }} - {{ post[0] }}">{{ post[2] }} - {{ post[0] }}</a></li> | 
-</ul>
-{% endfor %}
 {% endblock %}

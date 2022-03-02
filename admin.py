@@ -52,7 +52,6 @@ def dash1(results=None):
     if not session.get('logged_in'):
         return 'access denied'
 
-    if request.method == 'GET' or request.method == 'POST':
         connection2 = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', 'movies.db'))
         cursor2 = connection2.cursor()
         sql2 = 'select * from (select * from movies order by dated desc limit 20) order by dated desc'
