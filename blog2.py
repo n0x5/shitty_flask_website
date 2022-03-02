@@ -29,9 +29,10 @@ def blog2_index():
 @app.route('/blog2/<post>')
 def blog2_post(post=None):
     filename = os.path.join(os.path.dirname(__file__), 'posts', '{}.md' .format(post))
+    extension_list = ['codehilite', 'fenced_code', 'extra', 'meta', 'sane_lists', 'toc', 'wikilinks']
     with open(filename, 'r') as f:
         your_text_string = f.read()
-        html = markdown.markdown(your_text_string, extensions=['codehilite', 'fenced_code'])
+        html = markdown.markdown(your_text_string, extensions=extension_list)
 
     return render_template('blog2_post.html', html=html)
 
@@ -52,14 +53,3 @@ def blog2_edit(post=None):
 
     return render_template('blog2_edit.html', post_text=post_text, filename=os.path.basename(filename).replace('.md', ''))
 
-
-@app.route('/blog2/archive/<post>')
-def blog2_archive_post(post=None):
-    conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', 'wp-posts.db'))
-    post = re.sub(r'.+\- ', '', post)
-    sql = 'select post_title, post_content, post_date from wp_posts where post_title like ?'
-    results = [item for item in conn.execute(sql, (post,))]
-    
-    #html = markdown.markdown(your_text_string, extensions=['codehilite', 'fenced_code'])
-    return str(results)
-    #return render_template('blog2post.html', html=html)
