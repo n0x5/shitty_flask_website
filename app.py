@@ -1,9 +1,3 @@
-    import sys
-    reload(sys)  
-    sys.setdefaultencoding('utf8')
-except:
-    pass
-
 from flask import Flask
 import os
 from flask import render_template
