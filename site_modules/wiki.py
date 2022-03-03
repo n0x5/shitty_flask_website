@@ -11,7 +11,7 @@ import requests
 
 @app.route("/wiki/<search>")
 def wiki_index(results=None, search=None):
-    conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', '{}'+'.db').format(search))
+    conn = sqlite3.connect(os.path.join(app.root_path, 'databases', '{}'+'.db').format(search))
     sql = 'select title from {} where title like "%Category%" order by title' .format(search)
     results = [item for item in conn.execute(sql)]
     count = len(results)
@@ -21,7 +21,7 @@ def wiki_index(results=None, search=None):
 
 @app.route("/wiki/<search2>/category/<search>")
 def wiki_details(search=None, search2=None):
-    conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', '{}'+'.db').format(search2))
+    conn = sqlite3.connect(os.path.join(app.root_path, 'databases', '{}'+'.db').format(search2))
     sql = "select title, content from {} where content like ? order by title" .format(search2)
     results = [item for item in conn.execute(sql, ('%'+search+'%',))]
     count = len(results)
@@ -31,7 +31,7 @@ def wiki_details(search=None, search2=None):
 
 @app.route("/wiki/<search2>/article/<search>")
 def wiki_article(search=None, search2=None):
-    conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', '{}'+'.db').format(search2))
+    conn = sqlite3.connect(os.path.join(app.root_path, 'databases', '{}'+'.db').format(search2))
     sql = "select content from {} where title like ?" .format(search2)
     results = [item for item in conn.execute(sql, (search,))]
     count = len(results)
@@ -54,7 +54,7 @@ def wiki_article(search=None, search2=None):
 
 @app.route("/wiki/<search2>/article2/<search>")
 def wiki_article2(search=None, search2=None):
-    conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', '{}'+'.db').format(search2))
+    conn = sqlite3.connect(os.path.join(app.root_path, 'databases', '{}'+'.db').format(search2))
     sql = "select content from {} where title like ?" .format(search2)
     results = [item for item in conn.execute(sql, (search,))]
     count = len(results)
@@ -76,14 +76,14 @@ def wiki_article2(search=None, search2=None):
         imgsearch = re.findall(r'src="\/static\/\w+\/(.+?)"', str(final_string))
         lst = []
         for item_img in imgsearch:
-            conn2 = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', '{}_images.db').format(search2))
+            conn2 = sqlite3.connect(os.path.join(app.root_path, 'databases', '{}_images.db').format(search2))
             sql2 = "select url, filename from {}_images where filename like ?" .format(search2)
             results2 = [item for item in conn2.execute(sql2, (item_img,))]
             file_url = results2[0][0]
             filename1 = results2[0][1]
             lst.append([item_img, filename1, file_url])
-            endpoint = os.path.join(os.path.dirname(__file__), 'static', '{}_images', filename1) .format(search2)
-            endpoint2 = os.path.join(os.path.dirname(__file__), 'static', '{}_images') .format(search2)
+            endpoint = os.path.join(app.root_path, 'static', '{}_images', filename1) .format(search2)
+            endpoint2 = os.path.join(app.root_path, 'static', '{}_images') .format(search2)
             if not os.path.exists(endpoint2):
                 os.makedirs(endpoint2)
             if not os.path.exists(endpoint):
@@ -101,7 +101,7 @@ def wiki_article2(search=None, search2=None):
 
 @app.route("/wiki/<search2>/search", methods=['GET', 'POST'])
 def wiki_search(search=None, search2=None):
-    conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', '{}'+'.db').format(search2))
+    conn = sqlite3.connect(os.path.join(app.root_path, 'databases', '{}'+'.db').format(search2))
     search = request.form['search']
     sql = "select title, substr(content, instr(lower(content), '{}')-20, 75) from {} where content like ? order by title" .format(search.lower(), search2)
     results = [item for item in conn.execute(sql, ('%'+search+'%',))]

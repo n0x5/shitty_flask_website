@@ -10,7 +10,7 @@ import requests
 
 @app.route("/flm")
 def flm_index(results=None):
-    conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'databases', 'movies-flm.db'))
+    conn = sqlite3.connect(os.path.join(app.root_path, 'databases', 'movies-flm.db'))
     sql = 'select * from flmlist order by year desc'
     results = [item for item in conn.execute(sql)]
     count = len(results)

@@ -1,7 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-try:
     import sys
     reload(sys)  
     sys.setdefaultencoding('utf8')
@@ -12,30 +8,28 @@ from flask import Flask
 import os
 from flask import render_template
 
-import configs
+from config import _configs
 
 app = Flask(__name__)
-#app.debug = True
-app.config.update(configs.conf) # edit configs-sample.py and rename to configs.py
+
+# edit configs/configs-sample.py and rename to config/configs.py
+app.config.update(_configs.conf)
 
 
 @app.route("/")
-def hello(tpath=None):
-    image = 'hey there guy'
-    tpath = os.path.join(os.path.dirname(__file__), 'static', 'gallery')
-    return render_template('index.html', tpath=tpath)
+def hello():
+    return render_template('index.html')
 
 
+# Main sections of site
 
-# sections of site
-
-import admin
-import movies
-import tv
-import games
-import flm
-import blog2
-import wiki
+from site_modules import admin
+from site_modules import movies
+from site_modules import tv
+from site_modules import games
+from site_modules import flm
+from site_modules import blog2
+from site_modules import wiki
 
 
 if __name__ == "__main__":
