@@ -27,7 +27,9 @@ class GrabIt(urllib.request.FancyURLopener):
                 except Exception as e:
                     print(str(e))
 
-conn = sqlite3.connect('tv.db')
+
+sql_db = os.path.join(os.path.dirname( __file__ ), '..', 'databases', 'tv.db')
+conn = sqlite3.connect(sql_db)
 cur = conn.cursor()
 cur.execute('''CREATE TABLE if not exists tv
             (imdb_id, show_title text, episode_title text, air_date text, episode_summary text, 
@@ -38,20 +40,17 @@ headers = {
 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:47.0) Gecko/20100101 Firefox/47.0'
 }
 
-grab1 = GrabIt()
-url2 = r'https://www.imdb.com/title/{}' .format(args.imdb_id)
-response2 = requests.get(url2, headers=headers)
-soup3 = BeautifulSoup(response2.text, "html.parser")
-table = soup3.find('script', type=re.compile(r'ld\+json'))
-try:
-    data = json.loads(table.string)
-except:
-    data = json.loads(table.get_text())
-show_title = data['name']
-
 endpoint4 = os.path.join(os.path.dirname(__file__), 'cover_tv', args.imdb_id+'.jpg')
 if not os.path.isfile(endpoint4):
-   
+    grab1 = GrabIt()
+    url2 = r'https://www.imdb.com/title/{}' .format(args.imdb_id)
+    response2 = requests.get(url2, headers=headers)
+    soup3 = BeautifulSoup(response2.text, "html.parser")
+    table = soup3.find('script', type=re.compile(r'ld\+json'))
+    try:
+        data = json.loads(table.string)
+    except:
+        data = json.loads(table.get_text())
     cover = data['image']
     id2 = re.search(r'(tt\d+)', str(url2))
     endpoint = os.path.join(os.path.dirname(__file__), 'cover_tv', id2.group(1)+'.jpg')
@@ -68,8 +67,8 @@ if not os.path.isfile(endpoint4):
 
 response = requests.get(url, headers=headers)
 soup = BeautifulSoup(response.text, "html.parser")
-
-
+show_title2 = soup.find('h3', attrs={'itemprop': 'name'})
+show_title = re.sub(r'\(.+?\)', '', show_title2.get_text().strip())
 table = soup.find('div', attrs={'class': 'list detail eplist'})
 
 for item in soup.find_all('div', attrs={'class': 'list_item'}):

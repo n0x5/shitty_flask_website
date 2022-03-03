@@ -19,7 +19,9 @@ today = time.strftime("__%m_%Y_%H_%M_%S")
 cwd = r'F:\archive\xvid-scan'
 number = 0
 
-conn = sqlite3.connect('movies.db')
+sql_db = os.path.join(os.path.dirname( __file__ ), '..', 'databases', 'movies.db')
+
+conn = sqlite3.connect(sql_db)
 cur = conn.cursor()
 cur.execute('''CREATE TABLE if not exists movies
             (release text unique, grp text, genre text, format text, imdb text, title text, director text,
@@ -173,8 +175,9 @@ def get_info(url):
     inforest1 = []
 
     id2 = re.search(r'(tt\d+)', str(url5))
-    endpoint = os.path.join(os.path.dirname(__file__), 'covers', id2.group(1)+'.jpg')
-    if not os.path.exists('covers'):
+    endpoint_folder = os.path.join(os.path.dirname(__file__), '..', 'static', 'covers')
+    endpoint = os.path.join(os.path.dirname(__file__), '..', 'static', 'covers', id2.group(1)+'.jpg')
+    if not os.path.exists(endpoint_folder):
         os.makedirs('covers')
     if os.path.isfile(endpoint):
         print('file exists - skipping')
@@ -197,7 +200,7 @@ def get_info(url):
     return title+' ('+year+')', directors, actors, genres, inforest, summary, year
 
 def get_infocompany(url, release):
-    conn2 = sqlite3.connect('movies.db')
+    conn2 = sqlite3.connect(sql_db)
     cur = conn2.cursor()
     cur.execute('''CREATE TABLE IF NOT EXISTS companyinfo
                 (release text, company text, imdbid text, coid text, title text, dated datetime DEFAULT CURRENT_TIMESTAMP)''')

@@ -15,7 +15,8 @@ parser.add_argument('url')
 args = parser.parse_args()
 
 def get_info(url):
-    conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'movies-flm.db'))
+    sql_db = os.path.join(os.path.dirname( __file__ ), '..', 'databases', 'movies-flm.db')
+    conn = sqlite3.connect(sql_db)
     cur = conn.cursor()
     cur.execute('''CREATE TABLE if not exists moviesflm
             (imdb text unique, title text, director text,
@@ -44,23 +45,14 @@ def get_info(url):
     except:
         year = soup.find('div', attrs={'class': 'title_wrapper'}).get_text().replace('(', '').replace(')', '')
 
-
     typ3 = data['@type']
     url5 = data['url']
-    
     title = data['name']
-    try:
-        title_alt = data['alternateName']
-    except:
-        title_alt = 'None'
     try:
         cover = data['image']
     except:
         cover = 'None'
-    try:
-        genres = data['genre']
-    except:
-        genres = 'None'
+    genres = data['genre']
     actor = data['actor']
     actors = [item4['name'] for item4 in actor]
     try:
@@ -103,20 +95,18 @@ def get_info(url):
     inforest1 = []
 
     id2 = re.search(r'(tt\d+)', str(url5))
-    endpoint = os.path.join(os.path.dirname(__file__), 'covers', id2.group(1)+'.jpg')
-    if not os.path.exists('covers'):
+    endpoint_folder = os.path.join(os.path.dirname(__file__), '..', 'static', 'covers')
+    endpoint = os.path.join(os.path.dirname(__file__), '..', 'static', 'covers', id2.group(1)+'.jpg')
+    if not os.path.exists(endpoint_folder):
         os.makedirs('covers')
     if os.path.isfile(endpoint):
         print('file exists - skipping')
 
-    try:
-        r = requests.get(cover, headers=headers)
-        fn = os.path.basename(cover)
+    r = requests.get(cover, headers=headers)
+    fn = os.path.basename(cover)
 
-        with open(endpoint, 'wb') as cover_jpg:
-            cover_jpg.write(r.content)
-    except:
-        print('No cover')
+    with open(endpoint, 'wb') as cover_jpg:
+        cover_jpg.write(r.content)
 
     for item in names:
         inforest1.append(item.get_text().strip())
@@ -125,19 +115,15 @@ def get_info(url):
         if item:
             inforest.append(item)
 
-    flm_actress = 'none'
     langs = soup.find('div', attrs={'data-testid': 'title-details-section'})
     country_origin = langs.find('a', href=re.compile('country_of_origin')).text
-    try:
-        language_orig = langs.find('a', href=re.compile('primary_language')).text
-    except:
-        language_orig = 'None'
+    language_orig = langs.find('a', href=re.compile('primary_language')).text
     #stuff = year, typ3, title, cover, genres, actors, directors, summary, keywords, rating, score['ratingValue'], inforest
 
-    stuff = id2.group(1), title, title_alt, directors, ', '.join(actors), ', '.join(genres), ', '.join(inforest), summary, year, country_origin, language_orig, flm_actress
+    stuff = url, title+' ('+year+')', directors, ', '.join(actors), ', '.join(genres), ', '.join(inforest), summary, year, country_origin, language_orig
     print(stuff)
     try:
-        cur.execute('insert into flmlist (imdb, eng_title, orig_title, director, mainactors, infogenres, inforest, infosummary, year, country, language, flm_actress) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)', (stuff))
+        cur.execute('insert into moviesflm (imdb, title, director, mainactors, infogenres, inforest, infosummary, year, country, language) VALUES (?,?,?,?,?,?,?,?,?,?)', (stuff))
         cur.connection.commit()
     except Exception as e:
         print(e)

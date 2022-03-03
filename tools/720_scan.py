@@ -16,7 +16,9 @@ today = time.strftime("__%m_%Y_%H_%M_%S")
 
 cwd = r'/folder/path'
 
-conn = sqlite3.connect('movies.db')
+sql_db = os.path.join(os.path.dirname( __file__ ), '..', 'databases', 'movies.db')
+
+conn = sqlite3.connect(sql_db)
 cur = conn.cursor()
 cur.execute('''CREATE TABLE movies720
             (release text unique, imdb text, dated datetime DEFAULT CURRENT_TIMESTAMP)''')

@@ -10,7 +10,9 @@ parser = argparse.ArgumentParser()
 parser.add_argument('year')
 args = parser.parse_args()
 
-conn = sqlite3.connect('movies.db')
+sql_db = os.path.join(os.path.dirname( __file__ ), '..', 'databases', 'movies.db')
+
+conn = sqlite3.connect(sql_db)
 cur = conn.cursor()
 cur.execute('''CREATE TABLE if not exists boxoffice_wide
             (title text, theaters int, theatersopen int, gross text, distributor text, release_date text,
