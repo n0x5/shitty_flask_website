@@ -23,13 +23,13 @@ def get_info(url):
             mainactors text, infogenres text, inforest text, infosummary text, year text, country text, language text, dated datetime DEFAULT CURRENT_TIMESTAMP)''')
 
     headers = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:47.0) Gecko/20100101 Firefox/47.0'
+    'User-Agent':  'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36'
     }
 
     response = requests.get(url, headers=headers)
     soup = BeautifulSoup(response.text, "html.parser")
     table = soup.find('script', type=re.compile(r'ld\+json'))
-
+    #print(table)
 
     try:
         data = json.loads(table.string)
@@ -45,14 +45,23 @@ def get_info(url):
     except:
         year = soup.find('div', attrs={'class': 'title_wrapper'}).get_text().replace('(', '').replace(')', '')
 
+
     typ3 = data['@type']
     url5 = data['url']
+    
     title = data['name']
+    try:
+        title_alt = data['alternateName']
+    except:
+        title_alt = 'None'
     try:
         cover = data['image']
     except:
         cover = 'None'
-    genres = data['genre']
+    try:
+        genres = data['genre']
+    except:
+        genres = 'None'
     actor = data['actor']
     actors = [item4['name'] for item4 in actor]
     try:
@@ -102,11 +111,14 @@ def get_info(url):
     if os.path.isfile(endpoint):
         print('file exists - skipping')
 
-    r = requests.get(cover, headers=headers)
-    fn = os.path.basename(cover)
+    try:
+        r = requests.get(cover, headers=headers)
+        fn = os.path.basename(cover)
 
-    with open(endpoint, 'wb') as cover_jpg:
-        cover_jpg.write(r.content)
+        with open(endpoint, 'wb') as cover_jpg:
+            cover_jpg.write(r.content)
+    except:
+        print('No cover')
 
     for item in names:
         inforest1.append(item.get_text().strip())
@@ -115,15 +127,19 @@ def get_info(url):
         if item:
             inforest.append(item)
 
+    flm_actress = 'none'
     langs = soup.find('div', attrs={'data-testid': 'title-details-section'})
     country_origin = langs.find('a', href=re.compile('country_of_origin')).text
-    language_orig = langs.find('a', href=re.compile('primary_language')).text
+    try:
+        language_orig = langs.find('a', href=re.compile('primary_language')).text
+    except:
+        language_orig = 'None'
     #stuff = year, typ3, title, cover, genres, actors, directors, summary, keywords, rating, score['ratingValue'], inforest
 
-    stuff = url, title+' ('+year+')', directors, ', '.join(actors), ', '.join(genres), ', '.join(inforest), summary, year, country_origin, language_orig
+    stuff = id2.group(1), title, title_alt, directors, ', '.join(actors), ', '.join(genres), ', '.join(inforest), summary, year, country_origin, language_orig, flm_actress
     print(stuff)
     try:
-        cur.execute('insert into moviesflm (imdb, title, director, mainactors, infogenres, inforest, infosummary, year, country, language) VALUES (?,?,?,?,?,?,?,?,?,?)', (stuff))
+        cur.execute('insert into flmlist (imdb, eng_title, orig_title, director, mainactors, infogenres, inforest, infosummary, year, country, language, flm_actress) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)', (stuff))
         cur.connection.commit()
     except Exception as e:
         print(e)
