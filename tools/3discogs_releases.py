@@ -16,7 +16,7 @@ cur.execute('''CREATE TABLE if not exists discogs_releases
 xmlfile = 'discogs_20220301_releases.xml'
 
 def read1():
-    return xml.read(161061)
+    return xml.read(1610611)
 
 with open(xmlfile, 'r', encoding="utf=8") as xml:
     for fname in iter(read1, ''):
@@ -98,10 +98,15 @@ with open(xmlfile, 'r', encoding="utf=8") as xml:
                 try:
                     tracklist = re.search(r'<tracklist>(.+?)<\/tracklist>', str(item))
                     tracks = re.findall(r'<track>(.+?)<\/track>', str(tracklist.group(1)))
-                    try:
-                        track_p = re.findall(r'<position>(.+?)<\/position><title>(.+?)<\/title><duration>(.+?)<\/duration>', str(tracks))
-                    except:
-                        track_p = 'None'
+                    track_p = []
+                    for item9 in tracks:
+                        try:
+                            position = re.search(r'<position>(.+?)<\/position>', str(item9))
+                            track_title = re.search(r'<title>(.+?)<\/title>', str(item9))
+                            duration = re.search(r'<duration>(.+?)<\/duration>', str(item9))
+                            track_p.append([position.group(1), track_title.group(1), duration.group(1)])
+                        except:
+                            track_p = 'None'
 
                 except:
                     tracklist = 'None'
