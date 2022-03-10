@@ -4,19 +4,22 @@ from tqdm import tqdm
 import sqlite3
 
 
-sql_db = os.path.join(os.path.dirname( __file__ ), 'discogs-releases.db')
+sql_db = os.path.join(os.path.dirname( __file__ ), 'discogs-releases2.db')
 conn = sqlite3.connect(sql_db)
 cur = conn.cursor()
 cur.execute('''CREATE TABLE if not exists discogs_releases
-        (id text unique, country text, released text,
-        artist_id text, genres text, styles text, title text, label_name text, catno text, label_id text, format_name text,
+        (id text, country text, released text,
+         genres text, styles text, title text, label_name text, catno text, label_id text, format_name text,
         format_qty text, data_quality text, notes text, track_p text, dated datetime DEFAULT CURRENT_TIMESTAMP)''')
+
+cur.execute('''CREATE TABLE if not exists discogs_rel_artists
+        (release_id text, artist_id text, artist_name text, dated datetime DEFAULT CURRENT_TIMESTAMP)''')
 
 
 xmlfile = 'discogs_20220301_releases.xml'
 
 def read1():
-    return xml.read(1610611)
+    return xml.read(291910611)
 
 with open(xmlfile, 'r', encoding="utf=8") as xml:
     for fname in iter(read1, ''):
@@ -47,6 +50,10 @@ with open(xmlfile, 'r', encoding="utf=8") as xml:
                     label = 'None'
                 try:
                     artist_id = re.findall(r'<artist><id>(.+?)<\/id><name>(.+?)<\/name>', str(item))
+                    for item8 in artist_id:
+                        stuffdis = id, item8[0], item8[1]
+                        cur.execute('insert into discogs_rel_artists (release_id, artist_id, artist_name) VALUES (?,?,?)', (stuffdis))
+                        cur.connection.commit()
                 except:
                     artist_id = 'none'
                 try:
@@ -64,7 +71,6 @@ with open(xmlfile, 'r', encoding="utf=8") as xml:
                     year = 'None'
                 try:
                     title = re.search(r'<title>(.+?)<\/title>', str(item))
-
                     title = title.group(1)
                 except:
                     title = 'None'
@@ -110,11 +116,13 @@ with open(xmlfile, 'r', encoding="utf=8") as xml:
 
                 except:
                     tracklist = 'None'
-                stuff = id, country, str(released), str(artist_id), ', '.join(genres), ', '.join(styles), title, label_name, catno, label_id, format_name, format_qty, data_quality, notes, str(track_p)
-                cur.execute('insert into discogs_releases (id, country, released, artist_id, genres, styles, title, label_name, catno,\
-                            label_id, format_name, format_qty, data_quality, notes, track_p) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', (stuff))
-                cur.connection.commit()
-                #print(stuff)
+                if 'US' in country or 'UK' in country or 'Europe' in country:
+                    stuff = id, country, str(released), ', '.join(genres), ', '.join(styles), title, label_name, catno, label_id, format_name, format_qty, data_quality, notes, str(track_p)
+                    cur.execute('insert into discogs_releases (id, country, released, genres, styles, title, label_name, catno,\
+                                label_id, format_name, format_qty, data_quality, notes, track_p) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)', (stuff))
+                    cur.connection.commit()
+                    #print(stuff)
             except Exception as e:
-                print(e)
+                pass
+                #print(e)
 
