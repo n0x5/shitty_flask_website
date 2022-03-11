@@ -22,7 +22,7 @@ with open(xmlfile, 'r', encoding="utf=8") as xml:
             except:
                 title = 'None'
             try:
-                txt = re.search(r'<text.+\}\}\n\{\{.+([\S\s]+?)<\/text>', item)
+                txt = re.search(r'<text xml.+([\S\s]+?)<\/text>', item)
             except:
                 txt = 'None'
             if '0' in str(ns.group(1)):
