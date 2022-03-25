@@ -13,7 +13,7 @@ cur.execute('CREATE TABLE IF NOT EXISTS mp3_list (release text unique, artist te
 conn2 = sqlite3.connect(r'F:\dev\hidden2final\databases\discogs_releases_new - Copy.db')
 cur2 = conn2.cursor()
 
-cwd = r'F:\archive\mp3\- discographies -\Electronic'
+cwd = r'F:\archive\mp3\- discographies -\Nu-Metal'
 
 for subdir, dirs, files in tqdm(os.walk(cwd)):
     f = 0
@@ -30,7 +30,8 @@ for subdir, dirs, files in tqdm(os.walk(cwd)):
                 except:
                     artist = 'None'
                 try:
-                    album = audio['album'][0]
+                    album2 = audio['album'][0]
+                    album = re.sub('\((.+?)\)', '', album2)
                 except:
                     album = 'None'
                 try:
@@ -42,23 +43,30 @@ for subdir, dirs, files in tqdm(os.walk(cwd)):
                 except:
                     genre = 'None'
 
-                sql2 = "select discogs_releases.title, discogs_releases.released, discogs_releases.country, discogs_releases.genres, discogs_releases.styles, discogs_releases.label_name, discogs_releases.catno, discogs_rel_artists.artist_name from discogs_releases join discogs_rel_artists on discogs_releases.id = discogs_rel_artists.release_id where discogs_rel_artists.artist_name like '%{}%' and discogs_releases.title like '%{}%'" .format(artist, album)
-                results = [item for item in conn2.execute(sql2)]
-                try:
-                    discogs_label = results[0][5]
-                    discogs_country = results[0][2]
-                    discogs_genres = results[0][3]
-                    discogs_styles = results[0][4]
-                    discogs_date = results[0][1]
-                    discogs_catno = results[0][6]
-                except:
-                    discogs_label = 'None'
-                    discogs_country = 'None'
-                    discogs_genres = 'None'
-                    discogs_styles = 'None'
-                    discogs_date = 'None'
-                    discogs_catno = 'None'
-                stuff = foldername, artist, album, year, genre, discogs_label, discogs_country, discogs_genres, discogs_styles, discogs_date, discogs_catno
-                cur.execute('INSERT or ignore INTO mp3_list (release, artist, album, year, genre, discogs_label, discogs_country, discogs_genres, discogs_styles, discogs_date, discogs_catno) VALUES (?,?,?,?,?,?,?,?,?,?,?)', (stuff))
-                cur.connection.commit()
-                print(stuff)
+                cur.execute("SELECT EXISTS(SELECT 1 FROM mp3_list WHERE release=? LIMIT 1)", (foldername,))
+                record = cur.fetchone()
+                if record[0] == 1:
+                    print('exists')
+                else:
+                    sql2 = "select discogs_releases.title, discogs_releases.released, discogs_releases.country, discogs_releases.genres, discogs_releases.styles, discogs_releases.label_name, discogs_releases.catno, discogs_rel_artists.artist_name from discogs_releases join discogs_rel_artists on discogs_releases.id = discogs_rel_artists.release_id where discogs_rel_artists.artist_name like '%{}%' and discogs_releases.title like '%{}%'" .format(artist, album)
+                    try:
+                        results = [item for item in conn2.execute(sql2)]
+                        discogs_label = str(results[0][5])
+                        discogs_country = str(results[0][2])
+                        discogs_genres = str(results[0][3])
+                        discogs_styles = str(results[0][4])
+                        discogs_date = str(results[0][1])
+                        discogs_catno = str(results[0][6])
+                    except:
+                        discogs_label = 'None'
+                        discogs_country = 'None'
+                        discogs_genres = 'None'
+                        discogs_styles = 'None'
+                        discogs_date = 'None'
+                        discogs_catno = 'None'
+                    stuff = foldername, artist, album.strip(), year, genre, discogs_label, discogs_country, discogs_genres, discogs_styles, discogs_date, discogs_catno
+                    cur.execute('INSERT or ignore INTO mp3_list (release, artist, album, year, genre, discogs_label, discogs_country, discogs_genres, discogs_styles, discogs_date, discogs_catno) VALUES (?,?,?,?,?,?,?,?,?,?,?)', (stuff))
+                    cur.connection.commit()
+                    print(stuff)
+
+
