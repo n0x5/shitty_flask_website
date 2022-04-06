@@ -104,10 +104,10 @@ def get_info(url):
     inforest1 = []
 
     id2 = re.search(r'(tt\d+)', str(url5))
-    endpoint_folder = os.path.join(os.path.dirname(__file__), '..', 'static', 'covers')
-    endpoint = os.path.join(os.path.dirname(__file__), '..', 'static', 'covers', id2.group(1)+'.jpg')
+    endpoint_folder = os.path.join(os.path.dirname(__file__), '..', 'static', 'covers_flm')
+    endpoint = os.path.join(os.path.dirname(__file__), '..', 'static', 'covers_flm', id2.group(1)+'.jpg')
     if not os.path.exists(endpoint_folder):
-        os.makedirs('covers')
+        os.makedirs('covers_flm')
     if os.path.isfile(endpoint):
         print('file exists - skipping')
 

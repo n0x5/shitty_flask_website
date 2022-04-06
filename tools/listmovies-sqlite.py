@@ -197,7 +197,7 @@ def get_info(url):
 
     #stuff = year, typ3, title, cover, genres, actors, directors, summary, keywords, rating, score['ratingValue'], inforest
 
-    return title+' ('+year+')', directors, actors, genres, inforest, summary, year
+    return title, directors, actors, genres, inforest, summary, year
 
 def get_infocompany(url, release):
     conn2 = sqlite3.connect(sql_db)

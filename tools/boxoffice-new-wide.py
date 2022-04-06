@@ -5,6 +5,7 @@ import requests
 from bs4 import BeautifulSoup
 import sqlite3
 import argparse
+import os
 
 parser = argparse.ArgumentParser()
 parser.add_argument('year')
@@ -34,6 +35,7 @@ soup = BeautifulSoup(response.text, "html.parser")
 table2 = soup.find('div', attrs={'class': 'a-section imdb-scroll-table-inner'})
 
 table3 = table2.find_all('tr')
+print(table3)
 
 for table in table3:
     title = table.find('td', attrs={'class': 'a-text-left mojo-field-type-release mojo-cell-wide'})
@@ -59,7 +61,7 @@ for table in table3:
         gross_final = '-'
 
     try:
-        stuff = title.get_text(), int(args.year), theaters_final, theatersopen_final, gross_final, distributor.get_text().replace('\n\n', ''), release_date.get_text(), box_id2.group(1)
+        stuff = title.get_text(), int(args.year), theaters_final, theatersopen_final, gross_final, release_date.get_text(), distributor.get_text().replace('\n\n', ''), box_id2.group(1)
         print(stuff)
         cur.execute('INSERT INTO boxoffice_wide (title, year, theaters, theatersopen, gross, distributor, release_date, rl_id) VALUES (?,?,?,?,?,?,?,?)', (stuff))
         cur.connection.commit()
