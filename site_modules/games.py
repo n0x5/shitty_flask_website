@@ -58,8 +58,8 @@ def v2systemexclsearch(search=None):
 def v2systemconexclsearch(search=None):
     conn = sqlite3.connect(os.path.join(app.root_path, 'databases', 'gamesv2.db'))
     sql = "select title, genre, developer, publisher, year, systems, orig_system from gamesv2 \
-            where (lower(systems) like ? and systems not like '%PC%' and orig_system = ?) group by title order by year asc"
-    results = [(item[0], item[1], item[2], item[3], item[4], item[5], item[6]) for item in conn.execute(sql, ('%'+search+'%', search))]
+            where (lower(systems) like ? and systems not like '%PC%' and orig_system = ? and systems not like ?) group by title order by year asc"
+    results = [(item[0], item[1], item[2], item[3], item[4], item[5], item[6]) for item in conn.execute(sql, ('%'+search+'%', search, search))]
     conn.close()
     gcounts = len(results)
     return render_template('games/games2_search.html', results=results, search=search, gcounts=gcounts)
@@ -138,8 +138,8 @@ def v2systemexclsearchregionna(search=None):
 def v2systemconexclsearchregionna(search=None):
     conn = sqlite3.connect(os.path.join(app.root_path, 'databases', 'gamesv2.db'))
     sql = "select title, genre, developer, publisher, year, systems, orig_system from gamesv2 \
-            where (lower(systems) like ? and systems not like '%PC%' and orig_system = ? and na is not null and na not like 'Unreleased' and na not like '') group by title order by year asc"
-    results = [(item[0], item[1], item[2], item[3], item[4], item[5], item[6]) for item in conn.execute(sql, ('%'+search+'%', search))]
+            where (lower(systems) like ? and systems not like '%PC%' and orig_system = ? and na is not null and na not like 'Unreleased' and na not like '' and systems not like ?) group by title order by year asc"
+    results = [(item[0], item[1], item[2], item[3], item[4], item[5], item[6]) for item in conn.execute(sql, ('%'+search+'%', search, search))]
     conn.close()
     gcounts = len(results)
     return render_template('games/games2_search.html', results=results, search=search, gcounts=gcounts)
@@ -148,7 +148,7 @@ def v2systemconexclsearchregionna(search=None):
 def v2systemsearchregioneu(search=None):
     conn = sqlite3.connect(os.path.join(app.root_path, 'databases', 'gamesv2.db'))
     sql = "select title, genre, developer, publisher, year, systems, orig_system from gamesv2 \
-            where (orig_system like ? and eu is not null and eu not like 'Unreleased' and eu not like '') order by year asc"
+            where (orig_system like ? and eu is not null and eu not like 'Unreleased' and eu not like '' ) order by year asc"
     results = [(item[0], item[1], item[2], item[3], item[4], item[5], item[6]) for item in conn.execute(sql, (search,))]
     conn.close()
     gcounts = len(results)
@@ -169,8 +169,8 @@ def v2systemexclsearchregioneu(search=None):
 def v2systemconexclsearchregioneu(search=None):
     conn = sqlite3.connect(os.path.join(app.root_path, 'databases', 'gamesv2.db'))
     sql = "select title, genre, developer, publisher, year, systems, orig_system from gamesv2 \
-            where (lower(systems) like ? and systems not like '%PC%' and orig_system = ? and eu is not null and eu not like 'Unreleased' and eu not like '') group by title order by year asc"
-    results = [(item[0], item[1], item[2], item[3], item[4], item[5], item[6]) for item in conn.execute(sql, ('%'+search+'%', search))]
+            where (lower(systems) like ? and systems not like '%PC%' and orig_system = ? and eu is not null and eu not like 'Unreleased' and eu not like '' and systems not like ?) group by title order by year asc "
+    results = [(item[0], item[1], item[2], item[3], item[4], item[5], item[6]) for item in conn.execute(sql, ('%'+search+'%', search, search))]
     conn.close()
     gcounts = len(results)
     return render_template('games/games2_search.html', results=results, search=search, gcounts=gcounts)
@@ -200,8 +200,8 @@ def v2systemexclsearchregionjp(search=None):
 def v2systemconexclsearchregionjp(search=None):
     conn = sqlite3.connect(os.path.join(app.root_path, 'databases', 'gamesv2.db'))
     sql = "select title, genre, developer, publisher, year, systems, orig_system from gamesv2 \
-            where (lower(systems) like ? and systems not like '%PC%' and orig_system = ? and jp is not null and jp not like 'Unreleased' and jp not like '') group by title order by year asc"
-    results = [(item[0], item[1], item[2], item[3], item[4], item[5], item[6]) for item in conn.execute(sql, ('%'+search+'%', search))]
+            where (lower(systems) like ? and systems not like '%PC%' and orig_system = ? and jp is not null and jp not like 'Unreleased' and jp not like '' and systems not like ?) group by title order by year asc"
+    results = [(item[0], item[1], item[2], item[3], item[4], item[5], item[6]) for item in conn.execute(sql, ('%'+search+'%', search, search))]
     conn.close()
     gcounts = len(results)
     return render_template('games/games2_search.html', results=results, search=search, gcounts=gcounts)

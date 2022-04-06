@@ -48,15 +48,15 @@ def logout():
 
 
 @app.route('/dashboard', methods=['GET', 'POST'])
-def dash1(results=None):
+def dash1(results2=None):
     if not session.get('logged_in'):
         return 'access denied'
 
-        connection2 = sqlite3.connect(os.path.join(app.root_path, 'databases', 'movies.db'))
-        cursor2 = connection2.cursor()
-        sql2 = 'select * from (select * from movies order by dated desc limit 20) order by dated desc'
-        cursor2.execute(sql2)
-        results2 = [(item[0], item[1], item[2], item[3], item[4], item[5], item[6], item[7], item[8]) for item in cursor2.fetchall()]
-        cursor2.close()
+    connection2 = sqlite3.connect(os.path.join(app.root_path, 'databases', 'movies.db'))
+    cursor2 = connection2.cursor()
+    sql2 = 'select * from movies order by dated desc limit 20'
+    cursor2.execute(sql2)
+    results2 = [(item[0], item[1], item[2], item[3], item[4], item[5], item[6], item[7], item[8]) for item in cursor2.fetchall()]
+    cursor2.close()
 
-    return render_template('dashboard.html', results=results, results2=results2)
+    return render_template('dashboard.html', results2=results2)
