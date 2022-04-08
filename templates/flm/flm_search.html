@@ -33,10 +33,14 @@
 
 
 {% if session.logged_in %}
-<form method="post" action="/file-upload/{{search}}" class="dropzone" id="my-awesome-dropzone" enctype="multipart/form-data">
+<form method="post" action="/file-upload/{{search}}" class="dropzone" enctype="multipart/form-data">
 <input type="file" name="file">
 <input type="submit" value="Submit">
 </form>
+<script>
+  Dropzone.discover();
+</script>
 {% endif %}
 </div>
 {% endblock %}
+
