@@ -7,6 +7,7 @@ import os
 from flask import render_template
 import re
 import requests
+from jinja2 import Environment
 
 @app.route("/flm")
 def flm_index(results=None):
@@ -30,8 +31,6 @@ def flm_search(results=None, search=None):
     for subdir, dirs, files in os.walk(dir1):
         for fn in files:
             list_img.append(fn)
-    #imgs = tuple(list_img)
     count = len(results)
     conn.close()
-    #return str(imgs)
     return render_template('flm/flm_search.html', results=results, count=count, list_img=list_img, search=search)
