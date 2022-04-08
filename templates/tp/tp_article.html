@@ -1,0 +1,10 @@
+{% extends "layout.html" %}
+{% block title %}>{{ search }} search results{% endblock %}
+
+{% block b2 %}<h2><a href="/games">Back</a></h2>{% endblock %}
+
+{% block content %}
+
+{{ results[0][2]|safe }}
+
+{% endblock %}

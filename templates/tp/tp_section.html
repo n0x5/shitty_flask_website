@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+
+{% block title %}>{{search2}} Database{% endblock %}
+
+{% block content %}
+
+<h2><a href="/tutorials/{{search2}}">Back to {{search2}}</a></h2>
+
+
+{% for item in results %}
+
+<a href="/tutorials/{{item[1]}}/{{item[0]}}"><h2 style="display:inline;">{{item[0]}}</h2></a><br>
+{% endfor %}
+
+{% endblock %}
+

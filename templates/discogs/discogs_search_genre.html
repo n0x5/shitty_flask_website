@@ -1,0 +1,12 @@
+{% extends "layout.html" %}
+{% block title %}>{{ search }} search results{% endblock %}
+
+{% block b2 %}<h2><a href="/gamesv2">Back</a></h2>{% endblock %}
+
+{% block content %}
+<p><b>{{ count }}</b> search results for<b> {{ search }}</b></p>
+
+{% for item in results %}
+  <h4 style="display:inline;">{{item[1]}} | {{item[0]}} | {{item[3]}} - {{item[2]}}<br>
+{% endfor %}
+{% endblock %}

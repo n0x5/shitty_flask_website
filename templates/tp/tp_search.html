@@ -1,0 +1,22 @@
+{% extends "layout.html" %}
+
+{% block title %}>{{search2}} Database{% endblock %}
+
+{% block content %}
+
+<h2><a href="/wiki/{{search2}}">Back to {{search2}}</a></h2>
+
+Search results for: <h3 style="display:inline;">{{search}}</h3><br><br><br>
+
+<div id="results1">
+{% for item in results %}
+{% if 'Category' in item[0] %}
+<a href="/wiki/{{search2}}/category/{{item[0]}}"><h2 style="display:inline;">{{item[0]}}</h2></a>
+{% else %}
+<a href="/wiki/{{search2}}/article/{{item[0]}}"><h2 style="display:inline;">{{item[0]}}</h2></a> | <i>{{item[1]}}</i>
+{% endif %}
+<br>
+{% endfor %}
+</div>
+{% endblock %}
+

@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+
+{% block title %}WP posts{% endblock %}
+
+{% block b2 %}<h2><a href="/">Back</a></h2>{% endblock %}
+{% block content %}
+
+
+<p>List of WP posts:</p>
+
+{% for item in results %}
+{{item[1]}} | {{item[3]}}<br>
+{% endfor %}
+
+{% endblock %}

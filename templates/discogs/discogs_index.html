@@ -1,0 +1,22 @@
+{% extends "layout.html" %}
+{% block title %}>List of games{% endblock %}
+
+{% block b2 %}<h2><a href="/movies">Back</a></h2>{% endblock %}
+
+
+
+{% block content %}
+
+
+<h1>list of games by system:</h1>
+
+
+
+{% for item in groups %}
+  <a href="/gamesv2/system/{{item[0]}}">{{item[0]}}</a> {{item[1]}}
+<br>
+{% endfor %}
+
+
+
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+
+{% block title %}>{{search}} Database{% endblock %}
+
+{% block b2 %}<h2><a href="/">Back</a></h2>{% endblock %}
+{% block content %}
+
+<form method='post' action='/wiki/{{search}}/search'>
+<div><input type='text' name='search' placeholder='Free text search'>
+<input type='submit'>
+</div>
+</form>
+
+<div id="results1">
+{% for item in results %}
+<a style="font-weight:bold;" href="/tutorials/category/{{item[0]}}">{{item[0]}}</a><br>
+{% endfor %}
+</div>
+
+{% endblock %}
+
