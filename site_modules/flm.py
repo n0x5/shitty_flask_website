@@ -7,7 +7,10 @@ import os
 from flask import render_template
 import re
 import requests
-from jinja2 import Environment
+from flask import session
+from flask import request
+from flask import redirect
+from werkzeug.utils import secure_filename
 
 @app.route("/flm")
 def flm_index(results=None):
@@ -34,3 +37,20 @@ def flm_search(results=None, search=None):
     count = len(results)
     conn.close()
     return render_template('flm/flm_search.html', results=results, count=count, list_img=list_img, search=search)
+
+
+@app.route('/file-upload/<search>', methods=['GET', 'POST'])
+def upload_file_flm(search=None):
+    upload = os.path.join(app.root_path, 'static', 'flm_images')
+    if not session.get('logged_in'):
+        return 'access denied'
+
+    if request.method == 'POST':
+        file = request.files['file']
+        if file:
+            filename = secure_filename(file.filename)
+            if not os.path.exists(os.path.join(upload, search)): 
+                os.makedirs(os.path.join(upload, search))
+            os.chmod(os.path.join(upload, search), 0o777)
+            file.save(os.path.join(upload, search, filename))
+            return redirect('/flm/{}'.format(search))
