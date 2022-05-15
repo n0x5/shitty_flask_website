@@ -17,7 +17,7 @@ conn = sqlite3.connect(sql_db)
 cur = conn.cursor()
 cur.execute('''CREATE TABLE if not exists boxoffice2
             (title text, genres text, rl_id text unique, imdb_id text,
-             studio text, theaters text, studio_id text, year int, dated datetime DEFAULT CURRENT_TIMESTAMP)''')
+             studio text, theaters text, studio_id text, year int, actors text, dated datetime DEFAULT CURRENT_TIMESTAMP)''')
 
 months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
 
@@ -43,8 +43,11 @@ for month in months:
             rl_id2 = title2.find('a', href=re.compile('(rl\d+)'))
             rl_id = re.search(r'\/release\/(rl\d+)\/', str(rl_id2))
             title = title2.find('h3').text
-            genres2 = title2.find('div', attrs={'class': 'a-section a-spacing-none mojo-schedule-genres'}).text
-            genres = re.sub('\\n', '', genres2)
+            try:
+                genres2 = title2.find('div', attrs={'class': 'a-section a-spacing-none mojo-schedule-genres'}).text
+                genres = re.sub('\\n', '', genres2)
+            except:
+                genres = 'None'
             imdb = item.find('a', href=re.compile('/(tt\d+)'))
             imdb_id = re.search(r'\/(tt\d+)', str(imdb))
             studio1 = item.find('td', attrs={'class': 'a-text-left mojo-field-type-release_studios'}).text
@@ -55,8 +58,9 @@ for month in months:
             except:
                 studio_id = 'None'
             theaters = item.find('td', attrs={'class': 'a-text-left mojo-field-type-release_scale'}).text
-            stuff = title, ', '.join(genres.split()), rl_id.group(1), imdb_id.group(1), studio, theaters, studio_id, args.year
-            cur.execute('INSERT OR IGNORE INTO boxoffice2 (title, genres, rl_id, imdb_id, studio, theaters, studio_id, year) VALUES (?,?,?,?,?,?,?,?)', (stuff))
+            actors = item.find('div', attrs={'class': 'a-section a-spacing-none'}).text
+            stuff = title, ', '.join(genres.split()), rl_id.group(1), imdb_id.group(1), studio, theaters, studio_id, args.year, actors.replace('With: ', '')
+            cur.execute('INSERT OR IGNORE INTO boxoffice2 (title, genres, rl_id, imdb_id, studio, theaters, studio_id, year, actors) VALUES (?,?,?,?,?,?,?,?,?)', (stuff))
             cur.connection.commit()
             print(stuff)
 
