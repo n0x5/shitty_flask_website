@@ -58,7 +58,10 @@ for month in months:
             except:
                 studio_id = 'None'
             theaters = item.find('td', attrs={'class': 'a-text-left mojo-field-type-release_scale'}).text
-            actors = item.find('div', attrs={'class': 'a-section a-spacing-none'}).text
+            try:
+                actors = item.find('div', attrs={'class': 'a-section a-spacing-none'}).text
+            except:
+                actors = 'None'
             stuff = title, ', '.join(genres.split()), rl_id.group(1), imdb_id.group(1), studio, theaters, studio_id, args.year, actors.replace('With: ', '')
             cur.execute('INSERT OR IGNORE INTO boxoffice2 (title, genres, rl_id, imdb_id, studio, theaters, studio_id, year, actors) VALUES (?,?,?,?,?,?,?,?,?)', (stuff))
             cur.connection.commit()
