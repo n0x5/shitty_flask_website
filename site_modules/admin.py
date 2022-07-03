@@ -19,7 +19,7 @@ def inde22x():
     if session.get('logged_in'):
         username = current_app.config['USERNAME']
         return 'Logged in as ' + username + '<br>' + \
-        "<b><a href = '/logout'>click here to log out</a></b>"
+        "<b><a href = '/logout'>click here to log out</a></b><br><a href='/'>Back to index</a>"
     return "You are not logged in <br><a href = '/login'></b>" + \
         "click here to log in</b></a>"
 

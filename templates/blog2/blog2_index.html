@@ -7,7 +7,7 @@
 <p>here's my blog index</p>
 {% for post in results2 %}
 <ul>
-<a href="/blog2/{{ post }}">{{ post }}</a> {% if session.logged_in %} | <a href="/blog2/edit/{{ post }}">( Edit post)</a>{% endif %} <br>
+<a href="/blog2/{{ post }}">{{ post }}</a> {% if session.logged_in %} | <a href="/blog2/edit/{{ post }}">(Edit post)</a> | <a href="/blog2/delete/{{ post }}">(Delete post)</a>{% endif %} <br>
 </ul>
 {% endfor %}
 {% endblock %}
