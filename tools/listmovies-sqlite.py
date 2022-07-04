@@ -42,7 +42,7 @@ def store(release, grp, genre, title, director, mainactors, infogenres, inforest
           .format(basenm2, file6, genrs(file2), file7, imdburl(file2),
                   str(imdb_info[0]).strip(), str(imdb_info[1]).strip(), str(imdb_info[2]).replace('\\n', ''), str(imdb_info[3]),
                   str(imdb_info[4]), str(imdb_info[5]).strip(), str(imdb_info[6])))
-    cur.execute('INSERT INTO movies (release, grp, genre, format, imdb, title, director, mainactors, infogenres, inforest, infosummary, year) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',
+    cur.execute('INSERT OR IGNORE INTO movies (release, grp, genre, format, imdb, title, director, mainactors, infogenres, inforest, infosummary, year) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',
                 (basenm2, file6, genrs(file2), file7, imdburl(file2).replace('https://www.imdb.com/title/', ''), str(imdb_info[0]).strip(), str(imdb_info[1]).strip().replace(',', ''), str(imdb_info[2]).replace('\\n', '').strip(), 
                 str(imdb_info[3]).strip(), str(imdb_info[4]).strip(), str(imdb_info[5]).strip(), str(imdb_info[6])))
     cur.connection.commit()

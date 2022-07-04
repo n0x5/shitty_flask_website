@@ -50,12 +50,12 @@ except:
     data = json.loads(table.get_text())
 show_title = data['name']
 
-endpoint4 = os.path.join(os.path.dirname(__file__), 'cover_tv', args.imdb_id+'.jpg')
+endpoint4 = os.path.join(os.path.dirname(__file__), '..', 'cover_tv', args.imdb_id+'.jpg')
 if not os.path.isfile(endpoint4):
    
     cover = data['image']
     id2 = re.search(r'(tt\d+)', str(url2))
-    endpoint = os.path.join(os.path.dirname(__file__), 'cover_tv', id2.group(1)+'.jpg')
+    endpoint = os.path.join(os.path.dirname(__file__), '..', 'cover_tv', id2.group(1)+'.jpg')
     if not os.path.exists('cover_tv'):
         os.makedirs('cover_tv')
     if os.path.isfile(endpoint):
