@@ -1,0 +1,6 @@
+{
+    "DEBUG": true,
+    "SECRET_KEY": "YOUR_SECRET_KEY",
+    "USERNAME": "YOUR_USERNAME",
+    "PASSWORD": "YOUR_PASSWORD"
+}
