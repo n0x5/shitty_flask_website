@@ -13,6 +13,7 @@ cur = conn.cursor()
 cur.execute('''CREATE TABLE if not exists wiki
         (title text, content text, dated datetime DEFAULT CURRENT_TIMESTAMP)''')
 
+
 for event, elem in tqdm(ET.iterparse(xml_f, events=['end'])):
     tree = ET.tostring(elem).decode()
     if ('<ns0:ns>0</ns0:ns>' in tree or '<ns0:ns>14</ns0:ns>' in tree) and '<ns0:redirect title' not in tree:
@@ -25,13 +26,15 @@ for event, elem in tqdm(ET.iterparse(xml_f, events=['end'])):
             cur.execute('select exists(select 1 from wiki where title = ? limit 1)', (title,))
             record = cur.fetchone()
             if record[0] == 1:
-                    pass
+                    elem.clear()
             else:
                 cur.execute('insert into wiki (title, content) values (?,?)', (stuff))
                 cur.connection.commit()
+                elem.clear()
             elem.clear()
         except Exception:
             print('skipping')
             elem.clear()
+    elem.clear()
 
 xml_f.close()
