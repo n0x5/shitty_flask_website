@@ -5,7 +5,7 @@ import sqlite3
 from lxml import etree
 import time
 
-sql_db = os.path.join(os.path.dirname( __file__ ), 'wiki-en2.db')
+sql_db = os.path.join(os.path.dirname( __file__ ), 'wiki-en3.db')
 conn = sqlite3.connect(sql_db)
 cur = conn.cursor()
 cur.execute('''CREATE TABLE if not exists wiki
@@ -14,6 +14,7 @@ cur.execute('''CREATE TABLE if not exists wiki
 xmlfile = 'enwiki-20220801-pages-meta-current.xml'
 
 context = etree.iterparse(xmlfile, tag='{http://www.mediawiki.org/xml/export-0.10/}page')
+lst = []
 for event, elem in tqdm(context):
     tree = etree.tostring(elem).decode()
     if ('<ns>0</ns>' in tree or '<ns>14</ns>' in tree) and '#REDIRECT' not in tree:
@@ -23,8 +24,11 @@ for event, elem in tqdm(context):
             title = title1.group(1)
             content = text.group(1)
             stuff = title, content
-            cur.execute('insert or ignore into wiki (title, content) VALUES (?,?)', (stuff))
-            cur.connection.commit()
+            lst.append(stuff)
+            if len(lst) == 2000:
+                cur.executemany('insert or ignore into wiki (title, content) VALUES (?,?)', (lst))
+                cur.connection.commit()
+                lst = []
         except Exception:
             print('skipping')
 
