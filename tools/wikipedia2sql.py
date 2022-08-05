@@ -28,7 +28,7 @@ for event, elem in tqdm(context):
         except Exception:
             print('skipping')
 
-        elem.clear()
+    elem.clear()
     for ancestor in elem.xpath('ancestor-or-self::*'):
         while ancestor.getprevious() is not None:
             del ancestor.getparent()[0]
