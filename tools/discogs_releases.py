@@ -5,12 +5,12 @@ import sqlite3
 from lxml import etree
 import time
 
-sql_db = os.path.join(os.path.dirname( __file__ ), 'discogs.db')
+sql_db = os.path.join(os.path.dirname( __file__ ), 'discogs2.db')
 conn = sqlite3.connect(sql_db)
 cur = conn.cursor()
 cur.execute('''CREATE TABLE if not exists releases \
         (release_id text unique, title text, format_name text, artist_id text, label_name text, \
-        catno text, country text, genres text, styles text, released text, track_p text, master_id text, dated datetime DEFAULT CURRENT_TIMESTAMP)''')
+        catno text, country text, genres text, styles text, released text, track_p text, master_id text, artist_name text, dated datetime DEFAULT CURRENT_TIMESTAMP)''')
 
 
 xmlfile = 'discogs_20220301_releases.xml'
@@ -105,6 +105,11 @@ for event, elem in tqdm(context):
         except:
             artis1 = 'None'
     try:
+        art_name = str(''.join(art_lst)).split('\n')[0]
+        art_name = re.sub('^\d+ ', '', art_name)
+    except:
+        art_name = 'No artist name'
+    try:
         tracklist = re.search(r'<tracklist>(.+?)<\/tracklist>', tree)
         tracks = re.findall(r'<track>(.+?)<\/track>', str(tracklist.group(1)))
         track_p = []
@@ -122,12 +127,12 @@ for event, elem in tqdm(context):
         tracklist = 'None'
 
     stuff = str(release.group(1)), str(title), str(format_name), str(''.join(art_lst)), str(label_name), str(catno),\
-             str(country), str(', '.join(genres)), str(', '.join(styles)), str(released), str(''.join(track_p)), master
-    if ('US' in country or 'UK' in country or 'Europe' in country or 'Germany' in country or 'France' in country) and 'CD' in format_name and 'Album' in album:
+             str(country), str(', '.join(genres)), str(', '.join(styles)), str(released), str(''.join(track_p)), master, art_name
+    if ('US' in country or 'UK' in country or 'Europe' in country or 'Germany' in country or 'France' in country) and 'CD' in format_name and 'CDr' not in format_name and 'Album' in album:
         lst.append(stuff)
     if len(lst) == 2000:
         cur.executemany('insert or ignore into releases (release_id, title, format_name, artist_id, label_name, \
-                        catno, country, genres, styles, released, track_p, master_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)', (lst))
+                        catno, country, genres, styles, released, track_p, master_id, artist_name) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)', (lst))
         cur.connection.commit()
         lst = []
 
