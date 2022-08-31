@@ -1,0 +1,17 @@
+
+{% block title %}>{{ search }} search results{% endblock %}
+
+{% block b2 %}<h2><a href="/gamesv2">Back</a></h2>{% endblock %}
+
+{% block content %}
+<p><b>{{ count }}</b> search results for<b> {{ search }}</b></p>
+<style>table, th, td {border: 1px solid;border-collapse:collapse;padding:4px;}a {text-decoration:none;}</style>
+<table>
+<tr><td><h3>Album</h3></td><td><h3>Release date</h3></td><td><h3>Format</h3></td><td><h3>Label</h3></td><td><h3>Genres</h3></td><td><h3>Styles</h3></td></tr>
+{% for item in results %}
+    <tr>
+    <td style="max-width: 550px;">{{item[6]}} - {{item[2]}}</td> <td>{{item[0]}}</td> <td style="max-width: 180px;">{{item[5]}}</td> <td style="max-width: 250px;">{{item[1]}}</td> <td style="max-width: 250px;word-wrap: break-word;">{{item[3]}}</td> <td class="styles">{{item[4]}}</td>
+    </tr>
+{% endfor %}
+</table>
+{% endblock %}
