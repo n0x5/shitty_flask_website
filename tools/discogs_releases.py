@@ -5,7 +5,7 @@ import sqlite3
 from lxml import etree
 import time
 
-sql_db = os.path.join(os.path.dirname( __file__ ), 'discogs2.db')
+sql_db = os.path.join(os.path.dirname( __file__ ), 'discogs3_ep.db')
 conn = sqlite3.connect(sql_db)
 cur = conn.cursor()
 cur.execute('''CREATE TABLE if not exists releases \
@@ -13,10 +13,11 @@ cur.execute('''CREATE TABLE if not exists releases \
         catno text, country text, genres text, styles text, released text, track_p text, master_id text, artist_name text, dated datetime DEFAULT CURRENT_TIMESTAMP)''')
 
 
-xmlfile = 'discogs_20220301_releases.xml'
+xmlfile = 'discogs_20220801_releases.xml'
 
 context = etree.iterparse(xmlfile, tag='release')
 lst = []
+
 for event, elem in tqdm(context):
     tree = etree.tostring(elem).decode()
     release = re.search(r'<release id="(\d+)" status="(.+?)">', tree)
@@ -69,6 +70,11 @@ for event, elem in tqdm(context):
         album = album.group(1)
     except:
         album = 'None'
+    try:
+        ep = re.search(r'<description>(EP)<\/description>', tree)
+        ep = ep.group(1)
+    except:
+        ep = 'None'
     try:
         formats = re.search(r'<format name="(.+?)" qty="(\d{0,5}?)"', tree)
         try:
@@ -125,12 +131,17 @@ for event, elem in tqdm(context):
 
     except:
         tracklist = 'None'
-
+    try:
+        formats2 = re.search(r'<formats>(.+?)<\/formats>', tree)
+        formats2 = formats2.group(1)
+    except:
+        formats2 = 'None'
     stuff = str(release.group(1)), str(title), str(format_name), str(''.join(art_lst)), str(label_name), str(catno),\
              str(country), str(', '.join(genres)), str(', '.join(styles)), str(released), str(''.join(track_p)), master, art_name
-    if ('US' in country or 'UK' in country or 'Europe' in country or 'Germany' in country or 'France' in country) and 'CD' in format_name and 'CDr' not in format_name and 'Album' in album:
+    if ('US' in country or 'UK' in country or 'Europe' in country or 'Germany' in country or 'France' in country) \
+        and 'CDr' not in format_name and 'Album' in album and 'CD' in format_name and 'reissue' not in formats2.lower() and '<description>Reissue</description>' not in str(tree):
         lst.append(stuff)
-    if len(lst) == 2000:
+    if len(lst) == 300:
         cur.executemany('insert or ignore into releases (release_id, title, format_name, artist_id, label_name, \
                         catno, country, genres, styles, released, track_p, master_id, artist_name) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)', (lst))
         cur.connection.commit()
