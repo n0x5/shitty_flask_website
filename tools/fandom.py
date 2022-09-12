@@ -5,13 +5,13 @@ import sqlite3
 from lxml import etree
 import time
 
-sql_db = os.path.join(os.path.dirname( __file__ ), 'metalgear.db')
+sql_db = os.path.join(os.path.dirname( __file__ ), 'residentevil.db')
 conn = sqlite3.connect(sql_db)
 cur = conn.cursor()
 cur.execute('''CREATE TABLE if not exists wiki
         (title text unique, content text, dated datetime DEFAULT CURRENT_TIMESTAMP)''')
 
-xmlfile = 'metalgear_pages_current.xml'
+xmlfile = 'residentevil_pages_current.xml'
 
 context = etree.iterparse(xmlfile, tag='{http://www.mediawiki.org/xml/export-0.10/}page')
 lst = []
@@ -40,3 +40,6 @@ for event, elem in tqdm(context):
         while ancestor.getprevious() is not None:
             del ancestor.getparent()[0]
 del context
+
+cur.executemany('insert or ignore into wiki (title, content) VALUES (?,?)', (lst))
+cur.connection.commit()
