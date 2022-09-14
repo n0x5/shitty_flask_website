@@ -48,8 +48,8 @@ def wiki_article(search=None, search2=None):
     final_string10 = re.sub(r"\*(.+?)\n", r'<li>\1</li>', final_string9)
     final_string11 = re.sub(r'{{(.+?)}}', r'{{\1}}<hr>', final_string10)
     final_string = re.sub(r'<a href="(Category.+?)"', r'<a href="/wiki/{}/category/\1">\1</a>' .format(search2), final_string11)
-    return final_string.replace('.html', '').replace('{{up}}<hr>', '')
-
+    final_string = final_string.replace('.html', '').replace('{{up}}<hr>', '')
+    return render_template('wiki/wiki_article.html', final_string=final_string)
 
 
 @app.route("/wiki/<search2>/article2/<search>")
