@@ -7,6 +7,7 @@ import os
 from flask import render_template
 from flask import flash
 import re
+import matplotlib.pyplot as plt
 
 @app.route("/movies")
 def movieindex(genres=None):
@@ -56,6 +57,22 @@ def castsearch(search=None):
     gcounts2 = len(results2)+len(results1)
     return render_template('movies/moviecast.html', results=results1, search=search, gcounts=gcounts2, results2=results2)
 
+def create_plot(search):
+    path = os.path.join(app.root_path, 'static', 'movie_stats', '{}_wide.png' .format(search))
+    conn = sqlite3.connect(os.path.join(app.root_path, 'databases', 'movies.db'))
+    sql = "select movies.year, count(distinct(movies.release)) c from movies join boxoffice on movies.imdb = boxoffice.imdbid \
+         where movies.infogenres like ? \
+        and wide_theatersopen > 2000 and boxoffice.wide_theatersopen != 'None' group by movies.year"
+    x = [item[0] for item in conn.execute(sql, ('%'+search+'%',))]
+    y = [item[1] for item in conn.execute(sql, ('%'+search+'%',))]
+
+    plt.figure(figsize=(10, 5))
+    plt.xlabel('Year', size = 16)
+    plt.ylabel('{} titles' .format(search), size = 16)
+
+    plt.bar(x, y, align='center', width=0.8)
+    plt.savefig(path)
+
 @app.route("/movies/genrewide/<search>")
 def genrewidesearch(search=None):
     conn = sqlite3.connect(os.path.join(app.root_path, 'databases', 'movies.db'))
@@ -68,6 +85,7 @@ def genrewidesearch(search=None):
     conn.execute(sql, ('%'+search+'%', '%'+search+'%'))]
     conn.close()
     gcounts = len(results)
+    create_plot(search)
     return render_template('movies/movies7.html', results=results, search=search, gcounts=gcounts)
 
 @app.route("/movies/genreltd/<search>")
@@ -285,6 +303,16 @@ def companylist3theatrical(studio=None):
     count = len(results)
     cursor.close()
     return render_template('movies/company_list2.html', results=results, count=count, studio=studio)
+
+
+@app.route("/movies/theaters")
+def movietheaters(groups=None):
+    conn = sqlite3.connect(os.path.join(app.root_path, 'databases', 'movies.db'))
+    sql = "select * from combined_releases group by imdb_id order by year desc"
+    years = [item for item in conn.execute(sql)]
+    count = len(years)
+    conn.close()
+    return render_template('movies/movie_theaters.html', years=years, count=count)
 
 @app.route("/movies/release/<release>")
 def movierelease(release=None):
