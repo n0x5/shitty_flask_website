@@ -62,7 +62,7 @@ def create_plot(search):
     conn = sqlite3.connect(os.path.join(app.root_path, 'databases', 'movies.db'))
     sql = "select movies.year, count(distinct(movies.release)) c from movies join boxoffice on movies.imdb = boxoffice.imdbid \
          where movies.infogenres like ? \
-        and wide_theatersopen > 2000 and boxoffice.wide_theatersopen != 'None' group by movies.year"
+        and cast(replace(boxoffice.wide_theatersopen, ',', '') as int) > 2000 and boxoffice.wide_theatersopen != 'None' group by movies.year"
     x = [item[0] for item in conn.execute(sql, ('%'+search+'%',))]
     y = [item[1] for item in conn.execute(sql, ('%'+search+'%',))]
 
@@ -77,8 +77,8 @@ def create_plot(search):
 def genrewidesearch(search=None):
     conn = sqlite3.connect(os.path.join(app.root_path, 'databases', 'movies.db'))
     sql = "select movies.release, movies.director, movies.imdb, movies.infogenres, movies.year, \
-        boxoffice.rlid, boxoffice.wide_theatersopen from movies join boxoffice on movies.imdb = boxoffice.imdbid where (movies.genre like ? or movies.infogenres like ?) \
-        and wide_theatersopen > 2000 and boxoffice.wide_theatersopen != 'None' group by movies.release order by year desc"
+        boxoffice.rlid, cast(replace(boxoffice.wide_theatersopen, ',', '') as int) as c from movies join boxoffice on movies.imdb = boxoffice.imdbid where (movies.genre like ? or movies.infogenres like ?) \
+        and (c > 2000 and c != 'None') group by movies.release order by year desc"
 
     results = [(item[0], item[1].strip().replace('\\n', '').replace(',', ''), os.path.basename(item[2]+'.jpg'), 
                 item[3].replace('[', '').replace(']', '').replace('\'', ''), item[4], item[5], item[6]) for item in \

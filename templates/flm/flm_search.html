@@ -27,12 +27,12 @@
 
 {% endfor %}
 
+{% if session.logged_in %}
 {% for item2 in list_img %}
 <a href="/static/flm_images/{{search}}/{{item2}}"><img width="150px" src="/static/flm_images/{{search}}/{{item2}}" /></a>
 {% endfor %}
 
 
-{% if session.logged_in %}
 <form method="post" action="/file-upload/{{search}}" class="dropzone" enctype="multipart/form-data">
 <input type="file" name="file">
 <input type="submit" value="Submit">

@@ -14,7 +14,7 @@
 <br><hr>
 {% for item in results %}
 <div class="main" style="background-color: #fffef7;display: block;border: 1px solid;padding: 5px;margin: 5px;">
-<img style="float:left;display:inline;margin-right:5px;" width="130" src="/static/covers_flm/{{item[0]}}.jpg" /><h2 style="display:inline;"><a href="/flm/{{item[0]}}">{{item[2]}}</a> |</h2><h2 style="display:inline;"> {{item[8]}}</h2><br>
+<img style="float:left;display:inline;margin-right:5px;max-height: 200px;" width="130" src="/static/covers_flm/{{item[0]}}.jpg" /><h2 style="display:inline;"><a href="/flm/{{item[0]}}">{{item[2]}}</a> |</h2><h2 style="display:inline;"> {{item[8]}}</h2><br>
 <div class="title" style="display:inline;">English title: {{item[1]}}</div><br>
 <div class="genres" style="display:inline;">Genres: {{item[5]}}</div><br>
 <div class="plot" style="display:inline;">Plot: {{item[7]}}</div><br>
@@ -22,7 +22,6 @@
 <div class="language" style="display:inline;">Language: {{item[10]}}</div><br>
 <div class="flmactress">FLM Actress: {{item[11]}}</div><br>
 <div class="imdb">iMDB: {{item[0]}}</div><br><br>
-<div class="gallery"> {{item | flm_image|safe}}</div><br><br>
 </div>
 {% endfor %}
 {% endblock %}

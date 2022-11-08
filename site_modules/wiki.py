@@ -42,14 +42,14 @@ def wiki_article(search=None, search2=None):
     final_string4 = re.sub(r'\=\=\=(.+?)\=\=\=', r'<h3 style="display:inline;">\1</h3>', final_string3)
     final_string5 = re.sub(r'\=\=(.+?)\=\=', r'<h2 style="display:inline;">\1</h2>', final_string4)
     final_string6 = re.sub(r"'''(.+?)'''", r'<b>\1</b>', final_string5)
-    final_string7 = final_string6.replace('images/', 'https://temple.machinecode.org/{}_images/' .format(search2)).replace('{{cite}}', '').replace('{{Cite}}', '')
+    final_string7 = final_string6.replace('images/', 'https://amber.machinecode.org/{}_images/' .format(search2)).replace('{{cite}}', '').replace('{{Cite}}', '').replace(']]', '')
     final_string8 = re.sub(r"''(.+?)''", r'<b>\1</b>', final_string7)
     final_string9 = re.sub(r"\{\{dablink(.+?)\}\}", r'<b>\1</b><br>', final_string8)
     final_string10 = re.sub(r"\*(.+?)\n", r'<li>\1</li>', final_string9)
     final_string11 = re.sub(r'{{(.+?)}}', r'{{\1}}<hr>', final_string10)
     final_string = re.sub(r'<a href="(Category.+?)"', r'<a href="/wiki/{}/category/\1">\1</a>' .format(search2), final_string11)
-    final_string = final_string.replace('.html', '').replace('{{up}}<hr>', '')
-    return render_template('wiki/wiki_article.html', final_string=final_string)
+    return final_string.replace('.html', '').replace('{{up}}<hr>', '')
+
 
 
 @app.route("/wiki/<search2>/article2/<search>")
@@ -66,7 +66,7 @@ def wiki_article2(search=None, search2=None):
     final_string5 = re.sub(r'\=\=(.+?)\=\=', r'<h2 style="display:inline;">\1</h2>', final_string4)
     final_string6 = re.sub(r"'''(.+?)'''", r'<b>\1</b>', final_string5)
     #final_string7 = final_string6.replace('images/', '/static/{}_images/' .format(search2)).replace('{{cite}}', '').replace('{{Cite}}', '')
-    final_string7 = final_string6.replace('images/', 'https://temple.machinecode.org/{}_images/' .format(search2)).replace('{{cite}}', '').replace('{{Cite}}', '')
+    final_string7 = final_string6.replace('images/', 'https://amber.machinecode.org/{}_images/' .format(search2)).replace('{{cite}}', '').replace('{{Cite}}', '')
     final_string8 = re.sub(r"''(.+?)''", r'<b>\1</b>', final_string7)
     final_string9 = re.sub(r"\{\{dablink(.+?)\}\}", r'<b>\1</b><br>', final_string8)
     final_string10 = re.sub(r"\*(.+?)\n", r'<li>\1</li>', final_string9)

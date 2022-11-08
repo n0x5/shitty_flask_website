@@ -1,0 +1,43 @@
+{% extends "layout.html" %}
+
+{% block title %}Calendar{% endblock %}
+
+{% block b2 %}<h2><a href="/">Back</a></h2>{% endblock %}
+{% block content %}
+
+<style>
+.today {
+display: inline;
+background-color: #ffa000;
+color: black;
+padding-left: 9px;
+padding-right: 9px;
+border-radius: 25px;
+}
+
+.header {
+display: none
+}
+
+.calendar {
+height: 900px;
+background-image: url(https://hidden.machinecode.org/static/instagram_girls/Agnia_Zykova/261137351_4275851905860100_5508475899770001192_n.jpg);
+}
+
+.box1 {
+position: relative;
+bottom: -570px;
+right: -952px;
+font-size: 25px;
+color: white;
+background-color: black;
+padding: 10px;
+width: 280px;
+}
+</style>
+
+<div class="calendar">
+<div class="box1"><pre>{{results|safe}}</pre></div>
+</div>
+{% endblock %}
+

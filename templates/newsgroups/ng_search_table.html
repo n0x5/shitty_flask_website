@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+
+{% block title %}FLM films{% endblock %}
+
+{% block b2 %}<h2><a href="/">Back</a></h2>{% endblock %}
+{% block content %}
+<style>table, th, td {border: 1px solid;border-collapse:collapse;padding:4px;}a {text-decoration:none;}</style>
+<table>
+<tr><td><h3>Sender</h3></td><td><h3>Subject</h3></td><td><h3>Date</h3></td><td><h3>Message</h3></td></tr>
+{% for item in results %}
+<tr>
+<td style="min-width:100px;">{{item[1]}}</td><td style="min-width:200px;">{{item[0]}}</td><td>{{item[2]}}</td><td>{{item[3]}}</td>
+</tr>
+
+{% endfor %}
+</table>
+</div>
+{% endblock %}
+

@@ -18,10 +18,10 @@
     <p><a href="/wiki/stargate">Stargate Wiki</a></p>
     <p><a href="/wiki/residentevil">Resident Evil Wiki</a></p>
     <p><a href="/gamesv2">Games</a></p>
-    <p><a href="/blog2">Blog v2</a></p><br>
-    {% if session.logged_out %}
+    <p><a href="/blog2">Blog v2</a></p>
+    <p><a href="/calendar/{{today_index}}">Calendar</a</p><br><br>
     <p><a href="/login">Login</a></p>
-    {% endif %}
+    
     {% if session.logged_in %}
     <p><a href="/blog2/new">New blog post</a></p>
     <p><a href="/dashboard">Dashboard</a></p>

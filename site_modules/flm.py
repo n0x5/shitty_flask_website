@@ -51,6 +51,9 @@ def upload_file_flm(search=None):
             filename = secure_filename(file.filename)
             if not os.path.exists(os.path.join(upload, search)): 
                 os.makedirs(os.path.join(upload, search))
-            os.chmod(os.path.join(upload, search), 0o777)
+            try:
+                os.chmod(os.path.join(upload, search), 0o777)
+            except Exception:
+                pass
             file.save(os.path.join(upload, search, filename))
             return redirect('/flm/{}'.format(search))

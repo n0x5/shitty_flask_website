@@ -1,0 +1,12 @@
+{% extends "layout.html" %}
+{% block title %}>List of movies + theaters{% endblock %}
+
+{% block b2 %}<h2><a href="/movies">Back</a></h2>{% endblock %}
+
+{% block content %}
+<h1>List of all {{count}} wide theatrical releases</h1><br>
+
+{% for item in years %}
+  <h2 style="display:inline;">{{item[0]}} ({{item[4]}})</h2> | <h4 style="display:inline;color:#a52e00;">{{item[7]}}</h4><br>{{item[1]}} | {{item[2]}} | {{item[3]}} | {{item[5]}}<br><hr>
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+
+{% block title %}FLM films{% endblock %}
+
+{% block b2 %}<h2><a href="/">Back</a></h2>{% endblock %}
+{% block content %}
+
+{% for item in results %}
+<div class="message" style="background-color:#ededed;margin:5px;padding:5px;">
+<h4 style="display:inline;">{{item[1]}} - {{item[0]}} - ({{item[3]}})</h4> <br>
+{{item[2]}}
+<br><br>
+ </div>
+{% endfor %}
+
+{% endblock %}
+
