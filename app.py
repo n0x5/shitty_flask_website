@@ -10,7 +10,7 @@ app = Flask(__name__)
 app.config.update(_configs.conf)
 
 
-today_index = time.strftime('%Y/%d', time.gmtime(time.time()))
+today_index = time.strftime('%Y/%m', time.gmtime(time.time()))
 
 @app.context_processor
 def inject_variables():
