@@ -1,0 +1,20 @@
+{% extends "layout.html" %}
+
+{% block title %}Usenet posts in {{search}}{% endblock %}
+
+{% block b2 %}<h2><a href="/">Back</a></h2>{% endblock %}
+{% block content %}
+
+<br>
+
+<h3 style="display:inline;">{{count}}</h3> posts in <h2 style="display:inline;">{{search}}</h2>
+
+
+<br><br><hr><br>
+{% for item in results %}
+
+<h3 style="display:inline;"><a href="/paranormal/{{item[1]}}/{{item[0]}}">{{item[0]}}</a> ({{item[1]}})</h3><br>
+
+{% endfor %}
+{% endblock %}
+
