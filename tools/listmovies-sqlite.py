@@ -29,7 +29,7 @@ cur.execute('''CREATE TABLE if not exists movies
 
 
 def imdburl(fn):
-    filn2 = open(fn, "r")
+    filn2 = open(fn, "r", encoding="utf-8", errors="ignore")
     for line in filn2:
         if "imdb.com/" in line.lower():
             urls = re.findall(r'\d{6,10}', line)
@@ -149,14 +149,19 @@ def get_info(url):
     genres = data['genre']
     actor = data['actor']
     actors = [item4['name'] for item4 in actor]
-    director = data['director']
+    try:
+        director = data['director']
+    except:
+        director = ''
     try:
         directors = [item5['name'] for item5 in director]
-        #directors = directors[0]
         directors = ','.join(directors)
 
     except:
-        directors = data['director']['name']
+        try:
+            directors = data['director']['name']
+        except:
+            directors = ''
     summary = data['description']
     keywords = data['keywords']
     score = data['aggregateRating']
@@ -211,11 +216,11 @@ def get_infocompany(url, release):
 
     response = requests.get(url+'/companycredits', headers=headers)
     soup = BeautifulSoup(response.text, "html.parser")
-    title2 = soup.find('a', attrs={'itemprop': 'url'})
-    table1 = soup.find('div', attrs={'id': 'company_credits_content'})
+    title2 = soup.find('h2', attrs={'data-testid': 'subtitle'})
+    table1 = soup.find('div', attrs={'class': 'ipc-page-grid ipc-page-grid--bias-left'})
 
-    for item in table1.find_all('ul', attrs={'class': 'simpleList'}):
-        for item2 in item.find_all('a'):
+    for item in table1.find_all('section'):
+        for item2 in item.find_all(href=re.compile(r'\/company\/')):
             coid2 = re.findall(r'\d{7}', str(item2))
             coid = "[]".join(coid2)
             imdbid2 = re.findall(r'\d{7}', str(url))
