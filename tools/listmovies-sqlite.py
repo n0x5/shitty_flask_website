@@ -50,7 +50,7 @@ def store(release, grp, genre, title, director, mainactors, infogenres, inforest
 def genrs(fn):
     genrelist = (["romance", "comedy", "animation", "mystery", "documentary", "crime", "family", "sport", 
                 "biography", "history", "western", "sci-fi", "horror", "adventure", "drama", "fantasy", "thriller", "action"])
-    filn = open(fn, "r")
+    filn = open(fn, "r", encoding="utf-8", errors="ignore")
     for genres in filn:
         if "genre" in genres.lower():
             output = [item.title() for item in genrelist if item in genres.lower()]
