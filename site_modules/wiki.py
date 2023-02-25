@@ -56,6 +56,8 @@ def wiki_article(search=None, search2=None):
     for item4 in lst1:
         final_string = final_string.replace(item4[0], item4[1])
     final_string = re.sub(r'<a href="(.+?)\|(.+?)\|(.+?)".+?<\/a>', r'<img style="width:300px;" src="/static/wiki/{}_images/\1" />' .format(search2), final_string)
+    final_string = re.sub(r'<a href="File:(.+?)\|.+?\|">', r'<img style="width:300px;" src="/static/wiki/{}_images/\1" />' .format(search2), final_string)
+    final_string = re.sub(r'<a href="File:(.+?)\|.+?">', r'<img style="width:300px;" src="/static/wiki/{}_images/\1" />' .format(search2), final_string)
     return render_template('wiki/wiki_article.html', final_string=final_string)
 
 
