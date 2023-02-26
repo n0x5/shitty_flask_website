@@ -49,15 +49,14 @@ def wiki_article(search=None, search2=None):
     final_string11 = re.sub(r'{{(.+?)}}', r'{{\1}}<hr>', final_string10)
     final_string = re.sub(r'<a href="(Category.+?)"', r'<a href="/wiki/{}/category/\1">\1</a>' .format(search2), final_string11)
     final_string = final_string.replace('.html', '').replace('{{up}}<hr>', '')
-    search1 = re.findall(r'"(File:.+?)\|(.+?)\|(.+?)"', final_string)
+    search1 = re.findall(r'File:(.+?)\||File:(.+?)\n', final_string)
     lst1 = []
     for item in search1:
         lst1.append([item[0], item[0].replace('File:', '').replace(' ', '_')])
     for item4 in lst1:
         final_string = final_string.replace(item4[0], item4[1])
-    final_string = re.sub(r'<a href="(.+?)\|(.+?)\|(.+?)".+?<\/a>', r'<img style="width:300px;" src="/static/wiki/{}_images/\1" />' .format(search2), final_string)
-    final_string = re.sub(r'<a href="File:(.+?)\|.+?\|">', r'<img style="width:300px;" src="/static/wiki/{}_images/\1" />' .format(search2), final_string)
-    final_string = re.sub(r'<a href="File:(.+?)\|.+?">', r'<img style="width:300px;" src="/static/wiki/{}_images/\1" />' .format(search2), final_string)
+    final_string = re.sub(r'File:(.+?)\|', r'<img style="width:300px;" src="/static/wiki/{}_images/\1" />' .format(search2), final_string)
+    final_string = re.sub(r'File:(.+?)\n', r'<img style="width:300px;" src="/static/wiki/{}_images/\1" />' .format(search2), final_string)
     return render_template('wiki/wiki_article.html', final_string=final_string)
 
 
@@ -71,3 +70,4 @@ def wiki_search(search=None, search2=None):
     count = len(results)
     conn.close()
     return render_template('wiki/wiki_search.html', results=results, count=count, search=search, search2=search2)
+
