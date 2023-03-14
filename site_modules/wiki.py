@@ -12,7 +12,7 @@ import requests
 @app.route("/wiki/<search>")
 def wiki_index(results=None, search=None):
     conn = sqlite3.connect(os.path.join(app.root_path, 'databases', '{}'+'.db').format(search))
-    sql = 'select title from {} where title like "%Category%" order by title' .format(search)
+    sql = 'select title from `{}` where title like "%Category%" order by title' .format(search)
     results = [item for item in conn.execute(sql)]
     count = len(results)
     conn.close()
@@ -22,7 +22,7 @@ def wiki_index(results=None, search=None):
 @app.route("/wiki/<search2>/category/<search>")
 def wiki_details(search=None, search2=None):
     conn = sqlite3.connect(os.path.join(app.root_path, 'databases', '{}'+'.db').format(search2))
-    sql = "select title, content from {} where content like ? order by title" .format(search2)
+    sql = "select title, content from `{}` where content like ? order by title" .format(search2)
     results = [item for item in conn.execute(sql, ('%'+search+'%',))]
     count = len(results)
     conn.close()
@@ -32,7 +32,7 @@ def wiki_details(search=None, search2=None):
 @app.route("/wiki/<search2>/article/<search>")
 def wiki_article(search=None, search2=None):
     conn = sqlite3.connect(os.path.join(app.root_path, 'databases', '{}'+'.db').format(search2))
-    sql = "select content from {} where title like ?" .format(search2)
+    sql = "select content from `{}` where title like ?" .format(search2)
     results = [item for item in conn.execute(sql, (search,))]
     count = len(results)
     conn.close()
@@ -57,6 +57,7 @@ def wiki_article(search=None, search2=None):
         final_string = final_string.replace(item4[0], item4[1])
     final_string = re.sub(r'File:(.+?)\|', r'<img style="width:300px;" src="/static/wiki/{}_images/\1" />' .format(search2), final_string)
     final_string = re.sub(r'File:(.+?)\n', r'<img style="width:300px;" src="/static/wiki/{}_images/\1" />' .format(search2), final_string)
+    final_string = re.sub(r'Image \= (.+?)\n', r'<img style="width:300px;" src="/static/wiki/{}_images/\1" />' .format(search2), final_string)
     return render_template('wiki/wiki_article.html', final_string=final_string)
 
 
@@ -65,7 +66,7 @@ def wiki_article(search=None, search2=None):
 def wiki_search(search=None, search2=None):
     conn = sqlite3.connect(os.path.join(app.root_path, 'databases', '{}'+'.db').format(search2))
     search = request.form['search']
-    sql = "select title, substr(content, instr(lower(content), '{}')-20, 75) from {} where content like ? order by title" .format(search.lower(), search2)
+    sql = "select title, substr(content, instr(lower(content), '{}')-20, 75) from `{}` where content like ? order by title" .format(search.lower(), search2)
     results = [item for item in conn.execute(sql, ('%'+search+'%',))]
     count = len(results)
     conn.close()
