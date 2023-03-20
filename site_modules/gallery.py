@@ -43,19 +43,7 @@ def gallery_index():
                     dir_list.append(entry.name)
             if entry.is_file():
                 file_list.append(entry.name)
-            try:
-                full_file = os.path.join(thumbs2, entry.name)
-                if not os.path.exists(full_file):
-                    width = 150
-                    im = Image.open(entry.path)
-                    widthper = (width/float(im.size[0]))
-                    heightsize = int((float(im.size[1])*float(widthper)))
-                    size = width, heightsize
-                    print('saving {}' .format(full_file))
-                    im2 = im.resize(size, Image.LANCZOS)
-                    im2.save(full_file, "JPEG", quality=90)
-            except Exception as e:
-                print(e)
+            
 
     if len(dir_list) != 0:
         dirfold = 'Folders'
@@ -66,6 +54,26 @@ def gallery_index():
     else:
         filefold = ''
 
+    for subdir, dirs, files in os.walk(path3):
+        for fn in files:
+            endp = os.path.join(subdir, fn)
+            endpoint_thumb = os.path.join(subdir, 'thumbs', fn)
+
+            if not os.path.exists(os.path.join(subdir, 'thumbs')):
+                os.makedirs(os.path.join(subdir, 'thumbs'))
+            if not os.path.exists(endpoint_thumb):
+                width = 150
+                try:
+                    im = Image.open(endp)
+                    widthper = (width/float(im.size[0]))
+                    heightsize = int((float(im.size[1])*float(widthper)))
+                    size = width, heightsize
+                    print('saving {}' .format(endpoint_thumb))
+                    im2 = im.resize(size, Image.LANCZOS)
+                    im2.save(endpoint_thumb, "JPEG", quality=90)
+                except:
+                    pass
+    
     return render_template('gallery/gallery.html', dir_list=sorted(sorted(dir_list), key=sort_folder), file_list=reversed(sorted(file_list)), root_gallery=root_gallery, \
                              path=path2, path_url=path_url, dirfold=dirfold, filefold=filefold, rooto=request.args.get('dir'))
 
