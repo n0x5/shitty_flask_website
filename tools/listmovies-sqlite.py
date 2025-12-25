@@ -126,6 +126,13 @@ def get_info(url):
     response = requests.get(url, headers=headers)
     soup = BeautifulSoup(response.text, "html.parser")
     table = soup.find('script', type=re.compile(r'ld\+json'))
+    table2 = soup.find('script', id=re.compile(r'__NEXT_DATA__'))
+
+    
+    try:
+        data2 = json.loads(table2.string)
+    except:
+        data2 = json.loads(table2.get_text())
 
 
     try:
@@ -147,10 +154,15 @@ def get_info(url):
     title = data['name']
     cover = data['image']
     genres = data['genre']
-    actor = data['actor']
-    actors = [item4['name'] for item4 in actor]
+
     try:
-        director = data['director']
+        actors3 = data2['props']['pageProps']['aboveTheFoldData']['castPageTitle']['edges']
+        actors = [item4['node']['name']['nameText']['text'] for item4 in actors3]
+    except:
+        actor = ''
+        actors = ''
+    try:
+        director3 = data2['props']['pageProps']['aboveTheFoldData']['directorsPageTitle'][0]["credits"][0]["name"]["nameText"]["text"]
     except:
         director = ''
     try:
@@ -200,9 +212,7 @@ def get_info(url):
         if item:
             inforest.append(item)
 
-    #stuff = year, typ3, title, cover, genres, actors, directors, summary, keywords, rating, score['ratingValue'], inforest
-
-    return title, directors, actors, genres, inforest, summary, year
+    return title, director3, actors, genres, inforest, summary, year
 
 def get_infocompany(url, release):
     conn2 = sqlite3.connect(sql_db)
@@ -269,3 +279,5 @@ for subdir, dirs, files in os.walk(cwd):
             except Exception as e:
                 print(e)
                 traceback.print_exc()
+                with open('err.txt', 'a') as fp:
+                    fp.write(subdir+' '+fn)
