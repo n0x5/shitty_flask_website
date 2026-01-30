@@ -128,12 +128,11 @@ def get_info(url):
     table = soup.find('script', type=re.compile(r'ld\+json'))
     table2 = soup.find('script', id=re.compile(r'__NEXT_DATA__'))
 
-    
+
     try:
         data2 = json.loads(table2.string)
     except:
         data2 = json.loads(table2.get_text())
-
 
     try:
         data = json.loads(table.string)
@@ -156,15 +155,15 @@ def get_info(url):
     genres = data['genre']
 
     try:
-        actors3 = data2['props']['pageProps']['aboveTheFoldData']['castPageTitle']['edges']
-        actors = [item4['node']['name']['nameText']['text'] for item4 in actors3]
+        actors3 = data2['props']['pageProps']['aboveTheFoldData']['principalCreditsV2'][2]["credits"]
+        actors = [item4['name']['nameText']['text'] for item4 in actors3]
     except:
         actor = ''
         actors = ''
     try:
-        director3 = data2['props']['pageProps']['aboveTheFoldData']['directorsPageTitle'][0]["credits"][0]["name"]["nameText"]["text"]
+        director3 = data2['props']['pageProps']['aboveTheFoldData']['principalCreditsV2'][0]["credits"][0]["name"]["nameText"]["text"]
     except:
-        director = ''
+        director3 = ''
     try:
         directors = [item5['name'] for item5 in director]
         directors = ','.join(directors)
