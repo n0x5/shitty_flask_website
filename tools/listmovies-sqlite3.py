@@ -1,46 +1,73 @@
-# IMDb database version of the movie scanner
-
 #!/usr/bin/env python
 
 """
-Create an sqlite db of movies in a folder.
+Movie scanner.
 
-Recursive scan of folders.
+IMDb:
+    Reads metadata from local imdb.db.
 
-IMDb information is read from the local imdb.db database created
-by the IMDb dataset importer.
+TMDB:
+    Scrapes the TMDB website for plot summaries.
 
-The .nfo file still needs to contain an IMDb URL such as:
+Box Office Mojo:
+    Scrapes Box Office Mojo for box office information.
+
+The NFO file must contain an IMDb URL such as:
 
     https://www.imdb.com/title/tt0133093/
 
-The script extracts tt0133093 and looks it up locally.
+The script extracts:
 
-No requests to imdb.com are made.
+    tt0133093
 
-Box Office Mojo is still queried separately by get_info_box().
+IMDb metadata is read locally from imdb.db.
+
+TMDB is accessed through the website only.
+No TMDB API is used.
+
+No requests are made to imdb.com.
+
+TMDB summaries are stored locally in movies.db in:
+
+    tmdb_summary
+
+Existing movies are updated when the script is run again.
+
+IMPORTANT:
+
+There is intentionally NO movie_catalog SQLite VIEW.
+
+SQLite does not allow a persistent view in movies.db to
+reference tables in an attached imdb.db.
 """
+
 
 import os
 import re
 import time
 import sqlite3
 import traceback
+
 from random import randint
+from urllib.parse import quote_plus, urljoin
+
+import requests
+from bs4 import BeautifulSoup
 
 
-# ============================================================================
+# =============================================================================
 # Configuration
-# ============================================================================
-
-today = time.strftime("__%m_%Y_%H_%M_%S")
+# =============================================================================
 
 cwd = r'F:\archive\xvid-scan'
 
 number = 0
 
 
-# Movie database created by this script
+# =============================================================================
+# Database paths
+# =============================================================================
+
 sql_db = os.path.join(
     os.path.dirname(__file__),
     '..',
@@ -48,52 +75,38 @@ sql_db = os.path.join(
     'movies.db'
 )
 
-
-# ---------------------------------------------------------------------------
-# IMDb database created by the IMDb importer
-#
-# Change this path if imdb.db lives somewhere else.
-# ---------------------------------------------------------------------------
-
 imdb_db = r'C:\dev\imdb\imdb.db'
 
 
-# ============================================================================
-# Open movie database
-# ============================================================================
+# =============================================================================
+# Website configuration
+# =============================================================================
 
-conn = sqlite3.connect(sql_db)
-cur = conn.cursor()
+HEADERS = {
+    'User-Agent':
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+        'AppleWebKit/537.36 '
+        '(KHTML, like Gecko) '
+        'Chrome/120.0.0.0 Safari/537.36',
 
-cur.execute(
-    '''
-    CREATE TABLE IF NOT EXISTS movies
-    (
-        release text unique,
-        grp text,
-        genre text,
-        format text,
-        imdb text,
-        title text,
-        director text,
-        mainactors text,
-        infogenres text,
-        inforest text,
-        infosummary text,
-        year text,
-        dated datetime DEFAULT CURRENT_TIMESTAMP
-    )
-    '''
+    'Accept-Language':
+        'en-US,en;q=0.9'
+}
+
+
+TMDB_BASE_URL = 'https://www.themoviedb.org'
+
+BOXOFFICE_BASE_URL = (
+    'https://www.boxofficemojo.com'
 )
 
-conn.commit()
 
-
-# ============================================================================
-# Open IMDb database
-# ============================================================================
+# =============================================================================
+# Check IMDb database
+# =============================================================================
 
 if not os.path.exists(imdb_db):
+
     raise FileNotFoundError(
         "IMDb database not found:\n"
         f"{imdb_db}\n\n"
@@ -101,58 +114,127 @@ if not os.path.exists(imdb_db):
     )
 
 
-imdb_conn = sqlite3.connect(
-    f'file:{imdb_db}?mode=ro',
-    uri=True
+# =============================================================================
+# Open movies database
+# =============================================================================
+
+conn = sqlite3.connect(
+    sql_db
 )
 
-imdb_cur = imdb_conn.cursor()
+cur = conn.cursor()
 
 
-# ============================================================================
-# Check that the expected IMDb tables exist
-# ============================================================================
+# =============================================================================
+# Attach IMDb database
+#
+# This is only for the current Python connection.
+#
+# We do NOT create a persistent view using imdb.* because SQLite does not
+# allow persistent views in one database to reference an attached database.
+# =============================================================================
 
-def check_imdb_database():
-
-    required_tables = [
-        'title_basics',
-        'title_crew',
-        'title_principals',
-        'title_ratings',
-        'name_basics',
-    ]
-
-    for table in required_tables:
-
-        result = imdb_cur.execute(
-            """
-            SELECT 1
-            FROM sqlite_master
-            WHERE type = 'table'
-              AND name = ?
-            """,
-            (table,)
-        ).fetchone()
-
-        if result is None:
-            raise RuntimeError(
-                f"Required IMDb table '{table}' "
-                f"does not exist in:\n{imdb_db}"
-            )
+cur.execute(
+    "ATTACH DATABASE ? AS imdb",
+    (imdb_db,)
+)
 
 
-check_imdb_database()
+# =============================================================================
+# Create movies table
+# =============================================================================
+
+cur.execute(
+    '''
+    CREATE TABLE IF NOT EXISTS movies
+    (
+        release TEXT UNIQUE,
+        grp TEXT,
+        genre TEXT,
+        format TEXT,
+        imdb TEXT,
+        tmdb_summary TEXT,
+        dated DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+    '''
+)
+
+conn.commit()
 
 
-# ============================================================================
+# =============================================================================
+# Upgrade an existing movies table
+#
+# If the table already existed before tmdb_summary was added,
+# add the column without destroying the existing data.
+# =============================================================================
+
+columns = [
+    row[1]
+    for row in cur.execute(
+        "PRAGMA table_info(movies)"
+    ).fetchall()
+]
+
+
+if 'tmdb_summary' not in columns:
+
+    print(
+        'Adding tmdb_summary column...'
+    )
+
+    cur.execute(
+        '''
+        ALTER TABLE movies
+        ADD COLUMN tmdb_summary TEXT
+        '''
+    )
+
+    conn.commit()
+
+
+# =============================================================================
+# Check required IMDb tables
+# =============================================================================
+
+required_imdb_tables = [
+    'title_basics',
+    'title_ratings',
+    'title_crew',
+    'title_principals',
+    'name_basics'
+]
+
+
+for table in required_imdb_tables:
+
+    result = cur.execute(
+        '''
+        SELECT 1
+        FROM imdb.sqlite_master
+        WHERE type = 'table'
+        AND name = ?
+        ''',
+        (table,)
+    ).fetchone()
+
+
+    if result is None:
+
+        raise RuntimeError(
+            f"Required IMDb table '{table}' "
+            f"was not found in {imdb_db}"
+        )
+
+
+# =============================================================================
 # IMDb ID extraction
-# ============================================================================
+# =============================================================================
 
 def imdburl2(fn):
 
     """
-    Extract an IMDb ID from an .nfo file.
+    Extract an IMDb ID from an NFO file.
 
     Example:
 
@@ -167,14 +249,20 @@ def imdburl2(fn):
 
         with open(
             fn,
-            "r",
-            encoding="utf-8",
-            errors="ignore"
+            'r',
+            encoding='utf-8',
+            errors='ignore'
         ) as filn2:
 
             contents = filn2.read()
 
-    except Exception:
+    except Exception as e:
+
+        print(
+            'Could not read NFO:',
+            fn,
+            e
+        )
 
         return None
 
@@ -185,62 +273,60 @@ def imdburl2(fn):
         re.IGNORECASE
     )
 
+
     if match:
+
         return match.group(1)
+
 
     return None
 
 
 def imdburl(fn):
 
-    """
-    Return the IMDb ID from an .nfo file.
-
-    Kept for compatibility with the original script.
-    """
-
     return imdburl2(fn)
 
 
-# ============================================================================
-# Genre extraction from local NFO
-# ============================================================================
+# =============================================================================
+# Genre extraction from NFO
+# =============================================================================
 
 def genrs(fn):
 
     genrelist = [
-        "romance",
-        "comedy",
-        "animation",
-        "mystery",
-        "documentary",
-        "crime",
-        "family",
-        "sport",
-        "biography",
-        "history",
-        "western",
-        "sci-fi",
-        "horror",
-        "adventure",
-        "drama",
-        "fantasy",
-        "thriller",
-        "action"
+        'romance',
+        'comedy',
+        'animation',
+        'mystery',
+        'documentary',
+        'crime',
+        'family',
+        'sport',
+        'biography',
+        'history',
+        'western',
+        'sci-fi',
+        'horror',
+        'adventure',
+        'drama',
+        'fantasy',
+        'thriller',
+        'action'
     ]
+
 
     try:
 
         with open(
             fn,
-            "r",
-            encoding="utf-8",
-            errors="ignore"
+            'r',
+            encoding='utf-8',
+            errors='ignore'
         ) as filn:
 
             for genres in filn:
 
-                if "genre" in genres.lower():
+                if 'genre' in genres.lower():
 
                     output = [
                         item.title()
@@ -248,7 +334,8 @@ def genrs(fn):
                         if item in genres.lower()
                     ]
 
-                    return ", ".join(
+
+                    return ', '.join(
                         repr(e).replace("'", "")
                         for e in output
                     )
@@ -257,46 +344,681 @@ def genrs(fn):
 
         pass
 
-    return ""
+
+    return ''
 
 
-# ============================================================================
-# IMDb lookup
-# ============================================================================
+# =============================================================================
+# Normalize a title for comparison
+# =============================================================================
+
+def normalize_title(title):
+
+    if not title:
+
+        return ''
+
+
+    title = title.lower()
+
+
+    title = re.sub(
+        r'[^a-z0-9]+',
+        ' ',
+        title
+    )
+
+
+    return ' '.join(
+        title.split()
+    )
+
+
+# =============================================================================
+# Get an existing TMDB summary
+# =============================================================================
+
+def get_saved_tmdb_summary(imdb_id):
+
+    if not imdb_id:
+
+        return ''
+
+
+    row = cur.execute(
+        '''
+        SELECT tmdb_summary
+
+        FROM movies
+
+        WHERE imdb = ?
+
+        AND tmdb_summary IS NOT NULL
+
+        AND tmdb_summary != ''
+
+        LIMIT 1
+        ''',
+        (imdb_id,)
+    ).fetchone()
+
+
+    if row:
+
+        return row[0]
+
+
+    return ''
+
+
+# =============================================================================
+# Find TMDB movie page
+# =============================================================================
+
+def get_tmdb_page(
+    title,
+    year=None
+):
+
+    """
+    Search the TMDB website by movie title.
+
+    We use the title and year from the local IMDb database rather
+    than trying to search TMDB for the IMDb tt... ID.
+
+    Returns the TMDB movie URL.
+    """
+
+    if not title:
+
+        return None
+
+
+    print(
+        'Searching TMDB website:',
+        title,
+        year
+    )
+
+
+    search_url = (
+        TMDB_BASE_URL
+        + '/search/movie?query='
+        + quote_plus(title)
+    )
+
+
+    try:
+
+        response = requests.get(
+            search_url,
+            headers=HEADERS,
+            timeout=30
+        )
+
+        response.raise_for_status()
+
+    except requests.RequestException as e:
+
+        print(
+            'TMDB search failed:',
+            e
+        )
+
+        return None
+
+
+    soup = BeautifulSoup(
+        response.text,
+        'html.parser'
+    )
+
+
+    # =========================================================================
+    # Find movie links
+    # =========================================================================
+
+    links = soup.find_all(
+        'a',
+        href=re.compile(
+            r'^/movie/\d+'
+        )
+    )
+
+
+    if not links:
+
+        print(
+            'No TMDB movie results found:',
+            title
+        )
+
+        return None
+
+
+    wanted_title = normalize_title(
+        title
+    )
+
+
+    wanted_year = ''
+
+
+    if year:
+
+        wanted_year = str(
+            year
+        )
+
+
+    # =========================================================================
+    # Remove duplicate links
+    # =========================================================================
+
+    candidates = []
+
+
+    seen = set()
+
+
+    for link in links:
+
+        href = link.get(
+            'href'
+        )
+
+
+        if not href:
+
+            continue
+
+
+        movie_url = urljoin(
+            TMDB_BASE_URL,
+            href
+        )
+
+
+        if movie_url in seen:
+
+            continue
+
+
+        seen.add(
+            movie_url
+        )
+
+
+        candidates.append(
+            (
+                movie_url,
+                link
+            )
+        )
+
+
+    # =========================================================================
+    # First pass:
+    #
+    # Try to match both title and year.
+    # =========================================================================
+
+    for movie_url, link in candidates:
+
+        if link.parent:
+
+            result_text = link.parent.get_text(
+                ' ',
+                strip=True
+            )
+
+        else:
+
+            result_text = link.get_text(
+                ' ',
+                strip=True
+            )
+
+
+        normalized_result = normalize_title(
+            result_text
+        )
+
+
+        title_match = (
+            wanted_title in normalized_result
+            or normalized_result in wanted_title
+        )
+
+
+        year_match = True
+
+
+        if wanted_year:
+
+            year_match = (
+                wanted_year in result_text
+            )
+
+
+        if title_match and year_match:
+
+            print(
+                'TMDB match:',
+                movie_url
+            )
+
+            return movie_url
+
+
+    # =========================================================================
+    # Second pass:
+    #
+    # Title-only match.
+    # =========================================================================
+
+    for movie_url, link in candidates:
+
+        if link.parent:
+
+            result_text = link.parent.get_text(
+                ' ',
+                strip=True
+            )
+
+        else:
+
+            result_text = link.get_text(
+                ' ',
+                strip=True
+            )
+
+
+        normalized_result = normalize_title(
+            result_text
+        )
+
+
+        if (
+            wanted_title in normalized_result
+            or normalized_result in wanted_title
+        ):
+
+            print(
+                'TMDB title match:',
+                movie_url
+            )
+
+            return movie_url
+
+
+    # =========================================================================
+    # Third pass:
+    #
+    # If the search page doesn't expose enough useful text, inspect
+    # the candidate pages and compare their title/year.
+    # =========================================================================
+
+    checked = set()
+
+
+    for movie_url, link in candidates:
+
+        if movie_url in checked:
+
+            continue
+
+
+        checked.add(
+            movie_url
+        )
+
+
+        try:
+
+            movie_response = requests.get(
+                movie_url,
+                headers=HEADERS,
+                timeout=30
+            )
+
+
+            if movie_response.status_code != 200:
+
+                continue
+
+
+        except requests.RequestException:
+
+            continue
+
+
+        movie_soup = BeautifulSoup(
+            movie_response.text,
+            'html.parser'
+        )
+
+
+        # -------------------------------------------------------------
+        # Get page title
+        # -------------------------------------------------------------
+
+        page_title = ''
+
+
+        title_element = movie_soup.find(
+            'title'
+        )
+
+
+        if title_element:
+
+            page_title = title_element.get_text(
+                ' ',
+                strip=True
+            )
+
+
+        normalized_page_title = normalize_title(
+            page_title
+        )
+
+
+        if wanted_title in normalized_page_title:
+
+            if (
+                not wanted_year
+                or wanted_year in page_title
+            ):
+
+                print(
+                    'TMDB page match:',
+                    movie_url
+                )
+
+                return movie_url
+
+
+    print(
+        'Could not find TMDB page:',
+        title,
+        year
+    )
+
+
+    return None
+
+
+# =============================================================================
+# Get plot summary from TMDB website
+# =============================================================================
+
+def get_tmdb_summary(
+    title,
+    year=None
+):
+
+    """
+    Scrape the movie overview from TMDB.
+
+    No TMDB API is used.
+    """
+
+    if not title:
+
+        return ''
+
+
+    tmdb_url = get_tmdb_page(
+        title,
+        year
+    )
+
+
+    if not tmdb_url:
+
+        return ''
+
+
+    print(
+        'Reading TMDB:',
+        tmdb_url
+    )
+
+
+    try:
+
+        response = requests.get(
+            tmdb_url,
+            headers=HEADERS,
+            timeout=30
+        )
+
+        response.raise_for_status()
+
+    except requests.RequestException as e:
+
+        print(
+            'TMDB page request failed:',
+            e
+        )
+
+        return ''
+
+
+    soup = BeautifulSoup(
+        response.text,
+        'html.parser'
+    )
+
+
+    # =========================================================================
+    # Method 1:
+    #
+    # Current/common TMDB overview selector.
+    # =========================================================================
+
+    selectors = [
+        '[data-testid="movie-overview"]',
+        '.overview',
+        '.header_info .overview',
+        '.overview p'
+    ]
+
+
+    for selector in selectors:
+
+        element = soup.select_one(
+            selector
+        )
+
+
+        if element:
+
+            summary = element.get_text(
+                ' ',
+                strip=True
+            )
+
+
+            if len(summary) > 20:
+
+                print(
+                    'TMDB summary found.'
+                )
+
+                return summary
+
+
+    # =========================================================================
+    # Method 2:
+    #
+    # Find any element whose class contains "overview".
+    # =========================================================================
+
+    for element in soup.find_all(
+        class_=re.compile(
+            r'overview',
+            re.IGNORECASE
+        )
+    ):
+
+        summary = element.get_text(
+            ' ',
+            strip=True
+        )
+
+
+        if len(summary) > 20:
+
+            print(
+                'TMDB summary found.'
+            )
+
+            return summary
+
+
+    # =========================================================================
+    # Method 3:
+    #
+    # Look for a meta description.
+    # =========================================================================
+
+    meta = soup.find(
+        'meta',
+        attrs={
+            'name': 'description'
+        }
+    )
+
+
+    if meta:
+
+        summary = meta.get(
+            'content',
+            ''
+        ).strip()
+
+
+        if len(summary) > 40:
+
+            print(
+                'TMDB summary found in meta description.'
+            )
+
+            return summary
+
+
+    # =========================================================================
+    # Method 4:
+    #
+    # JSON-LD description.
+    # =========================================================================
+
+    scripts = soup.find_all(
+        'script',
+        attrs={
+            'type': 'application/ld+json'
+        }
+    )
+
+
+    for script in scripts:
+
+        text = script.get_text(
+            strip=True
+        )
+
+
+        if not text:
+
+            continue
+
+
+        match = re.search(
+            r'"description"\s*:\s*"((?:\\.|[^"\\])*)"',
+            text,
+            re.IGNORECASE
+        )
+
+
+        if match:
+
+            summary = match.group(1)
+
+
+            summary = (
+                summary
+                .replace(
+                    '\\"',
+                    '"'
+                )
+                .replace(
+                    '\\n',
+                    ' '
+                )
+                .replace(
+                    '\\r',
+                    ' '
+                )
+            )
+
+
+            summary = summary.strip()
+
+
+            if len(summary) > 20:
+
+                print(
+                    'TMDB summary found in JSON-LD.'
+                )
+
+                return summary
+
+
+    print(
+        'No TMDB summary found:',
+        title
+    )
+
+
+    return ''
+
+
+# =============================================================================
+# Get IMDb information from local imdb.db
+# =============================================================================
 
 def get_info(imdb_id):
 
     """
-    Get movie information from the local IMDb SQLite database.
+    Get IMDb information from the local IMDb database.
 
     Returns:
 
         title
-        director
+        directors
         actors
         genres
         cast
         summary
         year
-
-    The public IMDb datasets do not contain the webpage description,
-    keywords, poster URL, or content rating that the old scraper obtained,
-    so summary is currently empty.
     """
 
     print(
-        "Getting IMDb information from local database:",
+        'Getting IMDb information from local database:',
         imdb_id
     )
 
 
-    # ------------------------------------------------------------------------
-    # Basic title information + rating
-    # ------------------------------------------------------------------------
+    # =========================================================================
+    # Basic title information
+    # =========================================================================
 
-    movie = imdb_cur.execute(
-        """
+    movie = cur.execute(
+        '''
         SELECT
+
             b.tconst,
             b.primaryTitle,
             b.originalTitle,
@@ -306,13 +1028,14 @@ def get_info(imdb_id):
             b.genres,
             r.averageRating,
             r.numVotes
-        FROM title_basics AS b
 
-        LEFT JOIN title_ratings AS r
+        FROM imdb.title_basics AS b
+
+        LEFT JOIN imdb.title_ratings AS r
             ON r.tconst = b.tconst
 
         WHERE b.tconst = ?
-        """,
+        ''',
         (imdb_id,)
     ).fetchone()
 
@@ -320,18 +1043,18 @@ def get_info(imdb_id):
     if movie is None:
 
         print(
-            "IMDb ID not found in local database:",
+            'IMDb ID not found:',
             imdb_id
         )
 
         return (
-            "",
-            "",
-            "",
-            "",
+            '',
+            '',
             [],
-            "",
-            ""
+            [],
+            [],
+            '',
+            ''
         )
 
 
@@ -348,26 +1071,26 @@ def get_info(imdb_id):
     ) = movie
 
 
-    # ------------------------------------------------------------------------
-    # Director(s)
-    #
-    # title_crew.directors contains a comma-separated list of nconst IDs.
-    # Resolve those IDs against name_basics.
-    # ------------------------------------------------------------------------
+    # =========================================================================
+    # Directors
+    # =========================================================================
 
-    crew = imdb_cur.execute(
-        """
+    crew = cur.execute(
+        '''
         SELECT
             directors,
             writers
-        FROM title_crew
+
+        FROM imdb.title_crew
+
         WHERE tconst = ?
-        """,
+        ''',
         (imdb_id,)
     ).fetchone()
 
 
     directors = []
+
 
     if crew and crew[0]:
 
@@ -377,69 +1100,90 @@ def get_info(imdb_id):
             if x.strip()
         ]
 
+
         if director_ids:
 
-            placeholders = ",".join(
-                "?"
+            placeholders = ','.join(
+                '?'
                 for _ in director_ids
             )
 
-            rows = imdb_cur.execute(
-                f"""
+
+            rows = cur.execute(
+                f'''
                 SELECT
                     nconst,
                     primaryName
-                FROM name_basics
+
+                FROM imdb.name_basics
+
                 WHERE nconst IN ({placeholders})
-                ORDER BY primaryName
-                """,
+                ''',
                 director_ids
             ).fetchall()
 
-            directors = [
-                row[1]
+
+            name_lookup = {
+                row[0]: row[1]
                 for row in rows
-            ]
+            }
 
 
-    director_string = ", ".join(
+            for director_id in director_ids:
+
+                name = name_lookup.get(
+                    director_id
+                )
+
+
+                if name:
+
+                    directors.append(
+                        name
+                    )
+
+
+    directors = list(
+        dict.fromkeys(
+            directors
+        )
+    )
+
+
+    director_string = ', '.join(
         directors
     )
 
 
-    # ------------------------------------------------------------------------
-    # Main actors
-    #
-    # IMDb principals contains categories such as:
-    #
-    #   actor
-    #   actress
-    #   self
-    #   director
-    #   writer
-    #
-    # We take actor/actress entries and resolve nconst through name_basics.
-    # ------------------------------------------------------------------------
+    # =========================================================================
+    # Actors
+    # =========================================================================
 
-    actor_rows = imdb_cur.execute(
-        """
+    actor_rows = cur.execute(
+        '''
         SELECT
+
             p.nconst,
             p.ordering,
             p.category
-        FROM title_principals AS p
+
+        FROM imdb.title_principals AS p
+
         WHERE p.tconst = ?
-          AND p.category IN (
-              'actor',
-              'actress'
-          )
+
+        AND p.category IN (
+            'actor',
+            'actress'
+        )
+
         ORDER BY p.ordering
-        """,
+        ''',
         (imdb_id,)
     ).fetchall()
 
 
     actors = []
+
 
     if actor_rows:
 
@@ -448,221 +1192,383 @@ def get_info(imdb_id):
             for row in actor_rows
         ]
 
-        placeholders = ",".join(
-            "?"
+
+        placeholders = ','.join(
+            '?'
             for _ in actor_ids
         )
 
-        names = imdb_cur.execute(
-            f"""
+
+        names = cur.execute(
+            f'''
             SELECT
+
                 nconst,
                 primaryName
-            FROM name_basics
+
+            FROM imdb.name_basics
+
             WHERE nconst IN ({placeholders})
-            """,
+            ''',
             actor_ids
         ).fetchall()
+
 
         name_lookup = {
             row[0]: row[1]
             for row in names
         }
 
-        # Preserve IMDb's principal ordering.
+
         for nconst, ordering, category in actor_rows:
 
             name = name_lookup.get(
                 nconst
             )
 
+
             if name:
-                actors.append(name)
 
+                actors.append(
+                    name
+                )
 
-    # Remove duplicates while preserving order.
 
     actors = list(
-        dict.fromkeys(actors)
+        dict.fromkeys(
+            actors
+        )
     )
 
-
-    # Limit to the main cast.
 
     actors = actors[:20]
 
 
-    # ------------------------------------------------------------------------
-    # IMDb genres
-    # ------------------------------------------------------------------------
+    # Store actors as:
 
-    imdb_genres = ""
+    # ['Actor One', 'Actor Two']
+
+    actors_string = str(
+        actors
+    )
+
+
+    # =========================================================================
+    # Genres
+    #
+    # IMDb stores:
+    #
+    #     Action,Adventure,Sci-Fi
+    #
+    # We store:
+    #
+    #     ['Action', 'Adventure', 'Sci-Fi']
+    # =========================================================================
+
+    imdb_genres = []
+
 
     if genres:
 
-        imdb_genres = genres.replace(
-            ",",
-            ", "
+        imdb_genres = [
+            genre.strip()
+            for genre in genres.split(',')
+            if genre.strip()
+        ]
+
+
+    imdb_genres_string = str(
+        imdb_genres
+    )
+
+
+    # =========================================================================
+    # Year
+    # =========================================================================
+
+    year = ''
+
+
+    if start_year is not None:
+
+        year = str(
+            start_year
         )
 
 
-    # ------------------------------------------------------------------------
-    # Year
-    # ------------------------------------------------------------------------
+    # =========================================================================
+    # TMDB summary
+    #
+    # First use a saved summary.
+    #
+    # If there isn't one, search TMDB by title/year.
+    # =========================================================================
 
-    year = ""
-
-    if start_year is not None:
-        year = str(start_year)
-
-
-    # ------------------------------------------------------------------------
-    # The public IMDb datasets don't contain the old webpage summary.
-    # ------------------------------------------------------------------------
-
-    summary = ""
+    summary = get_saved_tmdb_summary(
+        imdb_id
+    )
 
 
-    # ------------------------------------------------------------------------
+    if summary:
+
+        print(
+            'Using saved TMDB summary.'
+        )
+
+    else:
+
+        summary = get_tmdb_summary(
+            title,
+            year
+        )
+
+
+    # =========================================================================
     # Cast
-    # ------------------------------------------------------------------------
+    # =========================================================================
 
-    cast = actors.copy()
+    cast = actors_string
 
 
-    # ------------------------------------------------------------------------
-    # Print useful diagnostic information
-    # ------------------------------------------------------------------------
+    # =========================================================================
+    # Display
+    # =========================================================================
 
     print(
-        "IMDb:",
-        imdb_id,
-        "|",
-        title,
-        "|",
-        year,
-        "|",
-        rating,
-        "|",
+        'IMDb:',
+        imdb_id
+    )
+
+    print(
+        'Title:',
+        title
+    )
+
+    print(
+        'Year:',
+        year
+    )
+
+    print(
+        'Rating:',
+        rating
+    )
+
+    print(
+        'Votes:',
         votes
     )
 
     print(
-        "Director:",
+        'Director:',
         director_string
     )
 
     print(
-        "Actors:",
-        ", ".join(actors)
+        'Actors:',
+        actors_string
     )
 
     print(
-        "Genres:",
-        imdb_genres
+        'Genres:',
+        imdb_genres_string
+    )
+
+    print(
+        'Summary:',
+        summary
     )
 
 
     return (
         title,
         director_string,
-        actors,
-        imdb_genres,
+        actors_string,
+        imdb_genres_string,
         cast,
         summary,
         year
     )
 
 
-# ============================================================================
-# Store movie
-# ============================================================================
+# =============================================================================
+# Store / update movie
+# =============================================================================
 
 def store(
     release,
     grp,
     genre,
-    title,
-    director,
-    mainactors,
-    infogenres,
-    inforest,
-    infosummary,
-    year
+    imdb_id,
+    summary
 ):
 
-    imdb_id = imdburl(file2)
+    """
+    Insert or update a movie.
 
+    Existing movies are updated.
 
-    print(
-        '{} - {} - {} - {} - {} - {} - {} - {} - {} - {} - {} - {}'.format(
-            basenm2,
-            file6,
-            genrs(file2),
-            file7,
-            imdb_id,
-            str(imdb_info[0]).strip(),
-            str(imdb_info[1]).strip(),
-            str(imdb_info[2]).replace('\\n', ''),
-            str(imdb_info[3]),
-            str(imdb_info[4]),
-            str(imdb_info[5]),
-            str(imdb_info[6])
-        )
-    )
+    An empty TMDB summary will NOT overwrite an existing summary.
+    """
 
-
-    cur.execute(
+    existing = cur.execute(
         '''
-        INSERT OR IGNORE INTO movies
-        (
-            release,
-            grp,
-            genre,
-            format,
-            imdb,
-            title,
-            director,
-            mainactors,
-            infogenres,
-            inforest,
-            infosummary,
-            year
-        )
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
+        SELECT release
+        FROM movies
+        WHERE release = ?
         ''',
+        (release,)
+    ).fetchone()
 
-        (
-            basenm2,
-            file6,
-            genrs(file2),
-            file7,
-            imdb_id,
-            str(imdb_info[0]).strip(),
-            str(imdb_info[1]).strip().replace(',', ''),
-            str(imdb_info[2]).replace('\\n', '').strip(),
-            str(imdb_info[3]).strip(),
-            str(imdb_info[4]).strip(),
-            str(imdb_info[5]).strip(),
-            str(imdb_info[6])
+
+    if existing:
+
+        if summary:
+
+            cur.execute(
+                '''
+                UPDATE movies
+
+                SET
+                    grp = ?,
+                    genre = ?,
+                    format = ?,
+                    imdb = ?,
+                    tmdb_summary = ?
+
+                WHERE release = ?
+                ''',
+                (
+                    grp,
+                    genre,
+                    file7,
+                    imdb_id,
+                    summary,
+                    release
+                )
+            )
+
+        else:
+
+            cur.execute(
+                '''
+                UPDATE movies
+
+                SET
+                    grp = ?,
+                    genre = ?,
+                    format = ?,
+                    imdb = ?
+
+                WHERE release = ?
+                ''',
+                (
+                    grp,
+                    genre,
+                    file7,
+                    imdb_id,
+                    release
+                )
+            )
+
+
+    else:
+
+        cur.execute(
+            '''
+            INSERT INTO movies
+            (
+                release,
+                grp,
+                genre,
+                format,
+                imdb,
+                tmdb_summary
+            )
+
+            VALUES (?, ?, ?, ?, ?, ?)
+            ''',
+            (
+                release,
+                grp,
+                genre,
+                file7,
+                imdb_id,
+                summary
+            )
         )
-    )
 
 
-    cur.connection.commit()
+    conn.commit()
 
 
-# ============================================================================
+# =============================================================================
+# Get combined movie information
+# =============================================================================
+
+def get_movie_catalog(imdb_id):
+
+    """
+    Return local movie information combined with IMDb information.
+
+    This replaces the old movie_catalog VIEW.
+
+    It works because imdb.db is attached to the current connection.
+    """
+
+    row = cur.execute(
+        '''
+        SELECT
+
+            m.release,
+            m.grp,
+            m.genre AS folder_genre,
+            m.format,
+            m.imdb,
+            m.tmdb_summary,
+            m.dated,
+
+            b.primaryTitle AS title,
+            b.originalTitle,
+            b.titleType,
+
+            b.startYear AS year,
+            b.endYear,
+            b.runtimeMinutes,
+
+            b.genres AS imdb_genres,
+
+            r.averageRating,
+            r.numVotes,
+
+            c.directors,
+            c.writers
+
+        FROM movies AS m
+
+        LEFT JOIN imdb.title_basics AS b
+            ON b.tconst = m.imdb
+
+        LEFT JOIN imdb.title_ratings AS r
+            ON r.tconst = m.imdb
+
+        LEFT JOIN imdb.title_crew AS c
+            ON c.tconst = m.imdb
+
+        WHERE m.imdb = ?
+        ''',
+        (imdb_id,)
+    ).fetchone()
+
+
+    return row
+
+
+# =============================================================================
 # Box Office Mojo
-#
-# This section is intentionally unchanged conceptually.
-# It still gets data from Box Office Mojo, NOT IMDb.
-# ============================================================================
+# =============================================================================
 
 def get_info_box(url):
-
-    import requests
-    from bs4 import BeautifulSoup
 
     headers = {
         'User-Agent':
@@ -670,42 +1576,62 @@ def get_info_box(url):
             'rv:47.0) Gecko/20100101 Firefox/47.0'
     }
 
+
     print(
-        'getting film:',
+        'Getting Box Office Mojo:',
         url
     )
+
 
     response = requests.get(
         url,
-        headers=headers
+        headers=headers,
+        timeout=30
     )
+
 
     soup = BeautifulSoup(
         response.text,
-        "html.parser"
+        'html.parser'
     )
 
-    imdb_id = re.search(
+
+    imdb_id_match = re.search(
         r'(tt\d{6,12})',
         url
     )
+
 
     table = soup.find(
         'main'
     )
 
+
     if table is None:
+
         raise RuntimeError(
-            "Box Office Mojo page not found"
+            'Box Office Mojo page not found'
         )
 
-    title = table.find(
+
+    title_element = table.find(
         'h1',
         attrs={
             'class':
                 'a-size-extra-large'
         }
-    ).get_text()
+    )
+
+
+    if title_element is None:
+
+        raise RuntimeError(
+            'Could not find Box Office Mojo title'
+        )
+
+
+    title = title_element.get_text()
+
 
     table2 = table.find(
         'div',
@@ -715,6 +1641,14 @@ def get_info_box(url):
                 'mojo-gutter mojo-summary-table'
         }
     )
+
+
+    if table2 is None:
+
+        raise RuntimeError(
+            'Could not find Box Office Mojo summary table'
+        )
+
 
     distributor2 = table2.find(
         'div',
@@ -726,16 +1660,49 @@ def get_info_box(url):
         }
     )
 
-    distributor = distributor2.find_all(
+
+    if distributor2 is None:
+
+        raise RuntimeError(
+            'Could not find distributor information'
+        )
+
+
+    distributor_spans = distributor2.find_all(
         'span'
-    )[1].get_text().replace(
-        'See full company information\n\n',
-        ''
     )
 
-    rel_date = distributor2.find_all(
-        'span'
-    )[6].get_text()
+
+    distributor = ''
+
+
+    if len(distributor_spans) > 1:
+
+        distributor = (
+            distributor_spans[1]
+            .get_text(
+                strip=True
+            )
+            .replace(
+                'See full company information',
+                ''
+            )
+            .strip()
+        )
+
+
+    rel_date = ''
+
+
+    if len(distributor_spans) > 6:
+
+        rel_date = (
+            distributor_spans[6]
+            .get_text(
+                strip=True
+            )
+        )
+
 
     rel1 = table.find(
         'table',
@@ -746,42 +1713,67 @@ def get_info_box(url):
         }
     )
 
+
+    if rel1 is None:
+
+        return
+
+
     lists = rel1.find(
         'a',
         href=re.compile(
-            r'\/release'
+            r'/release'
         )
     )
 
+
     theaters_max3 = ''
     theaters_openwide = ''
+    rl_id = None
 
-    if 'Domestic' in str(lists):
 
-        rl_id = re.search(
+    if lists and 'Domestic' in str(lists):
+
+        rl_match = re.search(
             r'(rl\d{7,12})',
-            str(lists['href'])
+            str(
+                lists.get(
+                    'href',
+                    ''
+                )
+            )
         )
 
+
+        if rl_match:
+
+            rl_id = rl_match.group(1)
+
+
         url2 = (
-            'https://www.boxofficemojo.com'
+            BOXOFFICE_BASE_URL
             + lists['href']
             + '/weekend/'
         )
 
+
         print(
-            'Fetching Boxoffice weekend:'
+            'Fetching Box Office weekend:'
         )
+
 
         response2 = requests.get(
             url2,
-            headers=headers
+            headers=headers,
+            timeout=30
         )
+
 
         soup2 = BeautifulSoup(
             response2.text,
-            "html.parser"
+            'html.parser'
         )
+
 
         table2 = soup2.find(
             'div',
@@ -793,66 +1785,75 @@ def get_info_box(url):
             }
         )
 
-        for item in table2.find_all(
-            'div',
-            attrs={
-                'class':
-                    'a-section a-spacing-none'
-            }
-        ):
 
-            if (
-                'theaters' in str(item)
-                and 'Opening' in str(item)
+        if table2:
+
+            for item in table2.find_all(
+                'div',
+                attrs={
+                    'class':
+                        'a-section a-spacing-none'
+                }
             ):
 
-                match = re.search(
-                    r'(\d{0,4}\,\d{2,5}|\d{0,9000})'
-                    r'\s+theaters',
-                    str(item).replace(
-                        '\n',
-                        ''
-                    )
+                item_text = str(
+                    item
+                ).replace(
+                    '\n',
+                    ''
                 )
 
-                if match:
 
-                    theaters_max3 = (
-                        match.group(1)
-                        .replace(
-                            'theaters',
-                            ''
+                if (
+                    'theaters' in item_text
+                    and 'Opening' in item_text
+                ):
+
+                    match = re.search(
+                        r'(\d{0,4}\,\d{2,5}|\d{0,9000})'
+                        r'\s+theaters',
+                        item_text
+                    )
+
+
+                    if match:
+
+                        theaters_max3 = (
+                            match.group(1)
+                            .replace(
+                                'theaters',
+                                ''
+                            )
+                            .strip()
                         )
-                        .strip()
+
+
+                if (
+                    'theaters' in item_text
+                    and 'Widest' in item_text
+                ):
+
+                    match = re.search(
+                        r'(\d{0,4}\,\d{2,5}|\d{0,9000})'
+                        r'\s+theaters',
+                        item_text
                     )
 
-            if (
-                'theaters' in str(item)
-                and 'Widest' in str(item)
-            ):
 
-                match = re.search(
-                    r'(\d{0,4}\,\d{2,5}|\d{0,9000})'
-                    r'\s+theaters',
-                    str(item).replace(
-                        '\n',
-                        ''
-                    )
-                )
+                    if match:
 
-                if match:
-
-                    theaters_openwide = (
-                        match.group(1)
-                        .replace(
-                            'theaters',
-                            ''
+                        theaters_openwide = (
+                            match.group(1)
+                            .replace(
+                                'theaters',
+                                ''
+                            )
+                            .strip()
                         )
-                        .strip()
-                    )
 
 
     alt_theaters = theaters_openwide
+
 
     stuff = (
         title,
@@ -861,70 +1862,104 @@ def get_info_box(url):
         alt_theaters,
         rel_date,
         distributor,
-        rl_id.group(1),
-        imdb_id.group(1)
+        rl_id,
+        imdb_id_match.group(1)
+        if imdb_id_match
+        else None
     )
 
 
-    # This assumes the boxoffice table already exists,
-    # as in the original script.
+    # Only insert if the table exists.
 
-    cur.execute(
+    table_exists = cur.execute(
         '''
-        INSERT INTO boxoffice
-        (
-            title,
-            wide_theatersopen,
-            wide_theaters,
-            alt_theaters,
-            alt_releasedate,
-            alt_distributor,
-            rlid,
-            imdbid
-        )
-        VALUES (?,?,?,?,?,?,?,?)
-        ''',
-        stuff
-    )
+        SELECT 1
+        FROM sqlite_master
+        WHERE type = 'table'
+        AND name = 'boxoffice'
+        '''
+    ).fetchone()
 
-    cur.connection.commit()
+
+    if table_exists:
+
+        cur.execute(
+            '''
+            INSERT INTO boxoffice
+            (
+                title,
+                wide_theatersopen,
+                wide_theaters,
+                alt_theaters,
+                alt_releasedate,
+                alt_distributor,
+                rlid,
+                imdbid
+            )
+
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ''',
+            stuff
+        )
+
+
+        conn.commit()
+
 
     print(
         stuff
     )
 
 
-# ============================================================================
+# =============================================================================
 # Scan movie folders
-# ============================================================================
+# =============================================================================
 
 for subdir, dirs, files in os.walk(cwd):
 
     for fn in files:
 
-        if not fn.endswith(
-            ".nfo"
+        if not fn.lower().endswith(
+            '.nfo'
         ):
+
             continue
 
+
         try:
+
+            # =================================================================
+            # NFO path
+            # =================================================================
 
             file2 = os.path.join(
                 subdir,
                 fn
             )
 
+
+            # =================================================================
+            # Folder name
+            # =================================================================
+
             basenm2 = os.path.basename(
-                os.path.join(subdir)
+                subdir
             )
 
-            file6 = "[]".join(
+
+            file6 = '[]'.join(
                 basenm2.split('-')[-1:]
             )
 
-            file7 = "[]".join(
+
+            file7 = '[]'.join(
                 basenm2.split('.')[-1:]
             ).split('-')[0]
+
+
+            # =================================================================
+            # Banned folders
+            # =================================================================
 
             banned = [
                 'cd1',
@@ -938,30 +1973,26 @@ for subdir, dirs, files in os.walk(cwd):
             ]
 
 
-            # ----------------------------------------------------------------
-            # Get IMDb ID from NFO
-            # ----------------------------------------------------------------
+            # =================================================================
+            # Get IMDb ID
+            # =================================================================
 
-            try:
-
-                imdb_id = imdburl2(
-                    file2
-                )
-
-            except Exception:
-
-                imdb_id = None
-
-                print(
-                    'IMDb ID not in file'
-                )
+            imdb_id = imdburl2(
+                file2
+            )
 
 
             print()
             print(
+                '=' * 70
+            )
+
+
+            print(
                 'NFO:',
                 file2
             )
+
 
             print(
                 'IMDb ID:',
@@ -969,43 +2000,9 @@ for subdir, dirs, files in os.walk(cwd):
             )
 
 
-            # ----------------------------------------------------------------
-            # Box Office Mojo
-            #
-            # This remains online because the local IMDb database does
-            # not contain Box Office Mojo information.
-            # ----------------------------------------------------------------
-
-            if imdb_id:
-
-                try:
-
-                    boxoffice_url = (
-                        'https://www.boxofficemojo.com/title/'
-                        + imdb_id
-                    )
-
-                    print(
-                        'Fetching Box Office Mojo:'
-                    )
-
-                    get_info_box(
-                        boxoffice_url
-                    )
-
-                except Exception as e:
-
-                    print(
-                        'Film not in boxoffice:',
-                        e
-                    )
-
-
-            # ----------------------------------------------------------------
-            # IMDb information
-            #
-            # NO IMDb web request happens here.
-            # ----------------------------------------------------------------
+            # =================================================================
+            # IMDb information + TMDB summary
+            # =================================================================
 
             if imdb_id:
 
@@ -1015,41 +2012,78 @@ for subdir, dirs, files in os.walk(cwd):
                         imdb_id
                     )
 
+
                 except Exception as e:
 
                     print(
-                        'IMDb database lookup failed:',
+                        'IMDb/TMDB lookup failed:',
                         e
                     )
 
+
                     traceback.print_exc()
+
 
                     imdb_info = (
                         '',
                         '',
-                        '',
-                        '',
+                        [],
+                        [],
                         [],
                         '',
                         ''
                     )
 
+
             else:
+
+                print(
+                    'No IMDb ID found.'
+                )
+
 
                 imdb_info = (
                     '',
                     '',
-                    '',
-                    '',
+                    [],
+                    [],
                     [],
                     '',
                     ''
                 )
 
 
-            # ----------------------------------------------------------------
+            # =================================================================
+            # Box Office Mojo
+            # =================================================================
+
+            if imdb_id:
+
+                try:
+
+                    boxoffice_url = (
+                        BOXOFFICE_BASE_URL
+                        + '/title/'
+                        + imdb_id
+                    )
+
+
+                    get_info_box(
+                        boxoffice_url
+                    )
+
+
+                except Exception as e:
+
+                    print(
+                        'Film not in Box Office Mojo:',
+                        e
+                    )
+
+
+            # =================================================================
             # Store movie
-            # ----------------------------------------------------------------
+            # =================================================================
 
             if (
                 basenm2.lower().split('.')[0]
@@ -1062,14 +2096,10 @@ for subdir, dirs, files in os.walk(cwd):
                         basenm2,
                         file6,
                         genrs(file2),
-                        imdb_info[0],
-                        imdb_info[1],
-                        imdb_info[2],
-                        imdb_info[3],
-                        imdb_info[4],
-                        imdb_info[5],
-                        str(imdb_info[6])
+                        imdb_id,
+                        imdb_info[5]
                     )
+
 
                 except Exception as e:
 
@@ -1078,38 +2108,40 @@ for subdir, dirs, files in os.walk(cwd):
                         e
                     )
 
+
                     traceback.print_exc()
 
 
             number += 1
 
 
-            # No reason to wait 15-20 seconds for IMDb anymore.
-            #
-            # Keep a very short delay because Box Office Mojo is
-            # still queried above.
-
-            r_int = randint(
-                2,
-                4
-            )
+            # =================================================================
+            # Delay for online requests
+            # =================================================================
 
             time.sleep(
-                r_int
+                randint(
+                    2,
+                    4
+                )
             )
 
 
         except Exception as e:
 
             print(
+                'ERROR:',
                 e
             )
 
+
             traceback.print_exc()
+
 
             with open(
                 'err.txt',
-                'a'
+                'a',
+                encoding='utf-8'
             ) as fp:
 
                 fp.write(
@@ -1120,16 +2152,23 @@ for subdir, dirs, files in os.walk(cwd):
                 )
 
 
-# ============================================================================
-# Cleanup
-# ============================================================================
+# =============================================================================
+# Close database
+# =============================================================================
 
-imdb_conn.close()
 conn.close()
+
 
 print()
 print(
-    "Finished. Movies scanned:",
-    number
+    '=' * 70
 )
 
+print(
+    'Finished.'
+)
+
+print(
+    'Movies scanned:',
+    number
+)
